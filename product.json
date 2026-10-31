@@ -1,0 +1,20 @@
+{
+  "name": "CAOS Product",
+  "slug": "caos-product",
+  "tagline": {
+    "en": "A CAOS product built from the archetype template: an example epidemic model, replayed and re-run live.",
+    "es": "Un producto CAOS construido desde la plantilla arquetipo: un modelo epidémico de ejemplo, reproducido y recalculado en vivo."
+  },
+  "repo": "https://github.com/fsantibanezleal/CAOS_PRODUCT_TEMPLATE",
+  "visibility": "public",
+  "license": "MIT",
+  "holder": "Felipe Santibáñez-Leal",
+  "year": 2026,
+  "method_packages": [],
+  "method_entrypoints": [
+    "pipeline.model.sir.simulate",
+    "pipeline.model.sir.derivatives",
+    "pipeline.oracles.final_size",
+    "pipeline.model.baseline.peak_frac"
+  ]
+}
