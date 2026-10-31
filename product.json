@@ -1,20 +1,15 @@
 {
-  "name": "CAOS Product",
-  "slug": "caos-product",
+  "name": "OreBridge",
+  "slug": "orebridge",
   "tagline": {
-    "en": "A CAOS product built from the archetype template: an example epidemic model, replayed and re-run live.",
-    "es": "Un producto CAOS construido desde la plantilla arquetipo: un modelo epidémico de ejemplo, reproducido y recalculado en vivo."
+    "en": "One connected plant: spatial context, process streams and traceable operating evidence.",
+    "es": "Una planta conectada: contexto espacial, corrientes y evidencia operativa trazable."
   },
-  "repo": "https://github.com/fsantibanezleal/CAOS_PRODUCT_TEMPLATE",
+  "repo": "https://github.com/fsantibanezleal/CAOS_OreBridge",
   "visibility": "public",
   "license": "MIT",
   "holder": "Felipe Santibáñez-Leal",
   "year": 2026,
-  "method_packages": [],
-  "method_entrypoints": [
-    "pipeline.model.sir.simulate",
-    "pipeline.model.sir.derivatives",
-    "pipeline.oracles.final_size",
-    "pipeline.model.baseline.peak_frac"
-  ]
+  "method_entrypoints": [],
+  "manuscripts": []
 }
