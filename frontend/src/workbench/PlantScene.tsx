@@ -17,9 +17,10 @@ export function PlantScene({plant,trace,step,method,selected,onSelect,highlight,
   const state=useRef({selected,onSelect,onScopeChange,highlight,playing,trace,step,method,live,now,engines,overlay,lang,scope,areaAssetIds:new Set(areaModel.coreAssets.map(a=>a.id)),areaStreamIds:new Set(areaModel.internalStreams.map(e=>e.id))});state.current={selected,onSelect,onScopeChange,highlight,playing,trace,step,method,live,now,engines,overlay,lang,scope,areaAssetIds:new Set(areaModel.coreAssets.map(a=>a.id)),areaStreamIds:new Set(areaModel.internalStreams.map(e=>e.id))};
   const draw=useRef<(elapsed:number)=>void>(()=>{});
   const {play:requestDraw,pause:pauseDraw}=usePausedViz((_dt,elapsed)=>{draw.current(elapsed);return state.current.playing;});
-  const [error,setError]=useState(''); const [stats,setStats]=useState({triangles:0,ms:0}); const [imported,setImported]=useState(false);
+  const [error,setError]=useState(''); const [stats,setStats]=useState({triangles:0,ms:0}); const statsCaptured=useRef(false); const [imported,setImported]=useState(false);
   useEffect(()=>{
     if(!host.current)return;const element=host.current;let renderer:T.WebGLRenderer;
+    statsCaptured.current=false;
     try{renderer=new T.WebGLRenderer({antialias:true,powerPreference:'high-performance'});}catch{setError('WebGL unavailable; use the process diagram and asset selector. / WebGL no disponible; use el diagrama y selector.');return;}
     renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));renderer.outputColorSpace=T.SRGBColorSpace;renderer.domElement.setAttribute('aria-label','Connected plant 3D / Planta conectada 3D');element.appendChild(renderer.domElement);
     const scene=new T.Scene();const camera=new T.PerspectiveCamera(42,1,.1,1800);camera.position.set(175,150,195);
@@ -66,7 +67,7 @@ export function PlantScene({plant,trace,step,method,selected,onSelect,highlight,
         const ctx=label.canvas.getContext('2d')!;ctx.clearRect(0,0,256,72);ctx.fillStyle=status==='alarm'?'#792c38ed':status==='unavailable'?'#654d1eed':status==='normal'?'#174f47ed':'#253d4eed';ctx.fillRect(0,0,256,72);ctx.strokeStyle=label.asset.id===s.selected?'#72bdff':'#dae9ef';ctx.lineWidth=label.asset.id===s.selected?6:1;ctx.strokeRect(3,3,250,66);ctx.fillStyle='#ecf5fa';ctx.textAlign='center';ctx.font='600 24px monospace';ctx.fillText(text,128,44,246);label.texture.needsUpdate=true;
       }
       particles.forEach((dot,i)=>{dot.visible=s.playing&&dot.userData.available!==false;dot.position.copy((dot.userData.curve as T.QuadraticBezierCurve3).getPoint((t*.00012+i*.13)%1));});
-      renderer.render(scene,camera);element.dataset.renderCount=String(Number(element.dataset.renderCount??0)+1);setStats({triangles:renderer.info.render.triangles,ms:performance.now()-started});
+      renderer.render(scene,camera);if(!statsCaptured.current){statsCaptured.current=true;setStats({triangles:renderer.info.render.triangles,ms:performance.now()-started});}
     };draw.current=animate;invalidate.current=requestDraw;controls.addEventListener('change',requestDraw);requestDraw();
     return()=>{pauseDraw();draw.current=()=>{};resize.disconnect();theme.disconnect();controls.dispose();labels.forEach(l=>{l.texture.dispose();l.sprite.material.dispose();});scene.traverse(o=>{if(o instanceof T.Mesh){o.geometry.dispose();for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();}});renderer.dispose();renderer.domElement.remove();root.current=null;invalidate.current=()=>{};syncAnchors.current=()=>{};};
   },[plant,requestDraw,pauseDraw]);

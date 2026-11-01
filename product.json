@@ -1,6 +1,7 @@
 {
   "name": "CAOS Mineral Plant Explorer",
   "slug": "mineral-plant-explorer",
+  "app": "surface",
   "tagline": {
     "en": "Explore a mine-to-plant operation globally and by area, in spatial plans, process schematics and 3D.",
     "es": "Explore una operación minera completa y por área, con planos espaciales, esquemas de proceso y vistas 3D."

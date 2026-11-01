@@ -157,7 +157,7 @@ Incorrect asset mapping: reject duplicate bindings and expose source node IDs. M
 | ADR-0057 | Instantiate frozen product substrate | Current template 0.14.001, named offline stages and two data contracts |
 | ADR-0058 | Five bilingual themed architecture diagrams | `frontend/src/architecture/` |
 | ADR-0069 | Complete scientific method verticals | Offline stages, checkpoint manifests, same-matrix benchmark and notebooks |
-| ADR-0070 | Workbench Focus and return state | `CaseWorkbench` with focus and shared selection |
+| ADR-0070 | Plant explorer Focus and return state | `SurfacePage` Focus keeps the selected plant view, area, and replay state while exposing its controls in the Focus rail |
 | ADR-0071 | Viewport, reachable controls and stage dimensions | Shared shell and full browser gate |
 | ADR-0074 | CI never trains | Cheap artifact/contract/model smoke only |
 | ADR-0075 | Design and named verification gates before code | This SDD and feature requirements |

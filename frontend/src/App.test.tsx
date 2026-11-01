@@ -34,12 +34,28 @@ describe('the mineral plant workspace entry', () => {
     expect(workbench).not.toContain('<CaseWorkbench');
   });
 
-  it('the root and legacy paths redirect to the App while preserving query and hash state', () => {
+  it('the bare root lands on the Introduction and query-bearing root links reach the App', () => {
+    expect(source).toContain('function RootLandingRedirect()');
+    expect(source).toContain("const pathname = location.search || location.hash ? '/app' : '/introduction'");
+    expect(source).toContain('<Route path="/" element={<RootLandingRedirect />} />');
+    expect(source).toContain("pathname, search: location.search, hash: location.hash");
+  });
+
+  it('unknown paths land on the App while preserving query and hash state', () => {
     expect(source).toContain('function AppEntryRedirect()');
     expect(source).toContain("pathname: '/app', search: location.search, hash: location.hash");
-    expect(source).toContain('<Route path="/" element={<AppEntryRedirect />} />');
     expect(source).toContain('<Route path="/app" element={<Workbench />} />');
     expect(source).toContain('<Route path="*" element={<AppEntryRedirect />} />');
+  });
+
+  it('declares the global explorer as a SurfacePage with area-aware Focus views', () => {
+    const product = JSON.parse(readFileSync(new URL('../../product.json', import.meta.url), 'utf8'));
+    expect(product.app).toBe('surface');
+    const workbench = readFileSync(new URL('./workbench/Workbench.tsx', import.meta.url), 'utf8');
+    expect(workbench).toContain('tabs={tabs}');
+    expect(workbench).toContain('instrument focus');
+    expect(workbench).toContain('rail:focusControls');
+    expect(workbench).toContain('className="ob-focus-controls"');
   });
 
   it('the app holds direct-link state for area, view, asset and replay time', () => {

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router';
-import { useShellLang } from '@fasl-work/caos-app-shell';
+import { SurfacePage, useShellLang, type TabDef } from '@fasl-work/caos-app-shell';
 import { getJSON, loadCase, loadIndex, useArtifact, type CaseData } from '../api/artifacts';
 import type { Plant, EngineEvidence, Observation, SiteSample } from '../lib/contract.types';
 import { acceptSnapshot, linked, METHODS, safeStep } from './model';
@@ -64,39 +64,39 @@ export function Workbench() {
  const pending=<p data-state={loaded.state==='error'?'unavailable':'loading'} className="caos-pending" role="status">{loaded.state==='error'?loaded.error:t('Loading plant and verified replay artifacts…','Cargando planta y artefactos verificados…')}</p>;
  const scopeName=scope==='global'?t('Whole plant','Planta completa'):PLANT_AREAS.find(area=>area.id===scope)?.name[lang]??scope;
  const availableCases=index.state==='ready'?index.data.cases:[];
- let content:React.ReactNode=pending;
- if(s){
-   if(view==='overview')content=<PlantOverviewView s={s}/>;
-   else if(view==='site-plan')content=<SitePlanView s={s}/>;
-   else if(view==='schematic')content=<ProcessSchematicView s={s}/>;
-   else if(view==='3d')content=<SceneView s={s}/>;
-   else if(view==='trends')content=<TrendsView s={s}/>;
-   else content=<div className="ob-analysis-view"><div className="ob-area-nav" role="tablist" aria-label={t('Engine views','Vistas de motores')}><button type="button" role="tab" aria-selected={analysisMode==='engines'} className={`ob-area-chip ${analysisMode==='engines'?'active':''}`} onClick={()=>setAnalysisMode('engines')}>{t('CAOS engine evidence','Evidencia de motores CAOS')}</button><button type="button" role="tab" aria-selected={analysisMode==='models'} className={`ob-area-chip ${analysisMode==='models'?'active':''}`} onClick={()=>setAnalysisMode('models')}>{t('Method comparison','Comparar métodos')}</button></div>{analysisMode==='engines'?<EvidenceView s={s}/>:<ModelView s={s}/>}</div>;
- }
+ const renderView=(active:PlantView):React.ReactNode=>{
+   if(!s)return pending;
+   if(active==='overview')return <PlantOverviewView s={s}/>;
+   if(active==='site-plan')return <SitePlanView s={s}/>;
+   if(active==='schematic')return <ProcessSchematicView s={s}/>;
+   if(active==='3d')return <SceneView s={s}/>;
+   if(active==='trends')return <TrendsView s={s}/>;
+   return <div className="ob-analysis-view"><div className="ob-area-nav" role="tablist" aria-label={t('Engine views','Vistas de motores')}><button type="button" role="tab" aria-selected={analysisMode==='engines'} className={`ob-area-chip ${analysisMode==='engines'?'active':''}`} onClick={()=>setAnalysisMode('engines')}>{t('CAOS engine evidence','Evidencia de motores CAOS')}</button><button type="button" role="tab" aria-selected={analysisMode==='models'} className={`ob-area-chip ${analysisMode==='models'?'active':''}`} onClick={()=>setAnalysisMode('models')}>{t('Method comparison','Comparar métodos')}</button></div>{analysisMode==='engines'?<EvidenceView s={s}/>:<ModelView s={s}/>}</div>;
+ };
+ const controls=<aside className="ob-explorer-side" aria-label={t('Plant inspection and replay controls','Inspección de planta y reproducción')}>
+   <section className="ob-side-section"><span className="ob-eyebrow">{t('CURRENT AREA','ÁREA ACTUAL')}</span><h2>{scopeName}</h2><p>{scope==='global'?t('Open an area to inspect its dedicated process diagram, assets, boundaries and connected engine evidence.','Abra un área para inspeccionar su diagrama de proceso, equipos, límites y evidencia de motores.'):PLANT_AREAS.find(area=>area.id===scope)?.purpose[lang]}</p></section>
+   <label className="ob-control">{t('Equipment','Equipo')}<select aria-label={t('Equipment','Equipo')} value={selected} onChange={event=>chooseAsset(event.target.value)}>{graph.state==='ready'&&(scope==='global'?graph.data.assets:buildAreaModel(graph.data,scope).coreAssets).map(asset=><option key={asset.id} value={asset.id}>{asset.id} · {asset.name[lang]}</option>)}</select></label>
+   {s&&<AssetValues s={s}/>}
+   <details className="ob-side-section" open><summary>{t('Replay and methods','Reproducción y métodos')}</summary>
+     <label className="ob-control">{t('Replay case','Caso de reproducción')}<select aria-label={t('Replay case','Caso de reproducción')} value={selectedCase} onChange={event=>chooseCase(event.target.value)}>{availableCases.map(item=><option key={item.case_id} value={item.case_id}>{item.case_id} · {item.title[lang]}</option>)}</select></label>
+     <label className="ob-control">{t('Replay time','Tiempo de reproducción')} · {step} s<input type="range" aria-label={t('Replay time','Tiempo de reproducción')} min="0" max="159" step="1" value={step} disabled={live!==null} onChange={event=>{setStep(+event.target.value);setPlaying(false);}}/></label>
+     <div className="ob-toolbar"><button disabled={live!==null} onClick={()=>setPlaying(!playing)} aria-pressed={playing}>{playing?t('Pause','Pausar'):t('Play replay','Reproducir')}</button><button disabled={live!==null} onClick={()=>{setStep(0);setPlaying(false);}}>{t('Reset','Reiniciar')}</button></div>
+     <label className="ob-control">{t('Discrepancy method','Método de discrepancia')}<select aria-label={t('Discrepancy method','Método de discrepancia')} value={method} disabled={live!==null} onChange={event=>setMethod(event.target.value)}>{METHODS.map(item=><option key={item}>{item}</option>)}</select></label>
+   </details>
+   <details className="ob-side-section"><summary>{t('Process model controls','Controles del modelo de proceso')}</summary><ProcessRail value={processControls} onChange={setProcessControls}/></details>
+   <details className="ob-side-section"><summary>{t('Connect read-only plant source','Conectar fuente de planta de solo lectura')}</summary><p className="ob-note">{t('Credentials stay in memory. Plant observations are never used to run synthetic replay models.','Las credenciales permanecen en memoria. Las observaciones de planta nunca se usan para ejecutar modelos de reproducción sintética.')}</p><label className="ob-control">{t('Gateway URL','URL del gateway')}<input type="url" value={url} disabled={connected} onChange={event=>setUrl(event.target.value)} placeholder="https://gateway.example"/></label><label className="ob-control">{t('Access token','Token de acceso')}<input type="password" autoComplete="off" value={token} disabled={connected} onChange={event=>setToken(event.target.value)}/></label><button disabled={!connected&&(!url||!token)} onClick={()=>{if(connected){setConnected(false);setLive(null);setHistory([]);setToken('');setSourceError('');}else{setPlaying(false);setLive([]);setHistory([]);setConnected(true);}}}>{connected?t('Disconnect','Desconectar'):t('Connect read-only','Conectar solo lectura')}</button>{sourceError&&<p role="alert">{sourceError}</p>}</details>
+ </aside>;
+ const liveState=<span className={`ob-live-state ${live===null?'synthetic':sourceError?'unavailable':'live'}`}><i/>{live===null?t('Synthetic reference','Referencia sintética'):sourceError?t('Source unavailable','Fuente no disponible'):t('Read-only plant source','Fuente de planta de solo lectura')}</span>;
+ const areaControl=<label className="ob-area-control"><span>{t('Area','Área')}</span><select aria-label={t('Plant area','Área de planta')} value={scope} onChange={event=>chooseScope(event.target.value as PlantScope)}><option value="global">{t('Whole plant','Planta completa')}</option>{PLANT_AREAS.map(area=><option key={area.id} value={area.id}>{area.name[lang]}</option>)}</select></label>;
+ const focusControls=<aside className="ob-focus-controls" aria-label={t('Focused plant controls','Controles de planta enfocada')}>
+   <label className="ob-control">{t('Plant area','Área de planta')}<select aria-label={t('Plant area','Área de planta')} value={scope} onChange={event=>chooseScope(event.target.value as PlantScope)}><option value="global">{t('Whole plant','Planta completa')}</option>{PLANT_AREAS.map(area=><option key={area.id} value={area.id}>{area.name[lang]}</option>)}</select></label>
+   <label className="ob-control">{t('Equipment','Equipo')}<select aria-label={t('Equipment','Equipo')} value={selected} onChange={event=>chooseAsset(event.target.value)}>{graph.state==='ready'&&(scope==='global'?graph.data.assets:buildAreaModel(graph.data,scope).coreAssets).map(asset=><option key={asset.id} value={asset.id}>{asset.id} · {asset.name[lang]}</option>)}</select></label>
+   <label className="ob-control">{t('Replay case','Caso de reproducción')}<select aria-label={t('Replay case','Caso de reproducción')} value={selectedCase} onChange={event=>chooseCase(event.target.value)}>{availableCases.map(item=><option key={item.case_id} value={item.case_id}>{item.case_id} · {item.title[lang]}</option>)}</select></label>
+   <label className="ob-control">{t('Replay time','Tiempo de reproducción')} · {step} s<input type="range" aria-label={t('Replay time','Tiempo de reproducción')} min="0" max="159" step="1" value={step} disabled={live!==null} onChange={event=>{setStep(+event.target.value);setPlaying(false);}}/></label>
+   <label className="ob-control">{t('Discrepancy method','Método de discrepancia')}<select aria-label={t('Discrepancy method','Método de discrepancia')} value={method} disabled={live!==null} onChange={event=>setMethod(event.target.value)}>{METHODS.map(item=><option key={item}>{item}</option>)}</select></label>
+ </aside>;
+ const focused=search.get('focus')==='1';
+ const tabs:TabDef[]=VIEWS.map(item=>({id:item.id,label:item[lang],content:<div className="ob-view-layout" aria-label={`${scopeName} · ${item[lang]}`}>{!focused&&controls}<div className="ob-explorer-stage"><div className="ob-plot-layout">{renderView(item.id)}</div></div></div>,focus:{title:item[lang],description:scopeName,rail:focusControls}}));
 
- return <section className="ob-explorer" aria-label={t('Mineral plant workspace','Espacio de trabajo de planta mineral')}>
-   <header className="ob-explorer-toolbar">
-     <label className="ob-area-control"><span>{t('Area','Área')}</span><select aria-label={t('Plant area','Área de planta')} value={scope} onChange={event=>chooseScope(event.target.value as PlantScope)}><option value="global">{t('Whole plant','Planta completa')}</option>{PLANT_AREAS.map(area=><option key={area.id} value={area.id}>{area.name[lang]}</option>)}</select></label>
-     <nav className="ob-view-tabs" role="tablist" aria-label={t('Plant views','Vistas de planta')}>{VIEWS.map(item=><button key={item.id} type="button" role="tab" aria-selected={view===item.id} className={view===item.id?'active':''} onClick={()=>chooseView(item.id)}>{item[lang]}</button>)}</nav>
-     <span className={`ob-live-state ${live===null?'synthetic':sourceError?'unavailable':'live'}`}><i/>{live===null?t('Synthetic reference','Referencia sintética'):sourceError?t('Source unavailable','Fuente no disponible'):t('Read-only plant source','Fuente de planta de solo lectura')}</span>
-   </header>
-   <div className="ob-explorer-grid">
-     <aside className="ob-explorer-side" aria-label={t('Plant inspection and replay controls','Inspección de planta y reproducción')}>
-       <section className="ob-side-section"><span className="ob-eyebrow">{t('CURRENT AREA','ÁREA ACTUAL')}</span><h2>{scopeName}</h2><p>{scope==='global'?t('Open an area to inspect its dedicated process diagram, assets, boundaries and connected engine evidence.','Abra un área para inspeccionar su diagrama de proceso, equipos, límites y evidencia de motores.'):PLANT_AREAS.find(area=>area.id===scope)?.purpose[lang]}</p></section>
-       <label className="ob-control">{t('Equipment','Equipo')}<select aria-label={t('Equipment','Equipo')} value={selected} onChange={event=>chooseAsset(event.target.value)}>{graph.state==='ready'&&(scope==='global'?graph.data.assets:buildAreaModel(graph.data,scope).coreAssets).map(asset=><option key={asset.id} value={asset.id}>{asset.id} · {asset.name[lang]}</option>)}</select></label>
-       {s&&<AssetValues s={s}/>}
-       <details className="ob-side-section" open><summary>{t('Replay and methods','Reproducción y métodos')}</summary>
-         <label className="ob-control">{t('Replay case','Caso de reproducción')}<select aria-label={t('Replay case','Caso de reproducción')} value={selectedCase} onChange={event=>chooseCase(event.target.value)}>{availableCases.map(item=><option key={item.case_id} value={item.case_id}>{item.case_id} · {item.title[lang]}</option>)}</select></label>
-         <label className="ob-control">{t('Replay time','Tiempo de reproducción')} · {step} s<input type="range" aria-label={t('Replay time','Tiempo de reproducción')} min="0" max="159" step="1" value={step} disabled={live!==null} onChange={event=>{setStep(+event.target.value);setPlaying(false);}}/></label>
-         <div className="ob-toolbar"><button disabled={live!==null} onClick={()=>setPlaying(!playing)} aria-pressed={playing}>{playing?t('Pause','Pausar'):t('Play replay','Reproducir')}</button><button disabled={live!==null} onClick={()=>{setStep(0);setPlaying(false);}}>{t('Reset','Reiniciar')}</button></div>
-         <label className="ob-control">{t('Discrepancy method','Método de discrepancia')}<select aria-label={t('Discrepancy method','Método de discrepancia')} value={method} disabled={live!==null} onChange={event=>setMethod(event.target.value)}>{METHODS.map(item=><option key={item}>{item}</option>)}</select></label>
-       </details>
-       <details className="ob-side-section"><summary>{t('Process model controls','Controles del modelo de proceso')}</summary><ProcessRail value={processControls} onChange={setProcessControls}/></details>
-       <details className="ob-side-section"><summary>{t('Connect read-only plant source','Conectar fuente de planta de solo lectura')}</summary><p className="ob-note">{t('Credentials stay in memory. Plant observations are never used to run synthetic replay models.','Las credenciales permanecen en memoria. Las observaciones de planta nunca se usan para ejecutar modelos de reproducción sintética.')}</p><label className="ob-control">{t('Gateway URL','URL del gateway')}<input type="url" value={url} disabled={connected} onChange={event=>setUrl(event.target.value)} placeholder="https://gateway.example"/></label><label className="ob-control">{t('Access token','Token de acceso')}<input type="password" autoComplete="off" value={token} disabled={connected} onChange={event=>setToken(event.target.value)}/></label><button disabled={!connected&&(!url||!token)} onClick={()=>{if(connected){setConnected(false);setLive(null);setHistory([]);setToken('');setSourceError('');}else{setPlaying(false);setLive([]);setHistory([]);setConnected(true);}}}>{connected?t('Disconnect','Desconectar'):t('Connect read-only','Conectar solo lectura')}</button>{sourceError&&<p role="alert">{sourceError}</p>}</details>
-     </aside>
-     <main className="ob-explorer-stage" id="main" aria-label={`${scopeName} · ${VIEWS.find(item=>item.id===view)?.[lang]}`}>
-       {content}
-     </main>
-   </div>
- </section>;
+ return <SurfacePage title={{en:scopeName,es:scopeName}} lede={scope==='global'?t('Mine to plant · global and area views','Mina a planta · vistas globales y por área'):PLANT_AREAS.find(area=>area.id===scope)?.purpose[lang]} actions={<div className="ob-surface-actions">{areaControl}{liveState}</div>} tabs={tabs} value={view} onChange={id=>chooseView(id as PlantView)} deepLinkView="view" ariaLabel={{en:'Plant views',es:'Vistas de planta'}} instrument focus />;
 }

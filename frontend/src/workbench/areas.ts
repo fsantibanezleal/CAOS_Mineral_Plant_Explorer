@@ -3,6 +3,12 @@ import type { Asset, Plant, Stream } from '../lib/contract.types';
 export type AreaId = 'mine-extraction' | 'crushing-stockpiling' | 'grinding' | 'flotation' | 'leach-sx-ew' | 'thickening-filtration' | 'water-balance' | 'tailings' | 'utilities';
 export type PlantScope = 'global' | AreaId;
 
+export function scopedRecords<T extends { asset_id: string }>(records: readonly T[], scope: PlantScope, assetIds: readonly string[]): T[] {
+  if (scope === 'global') return [...records];
+  const included = new Set(assetIds);
+  return records.filter((record) => included.has(record.asset_id));
+}
+
 export interface PlantArea {
   id: AreaId;
   name: { en: string; es: string };

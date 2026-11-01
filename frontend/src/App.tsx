@@ -18,6 +18,12 @@ const Introduction = lazy(() => import('./pages/Introduction').then((module) => 
 const Methodology = lazy(() => import('./pages/Methodology').then((module) => ({ default: module.Methodology })));
 const Workbench = lazy(() => import('./workbench/Workbench').then((module) => ({ default: module.Workbench })));
 
+function RootLandingRedirect() {
+  const location = useLocation();
+  const pathname = location.search || location.hash ? '/app' : '/introduction';
+  return <Navigate to={{ pathname, search: location.search, hash: location.hash }} replace/>;
+}
+
 function AppEntryRedirect() {
   const location = useLocation();
   return <Navigate to={{ pathname: '/app', search: location.search, hash: location.hash }} replace/>;
@@ -41,7 +47,7 @@ export function App() {
       <AppShell config={config}>
         <Suspense fallback={<p className="caos-pending" data-state="loading" role="status" aria-label="Loading / Cargando">…</p>}>
           <Routes>
-            <Route path="/" element={<AppEntryRedirect />} />
+            <Route path="/" element={<RootLandingRedirect />} />
             <Route path="/app" element={<Workbench />} />
             <Route path="/introduction" element={<Introduction />} />
             <Route path="/methodology" element={<Methodology />} />

@@ -29,6 +29,7 @@ These are product acceptance tests, not only code checks. A test fails if a diff
 | TDD-16 | With no real gateway configured, the app states synthetic replay. A configured live source labels source, freshness and quality; stale, bad and missing inputs are visibly unavailable. |
 | TDD-16a | Hovering/focusing an overview area reveals its useful preview; clicking/activating opens a dedicated area workspace and materially changes all three representations and area-specific information. Keyboard activation works. |
 | TDD-16b | Opening an area from a global 2D plan keeps the 2D plan active and replaces its global spatial composition with the selected area's spatial composition. The same rule holds for schematic and 3D views; URL, area selector, equipment list and view label agree. |
+| TDD-16c | Selecting an area filters CAOS engine links and method-comparison channels to its core assets; the water-balance scope uses its participating water-bearing assets. Global scope retains all evidence, and areas with no bound engine show an explicit empty state. |
 
 ## C. Integration tests
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import plant from '../../../data/derived/plant.json';
 import type { Plant } from '../lib/contract.types';
-import { aggregateWaterRoutes, buildAreaModel, PLANT_AREAS } from './areas';
+import { aggregateWaterRoutes, buildAreaModel, PLANT_AREAS, scopedRecords } from './areas';
 
 const typedPlant = plant as Plant;
 
@@ -75,6 +75,15 @@ describe('plant area model', () => {
     expect(global.streams).toHaveLength(typedPlant.streams.length);
     expect(water.streams.length).toBeLessThan(global.streams.length);
     expect(water.area?.id).toBe('water-balance');
+  });
+
+  it('adversarial: engine evidence and method-comparison channels stay inside the selected area', () => {
+    const records = [{ asset_id: 'SAG', id: 'mill' }, { asset_id: 'FL1', id: 'rougher' }, { asset_id: 'FL2', id: 'cleaner' }];
+    const flotationIds = buildAreaModel(typedPlant, 'flotation').coreAssets.map((asset) => asset.id);
+    const waterIds = buildAreaModel(typedPlant, 'water-balance').coreAssets.map((asset) => asset.id);
+    expect(scopedRecords(records, 'flotation', flotationIds).map((record) => record.asset_id)).toEqual(['FL1', 'FL2']);
+    expect(scopedRecords(records, 'water-balance', waterIds)).toEqual(records);
+    expect(scopedRecords(records, 'global', []).map((record) => record.asset_id)).toEqual(['SAG', 'FL1', 'FL2']);
   });
 });
 

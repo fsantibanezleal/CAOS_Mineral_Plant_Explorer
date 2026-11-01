@@ -170,7 +170,7 @@ function AreaCard({ s, area, position, onOpen }: { s: ViewState; area: (typeof P
   const lang = useShellLang();
   const model = useMemo(() => buildAreaModel(s.plant, area.id), [s.plant, area.id]);
   const representatives = model.coreAssets.slice(0, 3);
-  return <g className={`ob-plan-area ${s.scope === area.id ? 'active' : ''}`} role="button" tabIndex={0} aria-label={`${area.name[lang]} — ${lang === 'es' ? 'abrir área' : 'open area'}`} aria-pressed={s.scope === area.id}
+  return <g className={`ob-plan-area ${s.scope === area.id ? 'active' : ''}`} role="button" tabIndex={0} aria-label={`${area.name[lang]} · ${lang === 'es' ? 'abrir área' : 'open area'}`} aria-pressed={s.scope === area.id}
     transform={`translate(${position.x - 112},${position.y - 75})`} onClick={onOpen} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onOpen(); } }}>
     <rect className="ob-area-zone" width="224" height="150" rx="18" style={{ '--area-color': area.color } as CSSProperties}/>
     <text className="ob-plan-index" x="18" y="27">{String(PLANT_AREAS.indexOf(area) + 1).padStart(2, '0')}</text>
@@ -189,7 +189,7 @@ export function PlantOverviewView({ s }: { s: ViewState }) {
   const isGlobal = s.scope === 'global';
   return <AtlasFrame s={s} title={{ en: isGlobal ? 'Connected plant overview' : `${model.area!.name.en} · area workspace`, es: isGlobal ? 'Vista general de planta conectada' : `${model.area!.name.es} · área de trabajo` }}>
     <div className="ob-atlas-view">
-      <AreaSelector s={s}/>
+      {!isGlobal && <AreaSelector s={s}/>}
       <header className="ob-atlas-heading"><div><span className="ob-eyebrow">{isGlobal ? (lang === 'es' ? 'MINA → PLANTA' : 'MINE → PLANT') : (lang === 'es' ? 'ÁREA DE PROCESO' : 'PROCESS AREA')}</span><h2>{isGlobal ? (lang === 'es' ? 'Operación minera y planta de procesos' : 'Mine and mineral processing plant') : model.area!.name[lang]}</h2><p>{isGlobal ? (lang === 'es' ? 'Seleccione un área para abrir su vista de proceso, información y evidencia.' : 'Select an area to open its process views, information and evidence.') : model.area!.purpose[lang]}</p></div><span className={`ob-source-badge ${s.live === null ? 'synthetic' : 'live'}`}><i/>{s.live === null ? (lang === 'es' ? 'REPRODUCCIÓN SINTÉTICA' : 'SYNTHETIC REPLAY') : (lang === 'es' ? 'GATEWAY SOLO LECTURA' : 'READ-ONLY GATEWAY')}</span></header>
       {isGlobal && <AreaInformation s={s} model={model}/>}
       {isGlobal ? <div className="ob-overview-body">
@@ -197,13 +197,13 @@ export function PlantOverviewView({ s }: { s: ViewState }) {
           <svg className="ob-overview-map" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={lang === 'es' ? 'Áreas de planta conectadas' : 'Connected plant areas'}>
             <defs><marker id="ob-plan-arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 10 5 0 10z" fill="context-stroke"/></marker></defs>
             <path className="ob-overview-lane" d="M45 325H1435M45 650H1435"/>
-            <FlowPath from={{x:267,y:186}} to={{x:293,y:186}} color="#c58e5b" label={lang === 'es' ? 'mineral' : 'ore'}/>
-            <FlowPath from={{x:517,y:186}} to={{x:553,y:186}} color="#bd986a" label="feed"/>
-            <FlowPath from={{x:777,y:186}} to={{x:813,y:186}} color="#c7a46a" label="slurry"/>
-            <FlowPath from={{x:1037,y:186}} to={{x:1070,y:186}} color="#9cb28e" label="concentrate"/>
-            <FlowPath from={{x:517,y:220}} to={{x:520,y:435}} color="#48a8bc" label="solution"/>
-            <FlowPath from={{x:1037,y:225}} to={{x:1090,y:435}} color="#a09583" label="tailings"/>
-            <FlowPath from={{x:1195,y:261}} to={{x:1195,y:435}} color="#3e9fba" label={lang === 'es' ? 'agua recuperada' : 'reclaim water'} dashed/>
+            <FlowPath from={{x:267,y:186}} to={{x:293,y:186}} color="#c58e5b"/>
+            <FlowPath from={{x:517,y:186}} to={{x:553,y:186}} color="#bd986a"/>
+            <FlowPath from={{x:777,y:186}} to={{x:813,y:186}} color="#c7a46a"/>
+            <FlowPath from={{x:1037,y:186}} to={{x:1070,y:186}} color="#9cb28e"/>
+            <FlowPath from={{x:517,y:220}} to={{x:520,y:435}} color="#48a8bc"/>
+            <FlowPath from={{x:1037,y:225}} to={{x:1090,y:435}} color="#a09583"/>
+            <FlowPath from={{x:1195,y:261}} to={{x:1195,y:435}} color="#3e9fba" dashed/>
             {PLANT_AREAS.filter((area) => area.id !== 'water-balance' && area.id !== 'utilities').map((area) => <AreaCard key={area.id} s={s} area={area} position={AREA_POS[area.id]} onOpen={() => s.onScopeChange(area.id)}/>)}
             {PLANT_AREAS.filter((area) => area.id === 'water-balance' || area.id === 'utilities').map((area) => <AreaCard key={area.id} s={s} area={area} position={AREA_POS[area.id]} onOpen={() => s.onScopeChange(area.id)}/>)}
           </svg>
@@ -239,7 +239,7 @@ export function SitePlanView({ s }: { s: ViewState }) {
           const group = s.plant.assets.filter((asset) => area.assetIds.includes(asset.id));
           const p = AREA_POS[area.id];
           const assets = group.slice(0, 4);
-          return <g key={area.id} className="ob-plan-area" role="button" tabIndex={0} aria-label={`${area.name[lang]} — open area`} onClick={() => s.onScopeChange(area.id)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); s.onScopeChange(area.id); } }} transform={`translate(${p.x - 105},${p.y - 68})`}>
+          return <g key={area.id} className="ob-plan-area" role="button" tabIndex={0} aria-label={`${area.name[lang]} · open area`} onClick={() => s.onScopeChange(area.id)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); s.onScopeChange(area.id); } }} transform={`translate(${p.x - 105},${p.y - 68})`}>
             <rect className="ob-area-zone" width="210" height="136" rx="16" style={{ '--area-color': area.color } as CSSProperties}/><text className="ob-plan-title" x="16" y="25">{area.name[lang]}</text><text className="ob-plan-count" x="16" y="43">{group.length} {lang === 'es' ? 'equipos' : 'assets'} · {lang === 'es' ? 'abrir' : 'open'} ↗</text>
             {assets.map((asset, index) => <g key={asset.id} transform={`translate(${10 + index * 48},57)`} className="ob-plan-asset" onClick={(e) => { e.stopPropagation(); s.onSelect(asset.id); s.onScopeChange(area.id); }}><EquipmentGlyph asset={asset} compact/><text x="30" y="57" textAnchor="middle">{asset.id}</text></g>)}
           </g>;
