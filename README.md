@@ -18,7 +18,7 @@ The authored copper complex contains 36 assets and 47 streams. Sixteen benchmark
 | Packages | [minehaulsim](https://pypi.org/project/minehaulsim/), [bedblend](https://pypi.org/project/bedblend/), [milldem](https://pypi.org/project/milldem/), [oreblocks](https://pypi.org/project/oreblocks/) | active | Consumes [minehaulsim 0.12.1](https://pypi.org/project/minehaulsim/0.12.1/), [bedblend 0.7.3](https://pypi.org/project/bedblend/0.7.3/), [milldem 0.3.1](https://pypi.org/project/milldem/0.3.1/) and [oreblocks 0.6.6](https://pypi.org/project/oreblocks/0.6.6/). No OreBridge PyPI package is claimed. |
 | Notebooks | [notebooks/](notebooks/) | active | Four executed bilingual lesson pairs, eight EN/ES files and four progressive levels, importing the actual implementations. |
 | Data | [data/](data/) | active | Compact authored synthetic replay, measured comparisons and exact upstream evidence with license classes. |
-| Contracts | [docs/contracts/](docs/contracts/) | active | Thirteen versioned boundaries, JSON schemas, OpenAPI, examples and an independent fixture provider. |
+| Contracts | [docs/contracts/](docs/contracts/) | active | Fifteen versioned boundaries, JSON schemas, OpenAPI, examples and an independent fixture provider. |
 | Documentation | [docs/](docs/) | active | Design, primary research, methods, assumptions, case matrix and applied guides. |
 | Tests and gates | [tests/](tests/), [scripts/](scripts/) | active | Numerical oracles, source/contract checks, adversarial interactions, full browser matrix and notebook execution. |
 | Deploy | [deploy/](deploy/) | active | Single public Pages target and served-commit verification; site commissioning is separate. |
@@ -52,4 +52,6 @@ No site historian, survey, instrument credentials or operator acceptance has bee
 
 Code and authored repository artifacts use MIT. Manuscripts identify their own CC BY 4.0 terms. Upstream rights remain attached to each exact source record.
 
-Read the [technical report](https://doi.org/10.5281/zenodo.23851365) and [controlled-study preprint](https://doi.org/10.5281/zenodo.23851369). Their [sources](manuscripts/README.md) are reproducible; the [software release](https://github.com/fsantibanezleal/CAOS_OreBridge/releases/tag/v0.01.000) carries the fitted checkpoint separately.
+Read the [technical report](https://doi.org/10.5281/zenodo.23851639) and [controlled-study preprint](https://doi.org/10.5281/zenodo.23851369). Their [sources](manuscripts/README.md) are reproducible; the [software release](https://github.com/fsantibanezleal/CAOS_OreBridge/releases/tag/v0.01.001) carries the fitted checkpoint separately.
+
+Two causal model families are actually fitted: histogram gradient boosting and Ridge. Their [registry](models/registry.json) names separate checkpoints and exact evaluations. The additional paired comparison contains 768 new Ridge evaluations and 768 reused HGB rows on the original known test slots. Ridge improves recall while increasing false alerts and reducing precision; this is a post-publication extension, without a claim of prospective or field validation.
