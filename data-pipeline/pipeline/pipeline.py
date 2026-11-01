@@ -22,7 +22,9 @@ def main():
             "sources",
             "preprocess",
             "train",
+            "train-ridge",
             "infer",
+            "extend",
             "evaluate",
             "export",
             "validate",
@@ -47,7 +49,7 @@ def main():
         if not a.cache_root:
             p.error("sources requires --cache-root outside the repository")
         bake_plant.sources(a.output, a.cache_root)
-    elif a.stage in ["all", "infer"]:
+    elif a.stage in ["all", "infer", "extend"]:
         if not a.models_root:
             p.error("model stage requires --models-root outside the repository")
         bake_plant.run_all(
@@ -64,6 +66,12 @@ def main():
         bake_plant.evaluate_existing(a.output, a.models_root, a.benchmark)
     elif a.stage == "export":
         bake_plant.finalize_existing(a.output)
+    elif a.stage == "train-ridge":
+        if not a.models_root:
+            p.error("train-ridge requires --models-root outside the repository")
+        from .stages.learned_compare import train_ridge
+
+        train_ridge(a.models_root)
     elif a.stage == "train":
         if not a.models_root:
             p.error("train requires --models-root outside the repository")

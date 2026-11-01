@@ -1,8 +1,5 @@
 {
   "schema": "orebridge.methodology-content/v1",
-  "purpose": "Independent bounded research content for main-agent review before integration",
-  "language_policy": "Each visible field has original English and Spanish companions",
-  "learned_family_count": 1,
   "methods": [
     {
       "id": "quality-threshold",

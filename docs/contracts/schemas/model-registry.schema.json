@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "model-registry.schema.json",
+  "title": "ModelRegistry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "models"
+  ],
+  "properties": {
+    "schema": {
+      "const": "orebridge.model-registry/v1"
+    },
+    "models": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "family",
+          "trained",
+          "manifest",
+          "fit",
+          "checkpoint",
+          "evaluation"
+        ],
+        "properties": {
+          "id": {
+            "enum": [
+              "forecast",
+              "ridge"
+            ]
+          },
+          "family": {
+            "type": "string",
+            "minLength": 1
+          },
+          "trained": {
+            "const": true
+          },
+          "manifest": {
+            "type": "string",
+            "pattern": "^data/derived/state-model(?:-ridge)?\\.json$"
+          },
+          "fit": {
+            "type": "string",
+            "pattern": "^pipeline\\.model\\.learning\\.fit_(normal|ridge)$"
+          },
+          "checkpoint": {
+            "enum": [
+              "forecast-model.joblib",
+              "ridge-model.joblib"
+            ]
+          },
+          "evaluation": {
+            "enum": [
+              "data/derived/benchmark.json",
+              "data/derived/learned-comparison.json"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

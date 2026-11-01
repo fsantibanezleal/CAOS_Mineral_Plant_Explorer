@@ -21,6 +21,7 @@ from ..model.plant import reference_plant, validate_graph
 from ..model.scenarios import channel_specs, generate
 from ..model.thickener import simulate_thickener
 from .plant_evaluate import benchmark, calibrate, evaluate_one
+from .learned_compare import train_ridge, compare as compare_learned, summary as ridge_summary
 
 ROOT = Path(__file__).resolve().parents[3]
 VERSION = (ROOT / "VERSION").read_text().strip()
@@ -52,6 +53,7 @@ def train(models: Path):
     models.mkdir(parents=True, exist_ok=True)
     bundle = fit_normal()
     joblib.dump(bundle, models / "forecast-model.joblib", compress=3)
+    train_ridge(models)
     summary = {k: clean(v) for k, v in bundle.items() if k != "model"}
     summary.update(
         {
@@ -213,6 +215,10 @@ def run_all(
     entries = [export_case(c, output, bundle, thresholds) for c in registry.list_cases()]
     if stage == "infer":
         return entries
+    if stage == "extend":
+        reference = json.loads((output / "benchmark.json").read_text(encoding="utf-8"))
+        export_learned_comparison(output, models, reference)
+        return finalize_existing(output, entries)
     result = benchmark(
         bundle,
         thresholds,
@@ -223,7 +229,17 @@ def run_all(
     from .analysis import analyze
 
     write_json(output / "benchmark-analysis.json", clean(analyze(result)))
+    export_learned_comparison(output, models, result)
     return finalize_existing(output, entries)
+
+
+def export_learned_comparison(output, models, result):
+    checkpoint = models / "ridge-model.joblib"
+    if not checkpoint.is_file():
+        raise FileNotFoundError("real ridge checkpoint absent; run train-ridge explicitly")
+    bundle = joblib.load(checkpoint)
+    write_json(output / "state-model-ridge.json", clean(ridge_summary(bundle, checkpoint)))
+    write_json(output / "learned-comparison.json", clean(compare_learned(result, bundle)))
 
 
 def finalize_existing(output: Path, entries=None):
@@ -246,6 +262,8 @@ def finalize_existing(output: Path, entries=None):
         "downstream.json",
         "benchmark.json",
         "state-model.json",
+        "state-model-ridge.json",
+        "learned-comparison.json",
         "readiness.json",
     ]
     index = {
@@ -269,6 +287,23 @@ def validate(output: Path):
     graph = json.loads((output / "plant.json").read_text(encoding="utf-8"))
     validate_graph(graph)
     index = json.loads((output / "manifests/index.json").read_text(encoding="utf-8"))
+    for file in index["files"]:
+        if not (output / file).is_file():
+            raise ValueError("required declared artifact absent: " + file)
+    model_registry = json.loads((ROOT / "models/registry.json").read_text(encoding="utf-8"))
+    if {r["id"] for r in model_registry["models"]} != {"forecast", "ridge"} or len(
+        model_registry["models"]
+    ) != 2:
+        raise ValueError("the two trained model families must be complete and unique")
+    for model in model_registry["models"]:
+        manifest_file = output / Path(model["manifest"]).name
+        if not manifest_file.is_file():
+            raise ValueError("required trained model manifest absent: " + model["id"])
+        manifest = json.loads(manifest_file.read_text(encoding="utf-8"))
+        if manifest["checkpoint"] != model["checkpoint"] or not model["trained"]:
+            raise ValueError("trained model checkpoint identity mismatch")
+        if not (output / Path(model["evaluation"]).name).is_file():
+            raise ValueError("trained model held-out evaluation absent")
     for entry in index["cases"]:
         manifest = json.loads((output / entry["manifest_path"]).read_text(encoding="utf-8"))
         artifact = manifest["artifact"]
@@ -282,6 +317,18 @@ def validate(output: Path):
     count = 12 * len(b["protocol"]["test_seeds"]) * len(b["protocol"]["severity"]) * 8
     if len(b["rows"]) != count:
         raise ValueError("benchmark matrix has missing method/case cells")
+    additional = json.loads((output / "learned-comparison.json").read_text(encoding="utf-8"))
+    if len(additional["rows"]) != count // 4:
+        raise ValueError("paired learned comparison has missing cells")
+    for method in ("forecast", "ridge"):
+        rows = [r for r in additional["rows"] if r["method"] == method]
+        expected = {(r["family"], r["seed"], r["severity"]) for r in b["rows"] if r["method"] == "forecast"}
+        if len(rows) != len(expected) or {(r["family"], r["seed"], r["severity"]) for r in rows} != expected:
+            raise ValueError("paired learned comparison duplicates or omits protocol cells")
+    if [r for r in additional["rows"] if r["method"] == "forecast"] != [
+        r for r in b["rows"] if r["method"] == "forecast"
+    ]:
+        raise ValueError("reused HGB rows differ from the published comparison")
     print(f"validated {len(index['cases'])} plant scenarios and {count} benchmark cells", flush=True)
 
 
@@ -298,4 +345,5 @@ def evaluate_existing(output: Path, models: Path, full_benchmark=False):
 
     write_json(output / "benchmark.json", clean(result))
     write_json(output / "benchmark-analysis.json", clean(analyze(result)))
+    export_learned_comparison(output, models, result)
     return result

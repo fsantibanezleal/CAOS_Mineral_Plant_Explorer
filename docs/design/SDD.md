@@ -31,6 +31,8 @@ The brief frames current energy and water pressures for plant operations, engine
 | Real source engines | minehaulsim, bedblend, milldem and oreblocks are released PyPI packages; app-specific outputs are ingested from exact public source SHAs | https://pypi.org/project/minehaulsim/ ; https://pypi.org/project/bedblend/ ; https://pypi.org/project/milldem/ ; https://pypi.org/project/oreblocks/ |
 | Current problem context | Cochilco projects 20.2 percent electricity growth 2025-2034 and 67.6 percent seawater supply share in 2034 | https://www.cochilco.cl/web/informe-proyeccion-del-consumo-de-energia-electrica-en-la-mineria-del-cobre-periodo-2025-2034-2/ ; https://www.cochilco.cl/web/https-www-cochilco-cl-web-download-1014-2026-15581-informe-proyeccion-de-la-demanda-de-agua-en-la-mineria-del-cobre-en-chile-periodo-2025-2034-pdf/ |
 
+| Additional trained linear causal family | Native multioutput Ridge with L2 coefficients and an unpenalized intercept; actual scaled fit and separate original-unit residual calibration | https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Ridge.html |
+
 UNVERIFIED: field performance, site geometry/credentials and global priority/superiority of the proposed method. Published vendor features establish prior art, not independent performance. No site-specific predictive claim is made.
 
 ## Sizing and contracts
@@ -119,6 +121,7 @@ Offline: download exact public source artifacts, execute real released engine pa
 | M-2 | classical | Linear constrained weighted least-squares reconciliation | Exact solution agrees with independent constrained solve, conservation residual below 1e-9 and no singular solve on deficient graphs | `tests/test_models.py` |
 | M-3 | sota | Huber robust reconciliation using SciPy optimization | Independent objective checks, finite convergence and correct degeneracy on zero residual, with held-out detection results | `tests/test_models.py` |
 | M-4 | sota | Calibrated multichannel normal-state prediction | Real trained normal-state model, held-out forecast errors and calibration threshold; next-step inputs never use future observations | `tests/test_learning.py` |
+| M-5 | classical | Trained causal ridge autoregression with SVD and an unpenalized intercept | Independent augmented/normal-equation agreement, physical output units, refused leaking/invalid history and paired held-out counts with its own checkpoint | `tests/test_ridge.py` |
 | BS-1 | beyond | Topology-Aware State Coherence | A temporal validity mask and robust fusion of compatible fixed OreFlow-reference ratio pseudo-observations with conservation factors; declared source/graph metadata, same-matrix evaluation and topology/engine/freshness ablations | `tests/test_tasc.py` |
 
 ## Cases
@@ -194,3 +197,11 @@ The didactic notebooks invoke these canonical implementations directly. They do 
 ## Corrected independent review
 
 An independent read-only review reproduced all four released package digests and all ten pinned artifact hashes/metrics, checked 48 robust objectives against an independent optimizer and reconciled every aggregate count. Its corrected-candidate recheck resolved eleven identity, timing, boundary, causality, geometry and numerical-resolution findings. Claim scope is bounded here: fixed noise scale one, fixed dry-solids ratio prior, eleven steady-state factors, explicit evidence times and no dynamic-inventory or automatic causal-diagnosis claim. Full local release checks, exact-commit CI and served-artifact verification remain separate evidence.
+
+## Additional learned family, release extension
+
+The first implementation and published eight-method study used one trained HGB family. The depth review identified the requirement for a second actual trained family. Release0.01.001 adds regularized linear causal prediction, preserving the original6144-cell study, paired analysis and12trace bytes. The additional comparison has768reused HGB rows and768new Ridge evaluations on the same original protocol slots. It is a post-publication extension using already known test seeds, not prospectively untouched selection. Alpha1, native multioutput SVD and an unpenalized intercept were fixed before viewing Ridge aggregate results. Each target is independent conditional on shared features; no correlated-output covariance is fitted.
+
+Primary source: [scikit-learn Ridge](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Ridge.html), verified2026-11-01. Ridge minimizes an unaveraged squared error plus alpha times coefficient squared norm. Target standard deviations from training scale all four lag vectors and targets; this does not itself subtract the mean. Predictions and calibration residuals return to each channel's original units. Training100..107, normal calibration200..203, first14 common evaluation rows withheld, higher99.5th normal residual quantile.
+
+Model boundary: separate real checkpoints and manifests for HGB and Ridge, a typed learned-comparison artifact with exact protocol joins, all counts/coverage and seed-block uncertainty. A malformed mask admitting nonfinite target data is refused. Missing source values are filled only inside input history; numerical targets remain unavailable. Ridge may gain recall at a higher false-alert rate and lower precision; no uniform superiority or field efficacy follows. `tests/test_ridge.py`, two-sided contract tests and independent review verify this extension.

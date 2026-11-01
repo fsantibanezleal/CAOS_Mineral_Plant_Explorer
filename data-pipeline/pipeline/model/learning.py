@@ -5,6 +5,7 @@ from __future__ import annotations
 import numpy as np
 from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.multioutput import MultiOutputRegressor
+from sklearn.linear_model import Ridge
 
 from .scenarios import generate
 
@@ -63,3 +64,40 @@ def forecast_scores(bundle, values):
     out = np.full(values.shape, np.nan)
     out[bundle["lags"] :] = np.abs(y - pred) / bundle["threshold"]
     return out
+
+
+def fit_ridge(train_seeds=range(100, 108), calibration_seeds=range(200, 204), alpha=1.0):
+    """Fit a distinct causal linear predictor; alpha penalizes dimensionless coefficients."""
+    train_seeds, calibration_seeds = list(train_seeds), list(calibration_seeds)
+    if (
+        not train_seeds
+        or not calibration_seeds
+        or len(set(train_seeds)) != len(train_seeds)
+        or len(set(calibration_seeds)) != len(calibration_seeds)
+        or set(train_seeds) & set(calibration_seeds)
+    ):
+        raise ValueError("empty, repeated or overlapping training/calibration seeds")
+    if not np.isfinite(alpha) or alpha <= 0:
+        raise ValueError("ridge alpha must be finite and positive")
+    pairs = [lagged(generate(seed=s, steps=200).observed) for s in train_seeds]
+    X, Y = (np.concatenate([pair[j] for pair in pairs]) for j in (0, 1))
+    scale = np.maximum(np.std(Y, axis=0), 1e-9)
+    model = Ridge(alpha=alpha, fit_intercept=True, solver="svd")
+    model.fit(X / np.tile(scale, LAGS), Y / scale)
+    errors = []
+    for seed in calibration_seeds:
+        x, y = lagged(generate(seed=seed, steps=200).observed)
+        errors.append(np.abs(y - model.predict(x / np.tile(scale, LAGS)) * scale))
+    errors = np.concatenate(errors)
+    return {
+        "model": model,
+        "scale": scale,
+        "threshold": np.maximum(np.quantile(errors, 0.995, axis=0, method="higher"), 1e-8),
+        "train_seeds": train_seeds,
+        "calibration_seeds": calibration_seeds,
+        "lags": LAGS,
+        "normal_training_rows": len(Y),
+        "calibration_rows": len(errors),
+        "normal_mae": np.mean(errors, axis=0),
+        "alpha": float(alpha),
+    }

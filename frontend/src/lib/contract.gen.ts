@@ -686,6 +686,121 @@ export interface components {
                 };
             };
         };
+        /** LearnedComparison */
+        LearnedComparison: {
+            /** @constant */
+            schema: "orebridge.learned-comparison/v1";
+            provenance: string;
+            protocol: {
+                test_seeds: number[];
+                severity: number[];
+                train_seeds: number[];
+                forecast_calibration_seeds: number[];
+                state_calibration_seeds: number[];
+                /** @constant */
+                point_adjustment: false;
+                /** @constant */
+                channels: 16;
+                /** @constant */
+                steps: 160;
+                /** @constant */
+                noise_scale: 1;
+                /** @constant */
+                numerical_quality_separation: true;
+                threshold_quantile: number;
+            };
+            aggregate: {
+                method: string;
+                tp: number;
+                fp: number;
+                fn: number;
+                tn: number;
+                precision: number | null;
+                recall: number | null;
+                false_positive_rate: number | null;
+                cases: number;
+                scored_points: number;
+                unscorable_points: number;
+            }[];
+            rows: {
+                method: string;
+                family: string;
+                seed: number;
+                severity: number;
+                numeric: {
+                    tp: number;
+                    fp: number;
+                    fn: number;
+                    tn: number;
+                    precision: number | null;
+                    recall: number | null;
+                    false_positive_rate: number | null;
+                };
+                source_quality: {
+                    tp: number;
+                    fp: number;
+                    fn: number;
+                    tn: number;
+                    precision: number | null;
+                    recall: number | null;
+                    false_positive_rate: number | null;
+                };
+                event: {
+                    tp: number;
+                    fp: number;
+                    fn: number;
+                    tn: number;
+                    precision: number | null;
+                    recall: number | null;
+                    false_positive_rate: number | null;
+                };
+                detection_delay_s: number | null;
+                scored_points: number;
+                unscorable_points: number;
+                timing_alignment_s: number;
+            }[];
+            elapsed_s: number;
+            validation_design: string;
+            channels: Record<string, never>[];
+            examples: {
+                family: string;
+                seed: number;
+                severity: number;
+                time_s: number[];
+                scores: (number | null)[][];
+            }[];
+            paired_recall: {
+                /** @constant */
+                method: "ridge";
+                /** @constant */
+                reference: "forecast";
+                seed_blocks: number;
+                /** @constant */
+                resamples: 5000;
+                /** @constant */
+                seed: 414;
+                difference: number;
+                ci95: number[];
+            };
+        };
+        /** ModelRegistry */
+        ModelRegistry: {
+            /** @constant */
+            schema: "orebridge.model-registry/v1";
+            models: {
+                /** @enum {unknown} */
+                id: "forecast" | "ridge";
+                family: string;
+                /** @constant */
+                trained: true;
+                manifest: string;
+                fit: string;
+                /** @enum {unknown} */
+                checkpoint: "forecast-model.joblib" | "ridge-model.joblib";
+                /** @enum {unknown} */
+                evaluation: "data/derived/benchmark.json" | "data/derived/learned-comparison.json";
+            }[];
+        };
         entry: {
             /** @description The catalog row id. */
             id: string;

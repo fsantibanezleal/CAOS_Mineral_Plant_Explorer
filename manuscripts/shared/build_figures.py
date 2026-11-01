@@ -121,7 +121,13 @@ def main():
     table += r"\toprule Source & Pin & License & Asset & First extracted quantity\\\midrule" + "\n"
     table += "\n".join(source_rows) + "\n" + r"\bottomrule\end{tabular}" + "\n"
     (OUT / "sources-table.tex").write_text(table, encoding="utf-8")
-    print("Created six figures, measured grid study and exact comparison table")
+    extension = read("learned-comparison.json")
+    fig, axes = plt.subplots(1, 3, figsize=(9, 3.1), layout="constrained")
+    for ax, key, label in zip(axes, ["recall", "false_positive_rate", "precision"], ["Recall (%)", "False-positive rate (%)", "Precision (%)"], strict=True):
+        ax.bar(["Causal HGB", "Causal ridge"], [100*r[key] for r in extension["aggregate"]], color=["#236b8e", "#a74748"])
+        ax.set(ylabel=label); ax.grid(axis="y", alpha=.18)
+    save(fig, "ridge-comparison")
+    print("Created seven figures, measured grid study and exact comparison table")
 
 
 if __name__ == "__main__":

@@ -7,3 +7,7 @@ Run `python data-pipeline/run.py sources --cache-root <external-cache>` to execu
 For a bounded regeneration, use `infer --no-train --models-root <external-model-root> --output <external-candidate>`. This produces graph, downstream references and case traces from the existing trusted checkpoint. `evaluate --benchmark` recomputes the full matrix; `export` finalizes index/readiness. Validate the candidate before copying its compact outputs into the release tree. The command never creates a fake trained result if the checkpoint is absent.
 
 Keep train 100-107, forecast-calibration 200-203, state-calibration 300-307 and test 1000-1015 disjoint. Changing a model, source or result requires regenerating affected evidence, a declared schema version change where appropriate, executed lessons and updated manuscripts. CI validates committed artifacts; full training is local work.
+
+## Additional fitted causal family
+
+`train` fits HGB and native multioutput Ridge; each has its own checkpoint. For an existing trusted HGB root, `train-ridge --models-root <external models>` explicitly fits only Ridge. `extend --no-train --output <external candidate> --models-root <external models>` requires an existing published benchmark in the candidate, preserves its original eight-method bytes, and adds a paired HGB/Ridge comparison. It regenerates release manifests and validates all required model metadata. The extension uses already-known original test slots; it is not prospectively untouched test selection.

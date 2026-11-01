@@ -52,12 +52,12 @@
     "data-pipeline/pipeline/model/reconciliation.py": "ee0c3c518cd9a5d7d56881d54ac0f50d362422a77d6a3acf846980a9ecf9f439",
     "data-pipeline/pipeline/model/scenarios.py": "71fdc68b13a551cdf839df686585a5f729ac2b77184441fc2a10ed823ab4a119",
     "data-pipeline/pipeline/model/tags.py": "1e98384ea8e9113b24b65bb7ae59b714fc6a1dc454c4648d7dbc4b7c2f0cc477",
-    "data-pipeline/pipeline/model/learning.py": "76ea1b9d63bb141f9966d3bcc2969c8815c63951fd3119d2220b9e14d9874c5b",
+    "data-pipeline/pipeline/model/learning.py": "47d10469d7c59fd85e0667b0ce2fc73afcba8b3bd0c7f42c0994ddbfb0d34007",
     "data-pipeline/pipeline/cases/definitions.py": "2116c13e350cc954787bd77ea7ee8ff38609a8b25fb7ba67f90448f2ca650732",
     "data-pipeline/pipeline/stages/plant_evaluate.py": "b6629598030970c6178d35cff4fff4bc911e03d31cf26952269e232eb20f434f",
     "data/derived/benchmark.json": "771cfb42322872bc42dc65993f62bf585bbe447684ab08912aeea9b7d315ded9"
   },
-  "product_version": "0.01.000",
+  "product_version": "0.01.001",
   "wls_kkt": {
     "passed": true,
     "comparisons": 1,
