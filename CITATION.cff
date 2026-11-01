@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "Please cite this software and the scientific report relevant to the result you use."
+type: software
+title: "OreBridge: Connected plant visualization and traceable process-engine evidence"
+version: 0.01.001
+authors:
+  - family-names: Santibáñez-Leal
+    given-names: Felipe
+    orcid: https://orcid.org/0000-0002-0150-3246
+    affiliation: "CAOS open-research programme, Santiago, Chile"
+repository-code: https://github.com/fsantibanezleal/CAOS_OreBridge
+url: https://github.com/fsantibanezleal/CAOS_OreBridge
+license: MIT
+abstract: >-
+  A connected 3D mineral-processing plant with synchronized process diagrams,
+  observation histories, versioned upstream engine evidence, a configurable
+  read-only OPC UA gateway, and reproducible synthetic model comparisons.
+  Two causal prediction families are actually fitted and calibrated. The
+  reference does not establish performance at an operating plant.
+keywords:
+  - mineral processing
+  - 3D plant visualization
+  - OPC UA
+  - data reconciliation
+  - causal forecasting
+  - reproducible research
