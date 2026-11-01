@@ -1,8 +1,10 @@
 # Visual product review: CAOS Mineral Plant Explorer
 
-Review date: 2026-11-01. The published app was inspected over its working HTTP endpoint. This is the as-published 0.01.001 baseline on `main`, not the local 0.02.000 redesign. HTTPS currently fails certificate validation, so the public deployment is not accepted as operational.
+Initial review: 2026-11-01. The published app was inspected over its working HTTP endpoint. This was the as-published 0.01.001 baseline on `main`, not the local 0.02.000 redesign. During that initial check HTTPS failed certificate validation, so the public deployment was not accepted as operational at that time.
 
-### Current public delivery evidence
+Delivery recheck: 2026-11-01. The canonical HTTPS endpoint now returns `200 OK` with a valid certificate after the Pages certificate was repaired. The live `build.json` still reports `0.01.001` at `9f69e175150e8c934ee778d17cbb2ea875b5883e`; the redesigned build remains pending promotion.
+
+### Public delivery evidence from the initial review
 
 - DNS resolves `orebridge.fasl-work.com` as a CNAME to `fsantibanezleal.github.io`, which resolves to GitHub Pages addresses.
 - The HTTP app route returns `200`, but `build.json` reports `0.01.001` at `9f69e175150e8c934ee778d17cbb2ea875b5883e`, so the redesign is not live.
