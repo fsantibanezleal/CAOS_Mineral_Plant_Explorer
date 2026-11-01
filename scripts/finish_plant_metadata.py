@@ -57,7 +57,11 @@ def main():
     technology = (
         "The verified runtime is Python 3.12.10 and Node "
         + __import__("subprocess").check_output(["node", "--version"], text=True).strip()
-        + ". Template 0.14.001 and shell 0.19.9 are verified. All direct dependencies below are resolved from the installed environment and lock.\n\n"
+        + ". Template "
+        + (ROOT / ".template-version").read_text(encoding="utf-8").strip()
+        + " and shell "
+        + npm["dependencies"]["@fasl-work/caos-app-shell"]
+        + " are verified. All direct dependencies below are resolved from the installed environment and lock.\n\n"
         + "\n".join(rows)
         + "\n\n"
     )
