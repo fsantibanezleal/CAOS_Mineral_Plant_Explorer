@@ -8,8 +8,14 @@
   "repo": "https://github.com/fsantibanezleal/CAOS_OreBridge",
   "visibility": "public",
   "license": "MIT",
-  "holder": "Felipe Santibáñez-Leal",
+  "holder": "Felipe SantibÃ¡Ã±ez-Leal",
   "year": 2026,
-  "method_entrypoints": [],
+  "method_entrypoints": [
+    "pipeline.model.reconciliation.weighted_reconcile",
+    "pipeline.model.reconciliation.robust_reconcile",
+    "pipeline.model.reconciliation.tasc",
+    "pipeline.model.learning.fit_normal",
+    "pipeline.stages.plant_evaluate.evaluate_one"
+  ],
   "manuscripts": []
 }

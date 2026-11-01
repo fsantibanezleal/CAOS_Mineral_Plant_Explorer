@@ -123,6 +123,7 @@
                   "required": [
                     "schema",
                     "source",
+                    "graph_revision",
                     "records"
                   ],
                   "properties": {
@@ -131,6 +132,10 @@
                     },
                     "source": {
                       "const": "site-opc-ua"
+                    },
+                    "graph_revision": {
+                      "type": "string",
+                      "minLength": 1
                     },
                     "records": {
                       "type": "array",
@@ -176,6 +181,15 @@
       },
       "Observation": {
         "$ref": "schemas/observation.schema.json"
+      },
+      "Benchmark": {
+        "$ref": "schemas/benchmark.schema.json"
+      },
+      "Downstream": {
+        "$ref": "schemas/downstream.schema.json"
+      },
+      "BenchmarkAnalysis": {
+        "$ref": "schemas/benchmark-analysis.schema.json"
       },
       "Readiness": {
         "$ref": "schemas/readiness.schema.json"

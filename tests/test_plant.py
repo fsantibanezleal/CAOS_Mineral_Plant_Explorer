@@ -32,3 +32,33 @@ def test_adversarial_graph_rejects_bad_identity(failure):
         g["assets"][0]["position"] = [float("nan"), 0, 0]
     with pytest.raises(ValueError):
         validate_graph(g)
+
+
+def test_nominal_solids_and_carrier_water_close_separately():
+    graph = reference_plant()
+    closed = [
+        "ROM",
+        "CV1",
+        "CR1",
+        "SC1",
+        "CR2",
+        "BIN",
+        "SAG",
+        "BAL",
+        "PU1",
+        "CY1",
+        "FL1",
+        "FL2",
+        "RGM",
+        "CTH",
+        "FIL",
+        "TTH",
+    ]
+    for asset in closed:
+        incoming = sum(e["nominal"] for e in graph["streams"] if e["target"] == asset and e["unit"] == "t/h")
+        outgoing = sum(e["nominal"] for e in graph["streams"] if e["source"] == asset and e["unit"] == "t/h")
+        assert incoming == pytest.approx(outgoing, abs=1e-8), asset
+    for asset in ["SAG", "BAL", "PU1", "CY1", "FL1", "FL2", "RGM", "CTH", "FIL", "TTH", "PU2", "PWT"]:
+        incoming = sum(e["water_m3_h"] for e in graph["streams"] if e["target"] == asset)
+        outgoing = sum(e["water_m3_h"] for e in graph["streams"] if e["source"] == asset)
+        assert incoming == pytest.approx(outgoing, abs=1e-8), asset

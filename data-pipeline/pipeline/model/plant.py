@@ -76,8 +76,8 @@ def reference_plant() -> dict:
             "stockpile",
             (-75, 0, 0),
             (31, 13, 26),
-            "Truck-built stockpile; provenance and geometry from BedBlend evidence.",
-            "Acopio construido por camiones; geometría y procedencia según BedBlend.",
+            "Authored stockpile geometry; actual BedBlend terrain and load outputs retain their separate case identity.",
+            "Geometría de acopio de referencia; el terreno y las cargas de BedBlend conservan su identidad de caso.",
         ),
         (
             "CV1",
@@ -142,8 +142,8 @@ def reference_plant() -> dict:
             "mill",
             (10, 0, 0),
             (16, 11, 11),
-            "Horizontal tumbling mill; charge and power evidence from MillDEM.",
-            "Molino horizontal; evidencia de carga y potencia desde MillDEM.",
+            "Grinding circuit proxy: fresh SAG feed plus ball-mill recycle. MillDEM gives charge geometry; OreFlow gives reference power.",
+            "Referencia del circuito SAG y bolas: MillDEM aporta geometría de carga y OreFlow potencia de referencia.",
         ),
         (
             "BAL",
@@ -481,6 +481,45 @@ def reference_plant() -> dict:
         ("SX1", "RAF", "solution", 150, 20),
         ("RAF", "HEP", "solution", 120, 40),
     ]
+    # One authored nominal concentrator basis: dry solids and water remain distinct.
+    nominal = {
+        ("PIT", "SHV"): 820,
+        ("SHV", "TRK"): 820,
+        ("TRK", "ROM"): 820,
+        ("ROM", "CV1"): 720,
+        ("CV1", "CR1"): 720,
+        ("CR1", "SC1"): 720,
+        ("SC1", "CR2"): 144,
+        ("CR2", "SC1"): 144,
+        ("SC1", "BIN"): 720,
+        ("BIN", "SAG"): 720,
+        ("SAG", "PU1"): 720,
+        ("BAL", "PU1"): 1800,
+        ("PU1", "CY1"): 2520,
+        ("CY1", "BAL"): 1800,
+        ("CY1", "FL1"): 720,
+        ("FL1", "FL2"): 18.5991410176,
+        ("FL2", "CTH"): 18.5991410176,
+        ("CTH", "FIL"): 18.5991410176,
+        ("FIL", "CON"): 18.5991410176,
+        ("FL1", "TTH"): 701.4008589824,
+        ("FL2", "TTH"): 0,
+        ("TTH", "TSF"): 701.4008589824,
+        ("PWT", "SAG"): 265,
+        ("PWT", "FL1"): 150,
+        ("ACD", "LCH"): 700,
+        ("SX1", "SX2"): 240,
+        ("SX2", "EW1"): 110,
+        ("EW1", "SX2"): 110,
+        ("EW1", "CAT"): 0.3503065945,
+    }
+    links = [(a, b, m, nominal.get((a, b), q), delay) for a, b, m, q, delay in links]
+    links += [
+        ("RAF", "LCH", "solution", 30, 40),
+        ("HEP", "TSF", "leach_residue", 79.671101, 600),
+        ("LCH", "TSF", "leach_residue", 19.9177753, 120),
+        ("SX2", "SX1", "organic", 240, 60),
+    ]
     streams = [
         asdict(
             Stream(
@@ -489,12 +528,38 @@ def reference_plant() -> dict:
                 t,
                 m,
                 q,
-                "m3/h" if m in ("water", "solution", "organic", "electrolyte", "acid") else "t/h",
+                "kg/h"
+                if m == "acid"
+                else "m3/h"
+                if m in ("water", "solution", "organic", "electrolyte")
+                else "t/h",
                 delay,
             )
         )
         for i, (s, t, m, q, delay) in enumerate(links)
     ]
+    water = {
+        ("SAG", "PU1"): 265,
+        ("BAL", "PU1"): 600,
+        ("PU1", "CY1"): 865,
+        ("CY1", "BAL"): 600,
+        ("CY1", "FL1"): 265,
+        ("FL1", "FL2"): 30,
+        ("FL2", "RGM"): 15,
+        ("RGM", "FL2"): 15,
+        ("FL2", "CTH"): 30,
+        ("CTH", "FIL"): 22,
+        ("FIL", "CON"): 15,
+        ("FL1", "TTH"): 385,
+        ("FL2", "TTH"): 0,
+        ("TTH", "TSF"): 135,
+    }
+    for stream in streams:
+        stream["water_m3_h"] = (
+            stream["nominal"]
+            if stream["material"] in ("water", "solution", "electrolyte")
+            else water.get((stream["source"], stream["target"]), 0)
+        )
     graph = {
         "schema": "orebridge.plant/v1",
         "id": "copper-complex",

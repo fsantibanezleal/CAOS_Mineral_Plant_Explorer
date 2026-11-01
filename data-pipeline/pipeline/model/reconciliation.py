@@ -55,6 +55,8 @@ def huber(z, delta=1.5):
 
 
 def robust_reconcile(y, sigma, A, b, delta=1.5, max_iter=25):
+    if not np.isfinite(delta) or delta <= 0 or not isinstance(max_iter, int) or max_iter < 1:
+        raise ValueError("invalid robust solver configuration")
     y, sigma, A, b = _inputs(y, sigma, A, b)
     x = weighted_reconcile(y, sigma, A, b)["state"]
     for iteration in range(max_iter):
@@ -95,6 +97,8 @@ def tasc(y, sigma, A, b, *, valid=None, engine=None, engine_sigma=None, engine_v
     invalid observation is never made healthy by a plausible engine prediction.
     The estimate is reported separately from the original observation.
     """
+    if not np.isfinite(delta) or delta <= 0:
+        raise ValueError("invalid Huber scale")
     y = np.asarray(y, float)
     sigma = np.asarray(sigma, float)
     n = len(y)
@@ -111,11 +115,13 @@ def tasc(y, sigma, A, b, *, valid=None, engine=None, engine_sigma=None, engine_v
     if np.any(~(valid | engine_valid)):
         return {
             "state": None,
-            "score": np.where(valid, 0.0, np.nan),
+            "score": np.full(n, np.nan),
             "state_status": "unobservable",
             "invalid": np.where(~valid)[0].tolist(),
             "evidence": [],
         }
+    sigma = np.where(valid, sigma, 1.0)
+    engine_sigma = np.where(engine_valid, engine_sigma, 1.0)
     ym = np.where(valid, y, 0)
     em = np.where(engine_valid, engine, 0)
     x = np.where(valid, y, engine).copy()

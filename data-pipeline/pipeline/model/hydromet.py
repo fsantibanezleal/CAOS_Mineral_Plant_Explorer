@@ -58,6 +58,10 @@ def acid_limited_extraction(
     acid_kg_h: float,
     acid_kg_per_kg_cu: float = 1.543,
 ) -> dict:
+    if not all(
+        math.isfinite(v) for v in (feed_tph, grade_fraction, kinetic_conversion, acid_kg_h, acid_kg_per_kg_cu)
+    ):
+        raise ValueError("non-finite leach input")
     if (
         feed_tph < 0
         or not 0 <= grade_fraction <= 1
@@ -80,6 +84,10 @@ def acid_limited_extraction(
 def solvent_extraction(
     aqueous_m3_h: float, aqueous_g_l: float, organic_m3_h: float, distribution_ratio: float, stages: int = 2
 ) -> dict:
+    if not all(
+        math.isfinite(v) for v in (aqueous_m3_h, aqueous_g_l, organic_m3_h, distribution_ratio)
+    ) or not isinstance(stages, int):
+        raise ValueError("non-finite SX input or noninteger stages")
     # Ideal fresh-organic cross-current stages, not countercurrent McCabe-Thiele.
     if (
         aqueous_m3_h <= 0
@@ -95,7 +103,8 @@ def solvent_extraction(
     return {
         "raffinate_g_l": raffinate,
         "transferred_copper_kg_h": captured,
-        "organic_loading_g_l": captured / organic_m3_h,
+        "organic_loading_g_l": captured / (organic_m3_h * stages),
+        "organic_total_m3_h": organic_m3_h * stages,
         "mass_residual_kg_h": aqueous_m3_h * aqueous_g_l - captured - aqueous_m3_h * raffinate,
     }
 
@@ -103,6 +112,8 @@ def solvent_extraction(
 def electrowinning(
     current_a: float, efficiency: float, voltage_v: float, available_copper_kg_h: float = float("inf")
 ) -> dict:
+    if math.isnan(available_copper_kg_h):
+        raise ValueError("unknown available copper")
     if (
         not all(math.isfinite(v) for v in (current_a, efficiency, voltage_v))
         or current_a < 0

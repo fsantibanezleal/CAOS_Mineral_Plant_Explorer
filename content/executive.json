@@ -110,6 +110,20 @@
           "en": "Traceable upstream and downstream stream relationships.",
           "es": "Relaciones trazables entre corrientes aguas arriba y abajo."
         }
+      },
+      {
+        "who": {
+          "en": "Plant information teams",
+          "es": "Equipos de información de planta"
+        },
+        "cost": {
+          "en": "Effort spent resolving mismatched equipment and source identities.",
+          "es": "Esfuerzo dedicado a resolver identidades de equipos y fuentes incompatibles."
+        },
+        "measure": {
+          "en": "Unresolved bindings and time to validate a source.",
+          "es": "Vínculos sin resolver y tiempo de validación de una fuente."
+        }
       }
     ],
     "figures": [
@@ -227,6 +241,20 @@
           "es": "Cochilco proyecta que el agua de mar pase del 40,7 por ciento del suministro minero en 2024 al 67,6 por ciento en 2034."
         },
         "source": "cochilco-water"
+      },
+      {
+        "statement": {
+          "en": "IDTA publishes reusable submodels for industrial asset information.",
+          "es": "IDTA publica submodelos reutilizables de información de activos industriales."
+        },
+        "source": "idta"
+      },
+      {
+        "statement": {
+          "en": "ISA-95 defines a framework for enterprise and control system integration.",
+          "es": "ISA-95 define un marco de integración empresarial y de sistemas de control."
+        },
+        "source": "isa95"
       }
     ]
   },
@@ -342,6 +370,21 @@
           "es": "Un plano por sí solo no demuestra el estado actual de planta."
         },
         "source": "dexpi"
+      },
+      {
+        "approach": {
+          "en": "Scene knowledge graphs",
+          "es": "Grafos de conocimiento en escenas"
+        },
+        "achieves": {
+          "en": "AWS supports binding scene objects to knowledge graph entities.",
+          "es": "AWS permite vincular objetos de escena a entidades de grafos."
+        },
+        "falls_short": {
+          "en": "Require site mapping and validated instrument provenance.",
+          "es": "Requieren mapeo de planta y procedencia validada de instrumentos."
+        },
+        "source": "aws"
       }
     ],
     "status": {
@@ -358,7 +401,10 @@
         "es": "modelo general de información minera publicado"
       },
       "source": "opc",
-      "date": "2025-10-01"
+      "date": {
+        "en": "1 October 2025",
+        "es": "1 de octubre de 2025"
+      }
     }
   },
   "trends": {
@@ -651,6 +697,30 @@
         "es": "DEXPI: modelos de intercambio de plantas y procesos"
       },
       "url": "https://dexpi.org/specifications/"
+    },
+    {
+      "id": "aws",
+      "title": {
+        "en": "AWS: graph entities bound to visual scenes",
+        "es": "AWS: entidades de grafos vinculadas a escenas"
+      },
+      "url": "https://docs.aws.amazon.com/iot-twinmaker/latest/guide/tm-knowledge-graph-scene.html"
+    },
+    {
+      "id": "idta",
+      "title": {
+        "en": "IDTA: Asset Administration Shell submodels",
+        "es": "IDTA: submodelos de administración de activos"
+      },
+      "url": "https://industrialdigitaltwin.org/en/content-hub/submodels"
+    },
+    {
+      "id": "isa95",
+      "title": {
+        "en": "ISA: enterprise and control system integration",
+        "es": "ISA: integración empresarial y sistemas de control"
+      },
+      "url": "https://www.isa.org/standards-and-publications/isa-standards/isa-95-standard"
     }
   ]
 }

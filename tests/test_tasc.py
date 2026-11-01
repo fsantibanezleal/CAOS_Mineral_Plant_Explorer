@@ -20,7 +20,7 @@ def test_tasc_preserves_constraints_and_engine_provenance():
 def test_adversarial_missing_channel_never_becomes_healthy():
     r = tasc([20, np.nan, 9], [1, 1, 1], [[1, -1, -1]], [0], valid=[True, False, True])
     assert r["state_status"] == "unobservable" and r["invalid"] == [1]
-    assert np.isnan(r["score"][1])
+    assert np.isnan(r["score"]).all()
 
 
 def test_engine_can_supply_estimate_but_not_observation():

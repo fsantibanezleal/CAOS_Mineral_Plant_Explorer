@@ -1,4 +1,5 @@
 """Site-local read-only OPC UA gateway and immutable public replay API."""
+
 from __future__ import annotations
 
 import asyncio
@@ -10,7 +11,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from .config import VERSION
 from .gateway import GatewayConfig, OPCReader, token_matches
 from .routers import content
-from .services.content import _read
+from .services.content import Unreadable, _read
 
 
 def create_app(config: GatewayConfig | None = None, reader=None) -> FastAPI:
@@ -38,9 +39,18 @@ def create_app(config: GatewayConfig | None = None, reader=None) -> FastAPI:
         return {"status": "ok", "source_configured": bool(config.endpoint), "read_only": True}
 
     def document(path):
-        doc = _read(path)
+        try:
+            doc = _read(path)
+        except Unreadable:
+            doc = None
         if doc is None:
-            raise HTTPException(503, detail={"state": "missing", "reason": {"en": "Artifact is unavailable.", "es": "Artefacto no disponible."}})
+            raise HTTPException(
+                503,
+                detail={
+                    "state": "missing",
+                    "reason": {"en": "Artifact is unavailable.", "es": "Artefacto no disponible."},
+                },
+            )
         return doc
 
     @app.get("/api/index")
@@ -62,16 +72,33 @@ def create_app(config: GatewayConfig | None = None, reader=None) -> FastAPI:
             raise HTTPException(401, detail="bearer_token_required", headers={"WWW-Authenticate": "Bearer"})
         try:
             config.validate()
+        except ValueError as exc:
+            raise HTTPException(
+                503, detail={"state": "missing", "reason": {"en": str(exc), "es": str(exc)}}
+            ) from exc
+        try:
             if source_reader is None:
                 raise ValueError("source_not_configured")
             async with lock:
                 records = await source_reader.read()
-            return {"schema": "orebridge.observations/v1", "source": "site-opc-ua", "records": records}
-        except ValueError as exc:
-            raise HTTPException(503, detail={"state": "missing", "reason": {"en": str(exc), "es": str(exc)}}) from exc
+            return {
+                "schema": "orebridge.observations/v1",
+                "source": "site-opc-ua",
+                "graph_revision": document("plant.json")["revision"],
+                "records": records,
+            }
         except Exception as exc:
             # Source addresses, certificate paths and server errors stay local.
-            raise HTTPException(503, detail={"state": "missing", "reason": {"en": "Plant source is unavailable.", "es": "La fuente de planta no está disponible."}}) from exc
+            raise HTTPException(
+                503,
+                detail={
+                    "state": "missing",
+                    "reason": {
+                        "en": "Plant source is unavailable.",
+                        "es": "La fuente de planta no está disponible.",
+                    },
+                },
+            ) from exc
 
     return app
 

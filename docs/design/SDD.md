@@ -1,6 +1,6 @@
 # Software design document: OreBridge
 
-Status: design reviewed before core implementation, 2026-10-31. The product was created from the current template; domain implementation has not started. Review findings and their resolutions are in this document's final section.
+Status: design reviewed before core implementation, 2026-10-31. The product was created from the current template; domain implementation follows this reviewed design. Review findings and their resolutions are in this document's final section.
 
 ## Problem and non-goals
 
@@ -34,7 +34,7 @@ UNVERIFIED: field performance, site geometry/credentials and global priority/sup
 
 ## Sizing and contracts
 
-One coherent plant has at least 35 equipment assets, 40 material/water streams and 70 observation channels across extraction, stockpiling, crushing, grinding/classification, flotation, thickening/filtering, leaching/SX/EW, utilities and tailings. A procedural engineering scene is authored at real relative dimensions; imported glTF assets bind by an explicit node-to-asset map. A 2,000-asset replicated stress plant measures scalability separately and is never mistaken for real equipment diversity.
+One coherent plant has at least 35 equipment assets, 40 material/water streams and 16 benchmark observation channels across extraction, stockpiling, crushing, grinding/classification, flotation, thickening/filtering, leaching/SX/EW, utilities and tailings. A procedural engineering scene is authored at real relative dimensions; imported glTF assets bind by an explicit node-to-asset map. The current scene has 36 distinct assets; an unmeasured large-plant scalability claim is not made.
 
 Twelve case scenarios, four severity/noise levels and sixteen held-out seeds give 768 paired test scenarios. Training/calibration uses disjoint seeds and normal periods. Every model is evaluated on the same observations, fault truth and event timestamps; metrics are pointwise with no point-adjusted score. Families include healthy load transition, bias, drift, frozen/stale tag, unit mismatch, tag swap, missing data, out-of-order delivery, topology break, engine disagreement, water imbalance and downstream delay.
 
@@ -42,7 +42,61 @@ Raw caches/models/screenshots stay outside the repository via environment roots.
 
 ## Technology and versions
 
-The current template is 0.14.001 and the npm shell is 0.19.9, verified from remote tag and npm registry on 2026-10-31. All install pins are recorded in the final technology table after environment resolution; no package version is inferred from another product's private environment. Python is 3.13 and Node is the installed supported runtime. The offline lane consumes pinned real PyPI engines, NumPy/SciPy, scikit-learn and PyTorch only if the selected learned model requires it. The browser uses React, Three.js, the shared shell, uPlot and KaTeX. The site gateway uses FastAPI, asyncua and authenticated SSE; the public website has no OPC credentials.
+The verified runtime is Python 3.12.10 and Node v24.14.1. Template 0.14.001 and shell 0.19.9 are verified. All direct dependencies below are resolved from the installed environment and lock.
+
+| component | package | version | use | alternative considered |
+|---|---|---|---|---|
+| Python | asyncua | 2.1.0 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | bedblend | 0.7.3 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | fastapi | 0.162.0 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | httpx | 0.28.1 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | ipykernel | 7.4.0 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | joblib | 1.6.0 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | jsonschema | 4.26.0 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | matplotlib | 3.11.2 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | milldem | 0.3.1 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | minehaulsim | 0.12.1 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | nbclient | 0.11.0 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | nbformat | 5.11.1 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | numpy | 2.2.6 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | openapi-spec-validator | 0.9.0 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | oreblocks | 0.6.6 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | pytest | 9.2.0 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | ruff | 0.17.3 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | scikit-learn | 1.9.1 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | scipy | 1.18.1 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | uvicorn | 0.54.0 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Browser | @fasl-work/caos-app-shell | 0.19.9 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | katex | 0.19.1 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | lucide-react | 1.52.0 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | react | 19.3.0 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | react-dom | 19.3.0 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | react-router | 8.4.0 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | three | 0.187.0 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | uplot | 1.6.32 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | zustand | 5.0.15 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | @types/node | 24.19.1 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | @types/react | 19.3.0 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | @types/react-dom | 19.3.0 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | @types/three | 0.187.0 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | @vitejs/plugin-react | 6.1.1 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | ajv | 8.20.0 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | ajv-formats | 3.0.1 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | openapi-typescript | 7.13.0 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | playwright | 1.63.0 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | typescript | 5.9.3 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | vite | 8.3.5 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | vitest | 5.0.3 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | minimatch | 11.0.1 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+
+## Resources
+
+| stage | memory | disk | time | where it runs |
+|---|---|---|---|---|
+| bake | 2 GiB budget, CPU threads bounded to one | 1 MiB checkpoint and less than 20 MiB compact replay; external cache | Full matrix measured 146.8 s; training budget 5 min | External Python environment on workstation |
+| tests | 2 GiB budget per worker | Temporary fixtures outside repository | Core and gateway measured under 30 s; full suite budget 15 min | Workstation and cheap CI |
+| build | 2 GiB Node budget | Static output budget 20 MiB | Vite measured 2.4 s after type checking | Workstation and GitHub Actions |
+| deploy | Static host, no model process | GitHub Pages artifact budget 100 MiB | Deployment budget 10 min | GitHub Pages |
 
 ## Contracts
 

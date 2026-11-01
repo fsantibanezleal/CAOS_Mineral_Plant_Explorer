@@ -53,3 +53,14 @@ def test_thickener_conserves_solids_and_refines():
 def test_adversarial_invalid_process_domains(fn, args):
     with pytest.raises(ValueError):
         fn(*args)
+
+
+def test_adversarial_nonfinite_process_inputs_never_return_outputs():
+    with pytest.raises(ValueError):
+        acid_limited_extraction(float("nan"), 0.005, 0.8, 700)
+    with pytest.raises(ValueError):
+        solvent_extraction(150, 1, float("nan"), 2)
+    with pytest.raises(ValueError):
+        electrowinning(100, 0.9, 2, float("nan"))
+    with pytest.raises(ValueError):
+        simulate_thickener(hindrance=float("nan"))

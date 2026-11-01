@@ -16,12 +16,13 @@
     "gate": "node scripts/gate.mjs"
   },
   "dependencies": {
-    "@fasl-work/caos-app-shell": "0.19.1",
+    "@fasl-work/caos-app-shell": "0.19.9",
     "katex": "0.19.1",
     "lucide-react": "^1.52.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-router": "^8.4.0",
+    "three": "0.187.0",
     "uplot": "^1.6.32",
     "zustand": "^5.0.15"
   },
@@ -29,11 +30,17 @@
     "@types/node": "^24.0.0",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "@types/three": "0.187.0",
     "@vitejs/plugin-react": "^6.1.1",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
     "openapi-typescript": "7.13.0",
     "playwright": "^1.63.0",
     "typescript": "~5.9.3",
     "vite": "8.3.5",
     "vitest": "^5.0.3"
+  },
+  "overrides": {
+    "minimatch": "11.0.1"
   }
 }

@@ -24,6 +24,25 @@ def simulate_thickener(
     initial_fraction=0.06,
 ):
     if (
+        not np.isfinite(
+            [
+                feed_m3_h,
+                feed_fraction,
+                underflow_m3_h,
+                area_m2,
+                height_m,
+                settling_m_h,
+                hindrance,
+                hours,
+                initial_fraction,
+            ]
+        ).all()
+        or not isinstance(cells, int)
+        or not 8 <= cells <= 2000
+        or hindrance < 0
+    ):
+        raise ValueError("non-finite or unsupported thickener domain")
+    if (
         min(feed_m3_h, underflow_m3_h, area_m2, height_m, hours, settling_m_h) <= 0
         or underflow_m3_h > feed_m3_h
         or not 0 <= feed_fraction < 0.6

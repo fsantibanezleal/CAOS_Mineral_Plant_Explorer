@@ -39,7 +39,7 @@ def test_adversarial_malformed_trace_and_extra_field_refused():
     with pytest.raises(Exception):check('trace',bad)
 
 def test_openapi_is_valid_and_only_read_only_operations():
-    api=read(ROOT/'docs/contracts/api.openapi.json');validate(api)
+    api=read(ROOT/'docs/contracts/api.openapi.json');validate(api, base_uri=(ROOT / "docs/contracts/api.openapi.json").as_uri())
     assert all(set(path)=={'get'} for path in api['paths'].values())
 
 def test_model_seeds_never_overlap_benchmark():

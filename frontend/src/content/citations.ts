@@ -1,47 +1,14 @@
-// The references of the example model. Every entry carries a DOI that resolves (checked against doi.org and the
-// Crossref record on 2026-10-04); the shell reports an entry without a DOI or URL. A product replaces this list with
-// the references of its own dossiers.
 import type { Citation } from '@fasl-work/caos-app-shell';
-
-export const CITATIONS: Citation[] = [
-  {
-    id: 'km1927',
-    label: { en: 'Kermack and McKendrick 1927', es: 'Kermack y McKendrick 1927' },
-    citation:
-      'Kermack, W. O., McKendrick, A. G. (1927). A contribution to the mathematical theory of epidemics. Proceedings of the Royal Society of London, Series A, 115(772), 700-721.',
-    doi: '10.1098/rspa.1927.0118',
-  },
-  {
-    id: 'hethcote2000',
-    label: 'Hethcote 2000',
-    citation: 'Hethcote, H. W. (2000). The mathematics of infectious diseases. SIAM Review, 42(4), 599-653.',
-    doi: '10.1137/S0036144500371907',
-  },
-  {
-    id: 'diekmann1990',
-    label: { en: 'Diekmann, Heesterbeek and Metz 1990', es: 'Diekmann, Heesterbeek y Metz 1990' },
-    citation:
-      'Diekmann, O., Heesterbeek, J. A. P., Metz, J. A. J. (1990). On the definition and the computation of the basic reproduction ratio R0 in models for infectious diseases in heterogeneous populations. Journal of Mathematical Biology, 28(4).',
-    doi: '10.1007/BF00178324',
-  },
-  {
-    id: 'vdd2002',
-    label: { en: 'van den Driessche and Watmough 2002', es: 'van den Driessche y Watmough 2002' },
-    citation:
-      'van den Driessche, P., Watmough, J. (2002). Reproduction numbers and sub-threshold endemic equilibria for compartmental models of disease transmission. Mathematical Biosciences, 180(1-2), 29-48.',
-    doi: '10.1016/S0025-5564(02)00108-6',
-  },
-  {
-    id: 'miller2012',
-    label: 'Miller 2012',
-    citation: 'Miller, J. C. (2012). A note on the derivation of epidemic final sizes. Bulletin of Mathematical Biology, 74(9), 2125-2141.',
-    doi: '10.1007/s11538-012-9749-6',
-  },
-  {
-    id: 'hairer1993',
-    label: { en: 'Hairer, Norsett and Wanner 1993', es: 'Hairer, Norsett y Wanner 1993' },
-    citation:
-      'Hairer, E., Norsett, S. P., Wanner, G. (1993). Solving Ordinary Differential Equations I: Nonstiff Problems (2nd ed.). Springer Series in Computational Mathematics 8. Springer.',
-    doi: '10.1007/978-3-540-78862-1',
-  },
-];
+export const CITATIONS:Citation[]=[
+{id:'opc',label:'OPC Foundation 2025',citation:'OPC Foundation. OPC UA Mining General 1.01.0 and Part 4 DataValue.',url:'https://reference.opcfoundation.org/specs/OPC-40560/full'},
+{id:'security',label:'OPC UA security',citation:'OPC Foundation. OPC UA Part 2: Security Model.',url:'https://reference.opcfoundation.org/specs/OPC-10000-2/full'},
+{id:'azure',label:'Azure Digital Twins',citation:'Microsoft. 3D Scenes Studio: binding and visual rules.',url:'https://learn.microsoft.com/en-us/azure/digital-twins/how-to-use-3d-scenes-studio'},
+{id:'aws',label:'AWS IoT TwinMaker',citation:'AWS. Knowledge graph and scene entity binding.',url:'https://docs.aws.amazon.com/iot-twinmaker/latest/guide/tm-knowledge-graph-scene.html'},
+{id:'gltf',label:'Khronos glTF 2.0',citation:'Khronos Group. glTF 2.0 specification.',url:'https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html'},
+{id:'reconciliation',label:'Mineral data reconciliation',citation:'Minerals Engineering (2018). Data reconciliation in mineral processing.',doi:'10.1016/j.mineng.2018.04.023'},
+{id:'huber',label:'Huber 1964',citation:'Huber, P. J. (1964). Robust estimation of a location parameter. Annals of Mathematical Statistics.',doi:'10.1214/aoms/1177703732'},
+{id:'gdn',label:'Deng and Hooi 2021',citation:'Deng, A. and Hooi, B. (2021). Graph Neural Network-Based Anomaly Detection in Multivariate Time Series.',url:'https://arxiv.org/abs/2106.06947'},
+{id:'hgb',label:'scikit-learn',citation:'scikit-learn. Histogram-based Gradient Boosting regression.',url:'https://scikit-learn.org/stable/modules/ensemble.html#histogram-based-gradient-boosting'},
+{id:'takacs',label:'Takács et al. 1991',citation:'Takács, I., Patry, G. and Nolasco, D. (1991). A dynamic model of the clarification-thickening process. Water Research.',doi:'10.1016/0043-1354(91)90066-Y'},
+{id:'leach',label:'Leahy et al. 2005',citation:'Leahy et al. (2005). Heap leach modelling. Minerals Engineering.',doi:'10.1016/j.mineng.2005.07.003'},
+{id:'ew',label:'Copper electrowinning',citation:'BCcampus. Hydrometallurgy: copper electrowinning practice.',url:'https://pressbooks.bccampus.ca/hydrometallurgy/chapter/copper-electrowinning-practice/'}];

@@ -1,37 +1,67 @@
 {
   "params-record": {
-    "version": "1.0.0",
+    "version": "2.0.0",
     "schema": "docs/contracts/schemas/params-record.schema.json",
-    "sha256": "9bb67b0438a99919879390e60ed4c4fa5622d954b671b4fe65d0c84fa58c08d7"
+    "sha256": "0639932cec8282596fc0c0367f8242bf43a4884d59441b329421f532f00c0dd3"
   },
   "case-index": {
-    "version": "2.0.0",
+    "version": "3.0.0",
     "schema": "docs/contracts/schemas/case-index.schema.json",
-    "sha256": "251a03c8b3443fbca43d836f6c3a317612bc0024cae17bd2eb0115ad8474e1b4"
+    "sha256": "2b8af0bd8d1a37744fbf4c6d9869b83c06a139c544eefacb928edf853c677a51"
   },
   "case-manifest": {
-    "version": "4.0.0",
+    "version": "5.0.0",
     "schema": "docs/contracts/schemas/case-manifest.schema.json",
-    "sha256": "ee989d8e0168baadeea2ee8b4636217456cd295a8c9934319cccc7de6698d257"
+    "sha256": "97d0293b2c226b4816ac637ff9a0beee7aa947c0fc565373ce43b59276c8aac8"
   },
   "trace": {
-    "version": "1.0.0",
+    "version": "2.0.0",
     "schema": "docs/contracts/schemas/trace.schema.json",
-    "sha256": "289a6a33872155448b1c8b41d39d26606e828f90f7d7b8447d8614d49b26202d"
+    "sha256": "ac4d490c2618cb867ba605dfc1ab01835accf94082d318e90d7cd509ad5dc558"
   },
-  "surrogate-model": {
+  "plant-graph": {
     "version": "1.0.0",
-    "schema": "docs/contracts/schemas/surrogate-model.schema.json",
-    "sha256": "8c4389be72823246f840283ceb2a2d1ee0527d30b089559a11dc052ed75eb814"
+    "schema": "docs/contracts/schemas/plant-graph.schema.json",
+    "sha256": "bf7b7f3e09b2f8b3bc28e56917fb59cade2503068c79d2a80827a9292a68dc05"
+  },
+  "engine-evidence": {
+    "version": "1.0.0",
+    "schema": "docs/contracts/schemas/engine-evidence.schema.json",
+    "sha256": "fdc9fbfb1c502ee38f86beee3e763aeb24d6a8cfd939a8625d2135cb6c98e4fe"
+  },
+  "state-model": {
+    "version": "1.0.0",
+    "schema": "docs/contracts/schemas/state-model.schema.json",
+    "sha256": "f3f7feebf9929df4f484d0fee5b0008a907a8aae123b74a98a0037541e9707e0"
+  },
+  "observation": {
+    "version": "1.0.0",
+    "schema": "docs/contracts/schemas/observation.schema.json",
+    "sha256": "adbff11b6398fe92156ab574475df80a672b6be61173b618cfbea8eefde18ceb"
   },
   "readiness": {
-    "version": "1.0.0",
+    "version": "2.0.0",
     "schema": "docs/contracts/schemas/readiness.schema.json",
-    "sha256": "de86ae161c0f333c11b95884ef07fd3e7f59b54f74d513cb823a093889f76d5a"
+    "sha256": "5aa90783357f665332e12c59384f481e30cbd14e70ab5ea7e35242b311440f7e"
   },
   "api": {
-    "version": "1.0.0",
+    "version": "2.0.0",
     "schema": "docs/contracts/api.openapi.json",
-    "sha256": "46a68a0faf5256d3e39e51316f645ce1593c6f2da77c76b2188d05cdb21b14e5"
+    "sha256": "882e4436969250ce39846bd44f8adf6ce28f1cbfda3052ac3446b17b6f5d0d38"
+  },
+  "benchmark": {
+    "version": "1.0.0",
+    "schema": "docs/contracts/schemas/benchmark.schema.json",
+    "sha256": "6e625c79f63b6dbe5c2552ddfe15547a2022a777293d033dd93e6f5df7256e0e"
+  },
+  "downstream": {
+    "version": "1.0.0",
+    "schema": "docs/contracts/schemas/downstream.schema.json",
+    "sha256": "0b1ab8cdbdd4120e4853a1fc48e5a8eb217ceba51db229363e92084bf20efafc"
+  },
+  "benchmark-analysis": {
+    "version": "1.0.0",
+    "schema": "docs/contracts/schemas/benchmark-analysis.schema.json",
+    "sha256": "0bbd6fea9d2b02a72f0d8b1183bbaf2e7a4dca7f17b160a9f0137e608808b597"
   }
 }

@@ -127,7 +127,8 @@
           "material",
           "nominal",
           "unit",
-          "delay_s"
+          "delay_s",
+          "water_m3_h"
         ],
         "properties": {
           "id": {
@@ -155,6 +156,10 @@
             "minLength": 1
           },
           "delay_s": {
+            "type": "number",
+            "minimum": 0
+          },
+          "water_m3_h": {
             "type": "number",
             "minimum": 0
           }

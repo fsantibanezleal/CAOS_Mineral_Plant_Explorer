@@ -61,10 +61,14 @@ def validate_observation(
         source = utc_time(record["source_time"])
         receipt = utc_time(record["receipt_time"])
         age = (current - source).total_seconds()
-        if isinstance(record.get('sequence'),bool) or not isinstance(record.get('sequence'),int) or record['sequence']<0:
-            return ObservationVerdict(False, 'invalid', None, ('invalid_source_sequence',), age)
-        if (receipt-current).total_seconds()>future_tolerance_s:
-            return ObservationVerdict(False, 'invalid', None, ('future_receipt_time',), age)
+        if (
+            isinstance(record.get("sequence"), bool)
+            or not isinstance(record.get("sequence"), int)
+            or record["sequence"] < 0
+        ):
+            return ObservationVerdict(False, "invalid", None, ("invalid_source_sequence",), age)
+        if (receipt - current).total_seconds() > future_tolerance_s:
+            return ObservationVerdict(False, "invalid", None, ("future_receipt_time",), age)
         if record["tag_id"] != binding["tag_id"] or record["asset_id"] != binding["asset_id"]:
             return ObservationVerdict(False, "unmapped", None, ("asset_identity_mismatch",), age)
         if source > receipt and (source - receipt).total_seconds() > future_tolerance_s:
