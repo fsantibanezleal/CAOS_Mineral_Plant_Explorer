@@ -1,319 +1,49 @@
-// The views of the selected case. Each is a PlotCard with its lane and provenance, keyed by the selection it shows;
-// a view whose data is not there yet declares data-state="loading" (the gate waits for it, a reader sees why).
-import {
-  BarChart,
-  Equation,
-  PlotCard,
-  SubTabs,
-  Verdict,
-  formatNumber,
-  pick,
-  useShellLang,
-  useWorkbenchState,
-  ViewsRow,
-  type BiText,
-} from '@fasl-work/caos-app-shell';
+import { useShellLang, PlotCard, useWorkbenchState } from '@fasl-work/caos-app-shell';
 import { UPlotChart } from '@fasl-work/caos-app-shell/chart';
-import { createContext, useContext, useMemo, type ReactNode } from 'react';
-import { atTimes, finalSize, simulate } from '../engine/sir';
-import type { Text } from '../lib/contract.types';
-import { ReadinessNote } from '../readiness/ReadinessNote';
-import { COVERAGE, type Selection } from './model';
-
-/** The reason the selected case is not available yet, when the readiness document says so; null otherwise. */
-export const UnavailableContext = createContext<Text | null>(null);
-
-function Pending({ label }: { label: BiText }) {
-  const lang = useShellLang();
-  const reason = useContext(UnavailableContext);
-  // A case the readiness document lists as absent says so, with the reason: never an empty chart, never a spinner.
-  if (reason) {
-    return (
-      <p className="caos-pending" data-state="unavailable">
-        {reason[lang]}
-      </p>
-    );
-  }
-  return (
-    <p className="caos-pending" data-state="loading">
-      {pick(label, lang)}
-    </p>
-  );
+import type { Plant, Trace, EngineEvidence, Observation, SiteSample } from '../lib/contract.types';
+import { ProcessView, type ProcessControls } from './ProcessView';
+import { PlantScene } from './PlantScene';
+import { assetState, channelIndices, evidenceStep, formatValue, liveValue, snapshotValue } from './model';
+export interface ViewState { history:SiteSample[]; overlay:'observations'|'engines';onOverlay:(v:'observations'|'engines')=>void; processControls:ProcessControls; plant:Plant; trace:Trace; engines:EngineEvidence; selected:string; step:number; method:string; highlight:Set<string>; playing:boolean; live:Observation[]|null; now:number; onSelect:(id:string)=>void; }
+const LABELS={normal:{en:'Within model threshold',es:'Dentro del umbral'},alarm:{en:'Model discrepancy',es:'Discrepancia del modelo'},unavailable:{en:'Unavailable / unscorable',es:'No disponible / sin puntaje'},context:{en:'Geometry / reference context',es:'Geometría / contexto'}};
+export function StatusLegend({live=false,engine=false}:{live?:boolean;engine?:boolean}){const lang=useShellLang();return <div className="ob-legend">{Object.entries(LABELS).filter(([s])=>engine?s==='context':live?s==='normal'||s==='unavailable':true).map(([s,label])=><span key={s}><i className={`ob-dot ${s}`}/>{s==='normal'&&live?(lang==='es'?'Observación reciente aceptada':'Fresh accepted observation'):label[lang]}</span>)}</div>;}
+export function SceneView({s}:{s:ViewState}){const key=useWorkbenchState()?.stateKey;return <PlotCard fill title={{en:'One connected plant',es:'Una planta conectada'}} lane={s.overlay==='engines'?'replay':s.live?'live':'replay'} provenance={s.overlay==='engines'?'published':s.live?'real':'synthetic'} dataKey={key}><div className="ob-fill"><StatusLegend live={s.live!==null} engine={s.overlay==='engines'}/><PlantScene {...s}/></div></PlotCard>;}
+export function DiagramView({s}:{s:ViewState}) {
+ const lang=useShellLang(),key=useWorkbenchState()?.stateKey;
+ const xy=(id:string)=>{const a=s.plant.assets.find(a=>a.id===id)!;return [40+(a.position[0]+145)*2.4,28+(a.position[2]+75)*2.15];};
+ return <PlotCard fill title={{en:'Material, water and process connections',es:'Conexiones de material, agua y proceso'}} lane={s.live?'live':'replay'} provenance={s.live?'real':'synthetic'} dataKey={key}><div className="ob-fill"><StatusLegend live={s.live!==null}/><svg className="ob-diagram" viewBox="0 0 780 380" role="img" aria-label={lang==='es'?'Diagrama de proceso conectado':'Connected process diagram'}><defs><marker id="ob-arrow" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0 0L5 2.5L0 5" fill="context-stroke"/></marker></defs>{s.plant.streams.map(e=>{const p=xy(e.source),q=xy(e.target),active=e.source===s.selected||e.target===s.selected;return <g key={e.id}><path d={`M${p[0]},${p[1]} Q${(p[0]+q[0])/2},${Math.min(p[1],q[1])-12} ${q[0]},${q[1]}`} fill="none" stroke={e.material.includes('water')?'var(--color-accent)':'var(--color-fg-faint)'} strokeWidth={active?2.8:1} opacity={active?1:.4} markerEnd="url(#ob-arrow)"/><title>{e.id}: {e.source} → {e.target} · {e.nominal} {e.unit} · {e.delay_s}s</title></g>;})}{s.plant.assets.map(a=>{const p=xy(a.id),status=assetState(a,s.trace,s.step,s.method,s.live,s.now,s.plant);return <g key={a.id} className={`ob-node ${status} ${a.id===s.selected?'selected':''} ${s.highlight.has(a.id)?'linked':''}`} transform={`translate(${p[0]} ${p[1]})`} role="button" tabIndex={0} aria-label={`${a.id} ${a.name[lang]}`} aria-pressed={a.id===s.selected} onClick={()=>s.onSelect(a.id)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();s.onSelect(a.id);}}}><rect x="-17" y="-10" width="34" height="21" rx="4"/><text textAnchor="middle" y="4">{a.id}</text><title>{a.name[lang]} · {status==='normal'&&s.live!==null?(lang==='es'?'Observación reciente aceptada':'Fresh accepted observation'):LABELS[status][lang]}</title></g>;})}</svg><p className="ob-note">{lang==='es'?'Sólidos y agua mantienen unidades distintas. Los lazos de recirculación preservan su dirección. Pulse cualquier equipo.':'Solids and water retain separate units. Recirculation loops preserve their direction. Select any equipment.'}</p></div></PlotCard>;
 }
-
-/** The rows every view of the workbench consumes. The rail is at its measured height (ADR-0071 rule 6), so the note
- * sits in the open view: the first group (Dynamics) and the write-up (Context). */
-const CASE_ROWS = ['case-index', 'case-manifest', 'trace'];
-
-/** The readiness note above a filling view: the note takes its own line and the view the height that is left, so a
- * note never pushes the chart past its card (a note beside a `fill` chart clipped its legend). */
-function NotedFill({ children }: { children: ReactNode }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
-      <ReadinessNote ids={CASE_ROWS} />
-      <div style={{ flex: '1 1 0', minHeight: 0, position: 'relative' }}>{children}</div>
-    </div>
-  );
+function SiteTrends({s}:{s:ViewState}) {
+ const lang=useShellLang(),key=useWorkbenchState()?.stateKey;
+ const record=s.live?.find(r=>r.asset_id===s.selected)??s.history.flatMap(h=>h.records).reverse().find(r=>r.asset_id===s.selected);
+ if(!record)return <PlotCard title={{en:'Site observations',es:'Observaciones de planta'}} lane="live" provenance="real" dataKey={key}><p>{lang==='es'?'Este equipo no tiene observaciones de la fuente configurada.':'This equipment has no observations from the configured source.'}</p></PlotCard>;
+ const start=s.history[0]?.receivedAt??s.now;
+ return <PlotCard fill title={{en:record.tag_id,es:record.tag_id}} lane="live" provenance="real" dataKey={key}><div className="ob-fill"><p className="ob-note">{lang==='es'?'Historial de esta conexión; las fuentes ausentes o inválidas dejan huecos.':'History from this connection; missing or invalid source values leave gaps.'}</p>{s.history.length<2?<p>{lang==='es'?'Esperando la segunda observación.':'Waiting for the second observation.'}</p>:<UPlotChart height="fill" title={{en:'Site source history',es:'Historia de la fuente'}} x={{values:s.history.map(h=>(h.receivedAt-start)/1000),label:{en:'Elapsed receipt time',es:'Tiempo desde recepción inicial'},unit:'s'}} y={{label:{en:record.tag_id,es:record.tag_id},unit:record.unit}} series={[{label:{en:record.tag_id,es:record.tag_id},values:s.history.map(h=>{const r=h.records.find(r=>r.tag_id===record.tag_id&&r.unit===record.unit);return r?(liveValue(r,h.receivedAt,s.plant)??NaN):NaN;}),color:'--color-accent'}]}/>}</div></PlotCard>;
 }
-
-const LOADING: BiText = { en: 'Loading the case artifacts', es: 'Cargando los artefactos del caso' };
-
-/** S, I and R of the live run, with the replay trace of the case dashed under the live infected curve. */
-export function DynamicsView({ sel }: { sel: Selection | null }) {
-  const stateKey = useWorkbenchState()?.stateKey;
-  const series = useMemo(() => {
-    if (!sel) return null;
-    const at = atTimes(sel.run, sel.data.trace.t);
-    return { t: sel.data.trace.t, ...at, replayI: sel.data.trace.I };
-  }, [sel]);
-  return (
-    <PlotCard
-      fill
-      title={{ en: 'Susceptible, infected and recovered over time', es: 'Susceptibles, contagiados y recuperados en el tiempo' }}
-      lane="live"
-      provenance="synthetic"
-      dataKey={stateKey}
-      note={{ en: 'Solid: the live run with the rail values. Dashed: the committed replay of the case.', es: 'Continua: la corrida en vivo con los valores del panel. Segmentada: la reproducción comprometida del caso.' }}
-    >
-      <NotedFill>
-      {series ? (
-        <UPlotChart
-          title={{ en: 'SIR trajectory', es: 'Trayectoria SIR' }}
-          height="fill"
-          x={{ values: series.t, label: { en: 'Day', es: 'Día' }, unit: 'd' }}
-          y={{ label: { en: 'People', es: 'Personas' } }}
-          series={[
-            { label: { en: 'Susceptible', es: 'Susceptibles' }, values: series.S, color: '--color-accent' },
-            { label: { en: 'Infected', es: 'Contagiados' }, values: series.I, color: '--color-bad' },
-            { label: { en: 'Recovered', es: 'Recuperados' }, values: series.R, color: '--color-good' },
-            { label: { en: 'Infected (replay)', es: 'Contagiados (reproducción)' }, values: series.replayI, color: '--color-fg-subtle', dash: [6, 4], width: 1.5 },
-          ]}
-          marks={sel && sel.run.peakI > sel.data.manifest.params.I0 ? [{ x: sel.run.tPeak, label: { en: 'peak', es: 'pico' } }] : []}
-        />
-      ) : (
-        <Pending label={LOADING} />
-      )}
-      </NotedFill>
-    </PlotCard>
-  );
+export function TrendsView({s}:{s:ViewState}) { if(s.live!==null)return <SiteTrends s={s}/>;return <ReplayTrends s={s}/>;}
+function ReplayTrends({s}:{s:ViewState}) {
+ const lang=useShellLang(),key=useWorkbenchState()?.stateKey; const indices=channelIndices(s.trace,s.selected), i=indices[0];const c=s.trace.channels[i];const a=s.plant.assets.find(a=>a.id===s.selected)!;
+ if(!c)return <PlotCard title={{en:'Asset context',es:'Contexto del equipo'}} lane="replay" provenance="synthetic" dataKey={key}><p>{a.description[lang]}</p><p>{lang==='es'?'Este equipo tiene geometría y evidencia de referencia; no se inventa una serie de sensor.':'This equipment has geometry and reference evidence; no sensor series is invented.'}</p></PlotCard>;
+ return <PlotCard fill title={{en:`${s.selected}: observations and coherent state`,es:`${s.selected}: observaciones y estado coherente`}} lane="replay" provenance="synthetic" dataKey={key}><div className="ob-fill"><p className="ob-note">{lang==='es'?'Observaciones, verdad y estimación TASC comparten tiempo causal. El eje horizontal indica disponibilidad; cada canal puede describir una parcela anterior. La estimación no es una medición ni un pronóstico de planta.':'TASC observations, truth and estimates share causal evidence time. The horizontal axis is availability time; each channel can describe an earlier parcel. Estimates are not measurements or plant forecasts.'}</p><UPlotChart height="fill" title={c.label} x={{values:s.trace.time_s,label:{en:'Snapshot availability time',es:'Tiempo de disponibilidad de la instantánea'},unit:'s'}} y={{label:c.label,unit:c.unit}} series={[{label:{en:'Observation',es:'Observación'},values:s.trace.time_s.map((_,at)=>snapshotValue(s.trace,at,'tasc',i)??NaN),color:'--color-accent'},{label:{en:'Known synthetic truth',es:'Verdad sintética conocida'},values:s.trace.time_s.map((_,at)=>s.trace.truth[evidenceStep(s.trace,at,'tasc',i)]?.[i]??NaN),color:'--color-fg-subtle',dash:[4,4]},{label:{en:'TASC estimate (process time)',es:'Estimación TASC (tiempo de proceso)'},values:s.trace.estimate.map(row=>row[i]??NaN),color:'--color-good'}]} marks={[{x:s.step,label:{en:'Selected',es:'Selección'}}]}/></div></PlotCard>;
 }
-
-/** Live against replay: the parity of the two engines, and the scientific check of the final size. */
-export function ValidationView({ sel }: { sel: Selection | null }) {
-  const lang = useShellLang();
-  return (
-    <SubTabs
-      ariaLabel={pick({ en: 'Validation views', es: 'Vistas de validación' }, lang)}
-      tabs={[
-        { id: 'parity', label: pick({ en: 'Live against replay', es: 'En vivo contra reproducción' }, lang), content: <ParityView sel={sel} /> },
-        { id: 'final-size', label: pick({ en: 'Final size', es: 'Tamaño final' }, lang), content: <FinalSizeView sel={sel} /> },
-      ]}
-    />
-  );
+export function EvidenceView({s}:{s:ViewState}) {
+ const lang=useShellLang(),key=useWorkbenchState()?.stateKey;
+ const process=['HEP','LCH','PLS','SX1','SX2','EW1','CAT','RAF','ACD','CTH','TTH','TSF','PU2'].includes(s.selected);
+ const rows=s.engines.records.filter(r=>r.asset_id===s.selected);
+ return <PlotCard fill title={{en:`${s.selected}: engine evidence`,es:`${s.selected}: evidencia de motores`}} lane={process?'live':'replay'} provenance={process?'synthetic':'published'} dataKey={key}><div className="ob-fill">
+ {process?<ProcessView selected={s.selected} onSelect={s.onSelect} controls={s.processControls}/>:<>
+ <p className="ob-note">{lang==='es'?'Cada conexión conserva el caso del motor original. Son referencias externas, no mediciones de esta planta. Pulse una conexión para inspeccionar su equipo.':'Each connection retains the original engine case. These are external references, not measurements of this plant. Select a connection to inspect its equipment.'}</p>
+ <svg className="ob-evidence-map" viewBox="0 0 1000 560" role="img" aria-label={lang==='es'?'Motores publicados vinculados a equipos':'Published engines bound to equipment'}>{s.engines.records.map((r,i)=>{const x=10+(i%2)*500,y=12+Math.floor(i/2)*78,m=r.metrics[0];return <g key={r.id} transform={`translate(${x},${y})`} role="button" tabIndex={0} aria-label={`${r.id} → ${r.asset_id}`} onClick={()=>s.onSelect(r.asset_id)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();s.onSelect(r.asset_id);}}} className={`ob-engine-link ${r.asset_id===s.selected?'selected':''}`}><rect width="480" height="68" rx="6"/><text x="12" y="23" className="ob-map-name">{r.id.replace('CAOS_','')}</text><path d="M178 19H360m-6-5 6 5-6 5"/><text x="376" y="24" className="ob-map-name">{r.asset_id}</text><text x="12" y="48">{m.label.slice(0,31)}: {formatValue(m.value,lang)} {m.unit}</text><title>{r.id} {r.version} · {r.lane} · {r.provenance}</title></g>;})}</svg>
+ </>}
+ <details className="ob-source-details"><summary>{lang==='es'?'Inspeccionar fuente y límites':'Inspect source and limits'} · {rows.map(r=>r.id).join(', ')||s.selected}</summary><div className="ob-detail-scroll">{rows.length?rows.map(r=><article className="ob-evidence" key={r.id}><h3>{r.id} <small>{r.version}</small></h3><p>{r.lane==='executed_model'?(lang==='es'?'Paquete ejecutado en Python':'Package executed in Python'):(lang==='es'?'Artefacto público verificado':'Verified public artifact')} · {r.license}</p><table className="caos-table"><thead><tr><th>{lang==='es'?'Salida':'Output'}</th><th>{lang==='es'?'Valor':'Value'}</th><th>{lang==='es'?'Unidad':'Unit'}</th></tr></thead><tbody>{r.metrics.map((m,j)=><tr key={j}><td>{m.label}<small className="ob-path">{m.path}</small></td><td>{formatValue(m.value,lang)}</td><td>{m.unit}</td></tr>)}</tbody></table><p>{r.provenance}</p>{r.source_url&&<a href={r.source_url} target="_blank" rel="noreferrer">{lang==='es'?'Abrir fuente exacta':'Open exact source'}</a>}<pre>{JSON.stringify(r,null,2)}</pre></article>):<p>{lang==='es'?'No hay motor externo vinculado; el modelo de proceso es una referencia sintética acotada.':'No external engine is bound; the process model is a bounded synthetic reference.'}</p>}<h3>{lang==='es'?'Fuentes no disponibles':'Unavailable sources'}</h3>{s.engines.unavailable.map((r,i)=><p key={i}>{r.id}: {r.reason}</p>)}</div></details>
+ </div></PlotCard>;
 }
-
-function ParityView({ sel }: { sel: Selection | null }) {
-  const lang = useShellLang();
-  const stateKey = useWorkbenchState()?.stateKey;
-  const cmp = useMemo(() => {
-    if (!sel) return null;
-    const at = atTimes(sel.run, sel.data.trace.t);
-    const diff = at.I.map((v, i) => v - sel.data.trace.I[i]);
-    const worst = Math.max(...diff.map(Math.abs));
-    const p = sel.data.manifest.params;
-    const asBaked = sel.beta === p.beta && sel.gamma === p.gamma && sel.coverage === 0;
-    return { diff, worst, asBaked };
-  }, [sel]);
-  if (!sel || !cmp) return <Pending label={LOADING} />;
-  const s = sel.data.trace.summary;
-  const expect = sel.data.manifest.expect;
-  const metric = (key: string, label: BiText, replay: number, live: number, decimals: number) => {
-    const range = expect[key];
-    return {
-      key,
-      label,
-      replay: formatNumber(replay, lang, { decimals }),
-      live: formatNumber(live, lang, { decimals }),
-      range: range ? `${formatNumber(range[0], lang, { decimals })} - ${formatNumber(range[1], lang, { decimals })}` : '',
-      inside: range ? live >= range[0] && live <= range[1] : null,
-    };
-  };
-  const rows = [
-    metric('peak_I', { en: 'Peak infected', es: 'Pico de contagiados' }, s.peak_I, sel.run.peakI, 2),
-    metric('t_peak', { en: 'Peak day', es: 'Día del pico' }, s.t_peak, sel.run.tPeak, 2),
-    metric('attack_rate', { en: 'Attack rate', es: 'Tasa de ataque' }, s.attack_rate, sel.run.attackRate, 4),
-  ];
-  return (
-    <>
-      <PlotCard title={{ en: 'The two engines on this case', es: 'Los dos motores en este caso' }} lane="live" provenance="synthetic" dataKey={stateKey}>
-        <Verdict
-          compact
-          title={{ en: 'Parity of the engines', es: 'Paridad de los motores' }}
-          tone={cmp.asBaked ? (cmp.worst <= 0.0051 ? 'good' : 'bad') : 'neutral'}
-          verdict={
-            cmp.asBaked
-              ? cmp.worst <= 0.0051
-                ? { en: `The live engine reproduces the replay to ${formatNumber(cmp.worst, 'en', { decimals: 4 })} people (the trace rounding).`, es: `El motor en vivo reproduce la reproducción con ${formatNumber(cmp.worst, 'es', { decimals: 4 })} personas (el redondeo de la traza).` }
-                : { en: 'The live engine departs from the replay: the two engines disagree.', es: 'El motor en vivo se aparta de la reproducción: los dos motores no coinciden.' }
-              : { en: 'The rail values differ from the baked case, so the live run departs from the replay by design.', es: 'Los valores del panel difieren del caso precalculado, así que la corrida en vivo se aparta de la reproducción por diseño.' }
-          }
-        />
-        <table className="caos-table">
-          <thead>
-            <tr>
-              <th>{pick({ en: 'Summary', es: 'Resumen' }, lang)}</th>
-              <th>{pick({ en: 'Replay (Python)', es: 'Reproducción (Python)' }, lang)}</th>
-              <th>{pick({ en: 'Live (TypeScript)', es: 'En vivo (TypeScript)' }, lang)}</th>
-              <th>{pick({ en: 'Expected range', es: 'Rango esperado' }, lang)}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.key}>
-                <td>{pick(r.label, lang)}</td>
-                <td>{r.replay}</td>
-                <td>{r.live}</td>
-                <td>{r.range ? `${r.range} ${r.inside ? pick({ en: '(live inside)', es: '(en vivo dentro)' }, lang) : pick({ en: '(live outside)', es: '(en vivo fuera)' }, lang)}` : pick({ en: 'not stated', es: 'no declarado' }, lang)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </PlotCard>
-      <PlotCard fill title={{ en: 'Infected, live minus replay', es: 'Contagiados, en vivo menos reproducción' }} lane="live" provenance="synthetic" dataKey={stateKey}>
-        <UPlotChart
-          title={{ en: 'Infected, live minus replay', es: 'Contagiados, en vivo menos reproducción' }}
-          height="fill"
-          x={{ values: sel.data.trace.t, label: { en: 'Day', es: 'Día' }, unit: 'd' }}
-          y={{ label: { en: 'Difference', es: 'Diferencia' }, unit: { en: 'people', es: 'personas' } }}
-          series={[{ label: { en: 'Live minus replay', es: 'En vivo menos reproducción' }, values: cmp.diff, color: '--color-magenta' }]}
-        />
-      </PlotCard>
-    </>
-  );
+export function ModelView({s}:{s:ViewState}) {
+ const lang=useShellLang(),key=useWorkbenchState()?.stateKey;
+ const rows=s.trace.metrics;
+ return <PlotCard fill title={{en:'Methods on the same observations',es:'Métodos sobre las mismas observaciones'}} lane="replay" provenance="synthetic" dataKey={key}><div className="ob-fill"><p className="ob-note">{lang==='es'?'Discrepancia normalizada en el instante seleccionado: azul bajo el umbral, rojo sobre 1 y ámbar sin puntaje. Cada método conserva su tiempo causal de evidencia.':'Normalized discrepancy at the selected snapshot: blue below threshold, red above 1 and amber unscorable. Each method retains its causal evidence time.'}</p>
+ <svg className="ob-score-map" viewBox="0 0 1020 600" role="img" aria-label={lang==='es'?'Mapa de discrepancias por método y canal':'Discrepancy map by method and channel'}>{s.trace.channels.map((c,j)=><text key={c.id} transform={`translate(${228+j*48},180) rotate(-90)`}>{c.id}</text>)}{rows.map((r,i)=><g key={r.method} transform={`translate(0,${195+i*45})`}><text x="8" y="25">{r.method}</text>{s.trace.channels.map((c,j)=>{const v=s.trace.scores[r.method]?.[s.step]?.[j];return <g key={c.id}><rect x={206+j*48} width="43" height="39" rx="3" fill={v===null||v===undefined?'#70551e':v>1?'#b24d59':'#2b7a96'}/><text x={227+j*48} y="25" textAnchor="middle" fill="#fff">{v===null||v===undefined?'?':formatValue(v,lang,1)}</text><title>{r.method} · {c.id} · {lang==='es'?'evidencia':'evidence'} {s.trace.time_s[evidenceStep(s.trace,s.step,r.method,j)]??'?'} s · {formatValue(v,lang,4)}</title></g>;})}</g>)}</svg>
+ <details className="ob-source-details"><summary>{lang==='es'?'Métricas del caso completo y límites':'Whole-case metrics and limits'}</summary><div className="ob-detail-scroll"><table className="caos-table"><thead><tr><th>{lang==='es'?'Método':'Method'}</th><th>{lang==='es'?'Precisión':'Precision'}</th><th>{lang==='es'?'Sensibilidad':'Recall'}</th><th>FPR</th><th>{lang==='es'?'Sin puntuar':'Unscorable'}</th></tr></thead><tbody>{rows.map((r,i)=><tr key={i}><td>{r.method}</td>{['precision','recall','false_positive_rate'].map(k=><td key={k}>{formatValue((r.numeric as Record<string,number|null>)[k],lang,5)}</td>)}<td>{r.unscorable_points.toLocaleString(lang)}</td></tr>)}</tbody></table><p>{lang==='es'?'El estudio completo incluye 768 escenarios y 6144 celdas. TASC pierde sensibilidad frente al predictor y frente a la ablación sin topología. No se declara superioridad.':'The full study includes 768 scenarios and 6,144 cells. TASC loses recall to the predictor and the no-topology ablation. Superiority is not claimed.'}</p><a href={`${import.meta.env.BASE_URL}benchmark`}>{lang==='es'?'Ver estudio completo':'Read the full study'}</a></div></details></div></PlotCard>;
 }
+export function AssetValues({s}:{s:ViewState}) {const lang=useShellLang();const a=s.plant.assets.find(a=>a.id===s.selected)!;const status=assetState(a,s.trace,s.step,s.method,s.live,s.now,s.plant);const rows=s.live?s.live.filter(r=>r.asset_id===a.id).map(r=>({id:r.tag_id,value:liveValue(r,s.now,s.plant),unit:r.unit,evidence:null})):channelIndices(s.trace,a.id).map(i=>({id:s.trace.channels[i].id,value:snapshotValue(s.trace,s.step,s.method,i),unit:s.trace.channels[i].unit,evidence:s.trace.time_s[evidenceStep(s.trace,s.step,s.method,i)]}));return <div className="ob-values" aria-live="polite"><strong>{a.id} · {a.name[lang]}</strong><p><i className={`ob-dot ${status}`}/>{status==='normal'&&s.live?(lang==='es'?'Observación reciente aceptada':'Fresh accepted observation'):LABELS[status][lang]}</p>{rows.map(r=><div key={r.id}><small>{r.id}{r.evidence!==null&&r.evidence!==undefined?` · ${r.evidence} s`:''}</small><b>{formatValue(r.value,lang)} <small>{r.unit}</small></b></div>)}<p className="ob-note">{a.description[lang]}</p>{s.live&&<p className="ob-note">{lang==='es'?'Tiempo de origen':'Source time'}: {s.live.find(r=>r.asset_id===a.id)?.source_time??(lang==='es'?'desconocido':'unknown')}</p>}</div>;}
 
-/** The final-size relation against the engine run to the case horizon, over a range of R0 around the case. */
-function FinalSizeView({ sel }: { sel: Selection | null }) {
-  const stateKey = useWorkbenchState()?.stateKey;
-  const curve = useMemo(() => {
-    if (!sel) return null;
-    const p = sel.data.manifest.params;
-    const r0s = Array.from({ length: 49 }, (_, k) => 0.4 + k * 0.1);
-    const theory = r0s.map(finalSize);
-    const engine = r0s.map((r0) => simulate({ ...p, beta: r0 * sel.gamma, gamma: sel.gamma }).attackRate);
-    const r0 = sel.beta / sel.gamma;
-    return { r0s, theory, engine, r0, gap: Math.abs(sel.run.attackRate - finalSize(r0)) };
-  }, [sel]);
-  if (!sel || !curve) return <Pending label={LOADING} />;
-  const days = sel.data.manifest.params.days;
-  const seeded = sel.data.manifest.params.I0 > 0;
-  return (
-    <>
-      {/* The verdict stands on its own above the chart: a titled card around one line would take the drawing's height. */}
-      <Verdict
-        compact
-        title={{ en: 'Against the final-size relation', es: 'Contra la relación de tamaño final' }}
-        tone={sel.coverage > 0 || !seeded ? 'neutral' : curve.gap <= 0.02 ? 'good' : 'warn'}
-        verdict={
-          !seeded
-            ? { en: 'No initial infection: nothing spreads, while the relation assumes a seed of infection.', es: 'Sin contagio inicial: nada se propaga, mientras la relación supone una semilla de contagio.' }
-            : sel.coverage > 0
-            ? { en: 'Immunisation changes the initial susceptible share; the relation below is for a fully susceptible population.', es: 'La inmunización cambia la fracción susceptible inicial; la relación de abajo es para una población totalmente susceptible.' }
-            : curve.gap <= 0.02
-              ? { en: `The run ends within ${formatNumber(curve.gap * 100, 'en', { decimals: 1 })} points of the final size.`, es: `La corrida termina a ${formatNumber(curve.gap * 100, 'es', { decimals: 1 })} puntos del tamaño final.` }
-              : { en: `The run is ${formatNumber(curve.gap * 100, 'en', { decimals: 1 })} points from the final size: the ${days}-day horizon ends first, or R0 is near 1.`, es: `La corrida está a ${formatNumber(curve.gap * 100, 'es', { decimals: 1 })} puntos del tamaño final: el horizonte de ${days} días termina antes, o R0 está cerca de 1.` }
-        }
-      />
-      <PlotCard fill title={{ en: 'Share ever infected against R0', es: 'Fracción alguna vez contagiada contra R0' }} lane="live" provenance="synthetic" dataKey={stateKey}>
-        <UPlotChart
-          title={{ en: 'Share ever infected against R0', es: 'Fracción alguna vez contagiada contra R0' }}
-          height="fill"
-          x={{ values: curve.r0s, label: { en: 'Basic reproduction number', es: 'Número reproductivo básico' } }}
-          y={{ label: { en: 'Attack rate', es: 'Tasa de ataque' }, range: [0, 1] }}
-          series={[
-            { label: { en: 'Final-size relation', es: 'Relación de tamaño final' }, values: curve.theory, color: '--color-accent' },
-            { label: { en: `Engine at ${days} days`, es: `Motor a ${days} días` }, values: curve.engine, color: '--color-warn', dash: [5, 4] },
-          ]}
-          marks={[{ x: curve.r0, label: { en: 'this case', es: 'este caso' } }]}
-        />
-      </PlotCard>
-    </>
-  );
-}
-
-/** Peak and attack rate of the case under each immunisation variant, run live, on the shell's bar chart: margins
- * measured from the labels, the variant on screen highlighted, values in the interface language. */
-export function CompareView({ sel }: { sel: Selection | null }) {
-  const stateKey = useWorkbenchState()?.stateKey;
-  const rows = useMemo(() => {
-    if (!sel) return null;
-    const p = sel.data.manifest.params;
-    return COVERAGE.map((v) => ({ v, run: simulate({ ...p, beta: sel.beta, gamma: sel.gamma, vaccinated: v.share }) }));
-  }, [sel]);
-  if (!sel || !rows) return <Pending label={LOADING} />;
-  const bars = (value: (r: NonNullable<typeof rows>[number]) => number) =>
-    rows.map((r) => ({ id: r.v.id, label: r.v.label, value: value(r), highlight: r.v.share === sel.coverage }));
-  return (
-    <ViewsRow>
-      <PlotCard fill title={{ en: 'Attack rate by immunisation', es: 'Tasa de ataque por inmunización' }} lane="live" provenance="synthetic" dataKey={stateKey}>
-        <BarChart
-          height="fill"
-          title={{ en: 'Attack rate by immunisation', es: 'Tasa de ataque por inmunización' }}
-          axis={{ label: { en: 'Attack rate', es: 'Tasa de ataque' }, format: { percent: true, decimals: 1 } }}
-          data={bars((r) => r.run.attackRate)}
-        />
-      </PlotCard>
-      <PlotCard fill title={{ en: 'Peak infected by immunisation', es: 'Pico de contagiados por inmunización' }} lane="live" provenance="synthetic" dataKey={stateKey}>
-        <BarChart
-          height="fill"
-          title={{ en: 'Peak infected by immunisation', es: 'Pico de contagiados por inmunización' }}
-          axis={{ label: { en: 'Peak infected', es: 'Pico de contagiados' }, unit: { en: 'people', es: 'personas' }, format: { decimals: 0 } }}
-          data={bars((r) => r.run.peakI)}
-        />
-      </PlotCard>
-    </ViewsRow>
-  );
-}
-
-/** The write-up of the case: what it is, its parameters, the model, what each view shows. */
-export function ContextView({ sel }: { sel: Selection | null }) {
-  const lang = useShellLang();
-  if (!sel) return <Pending label={LOADING} />;
-  const m = sel.data.manifest;
-  const p = m.params;
-  const t = (en: string, es: string) => (lang === 'es' ? es : en);
-  return (
-    <>
-      <ReadinessNote ids={CASE_ROWS} />
-      <h2>{m.title[lang]}</h2>
-      <p>
-        {t('Category', 'Categoría')}: {m.category[lang]}. {t('What a reader should see', 'Lo que el lector debería ver')}: {m.expected_band[lang]}
-      </p>
-      <table className="caos-table">
-        <tbody>
-          <tr><td>{t('Contact rate', 'Tasa de contacto')}</td><td>{formatNumber(p.beta, lang, { decimals: 2 })} 1/d</td></tr>
-          <tr><td>{t('Recovery rate', 'Tasa de recuperación')}</td><td>{formatNumber(p.gamma, lang, { decimals: 2 })} 1/d</td></tr>
-          <tr><td>{t('Basic reproduction number', 'Número reproductivo básico')}</td><td>{formatNumber(p.beta / p.gamma, lang, { decimals: 2 })}</td></tr>
-          <tr><td>{t('Population', 'Población')}</td><td>{formatNumber(p.N, lang, { decimals: 0 })}</td></tr>
-          <tr><td>{t('Initial infected', 'Contagiados iniciales')}</td><td>{formatNumber(p.I0, lang, { decimals: 0 })}</td></tr>
-          <tr><td>{t('Horizon', 'Horizonte')}</td><td>{p.days} d</td></tr>
-        </tbody>
-      </table>
-      <h3>{t('The model', 'El modelo')}</h3>
-      <Equation
-        tex="\frac{dS}{dt} = -\beta \frac{S I}{N}, \quad \frac{dI}{dt} = \beta \frac{S I}{N} - \gamma I, \quad \frac{dR}{dt} = \gamma I"
-        caption={t('The SIR equations; both engines integrate them with forward Euler at a quarter-day step.', 'Las ecuaciones SIR; ambos motores las integran con Euler explícito a un paso de un cuarto de día.')}
-      />
-      <h3>{t('How to read the views', 'Cómo leer las vistas')}</h3>
-      <p>
-        {t(
-          'Dynamics shows the live run with the rail values and, dashed, the replay the pipeline baked for this case. Validation compares the two engines on the baked parameters and the run against the final-size relation. Compare immunisation re-runs the case with a share of the population immune from the start; the herd threshold is 1 - 1/R0.',
-          'Dinámica muestra la corrida en vivo con los valores del panel y, segmentada, la reproducción que el pipeline precalculó para este caso. Validación compara los dos motores con los parámetros precalculados y la corrida contra la relación de tamaño final. Comparar inmunización vuelve a correr el caso con una fracción de la población inmune desde el inicio; el umbral de rebaño es 1 - 1/R0.',
-        )}
-      </p>
-      <p>
-        {t('Engine', 'Motor')}: {m.engine.model}, {m.engine.package} {m.engine.version}. {t('Data', 'Datos')}: {m.real_or_synthetic === 'synthetic' ? t('synthetic', 'sintéticos') : t('real', 'reales')}.
-      </p>
-    </>
-  );
-}

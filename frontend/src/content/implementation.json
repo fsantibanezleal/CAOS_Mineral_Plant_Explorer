@@ -1,0 +1,190 @@
+[
+  {
+    "id": "architecture",
+    "title": {
+      "en": "Shared plant state",
+      "es": "Estado compartido"
+    },
+    "area": "architecture",
+    "refs": [
+      "gltf",
+      "azure"
+    ],
+    "paragraphs": [
+      {
+        "en": "React owns selected equipment, snapshot availability time, method and graph traversal. Three.js and the process diagram consume the same asset and stream graph. Trends and scalar labels resolve the evidence time associated with each method, so an aligned alarm cannot silently attach to a later raw reading. Keyboard selection provides an alternative to geometry picking.",
+        "es": "React mantiene equipo, tiempo de disponibilidad, método y recorrido. Three.js y el diagrama consumen el mismo grafo de equipos y corrientes. Tendencias y etiquetas resuelven el tiempo de evidencia de cada método, para evitar atribuir una alarma alineada a una lectura posterior. La selección por teclado ofrece una alternativa a apuntar geometría."
+      }
+    ]
+  },
+  {
+    "id": "reproduction",
+    "title": {
+      "en": "Reproduce evidence",
+      "es": "Reproducir evidencia"
+    },
+    "area": "reproducibility",
+    "refs": [
+      "hgb"
+    ],
+    "paragraphs": [
+      {
+        "en": "Exact Python pins and the npm lock define the execution environment. Source artifacts are downloaded at immutable commits and verified before extracting numeric paths. Training, calibration and test seeds are disjoint. The model manifest records the actual checkpoint digest and feature convention. Scientific arrays exclude runtime measurements so workstation load cannot change deterministic trace content.",
+        "es": "Las versiones exactas y el lock de npm definen el entorno. Los artefactos se descargan desde commits inmutables y verifican antes de extraer valores. Entrenamiento, calibración y prueba usan semillas separadas. El manifiesto registra hash y convención de entradas. Los arreglos científicos excluyen tiempos para que la carga de la máquina no cambie una secuencia determinista."
+      }
+    ],
+    "note": {
+      "en": "Load only trusted local joblib checkpoints; a manifest does not make an unknown serialized object safe.",
+      "es": "Cargue solo checkpoints joblib locales de confianza; un manifiesto no vuelve seguro un objeto serializado desconocido."
+    }
+  },
+  {
+    "id": "state",
+    "title": {
+      "en": "State inference",
+      "es": "Inferencia de estado"
+    },
+    "area": "engine",
+    "refs": [
+      "huber",
+      "reconciliation"
+    ],
+    "paragraphs": [
+      {
+        "en": "The benchmark has sixteen channels, eleven homogeneous conservation equations and maximum transport delay fourteen seconds. Complete accepted frames enter constrained projection; incomplete frames remain unscorable. Huber reweighting uses delta 1.5 and a thirty-iteration batch cap. Calibration uses independent normal seeds 300 through 307 and the higher 99.5th percentile, with a minimum standardized threshold of 0.1.",
+        "es": "La comparación tiene dieciséis canales, once ecuaciones homogéneas y retardo máximo de catorce segundos. Se proyectan tramas completas aceptadas; las incompletas quedan sin puntaje. Huber usa delta 1,5 y treinta iteraciones máximas. La calibración usa semillas normales separadas 300 a 307 y percentil superior 99,5, con umbral estandarizado mínimo de 0,1."
+      },
+      {
+        "en": "The experimental prior scales a fixed dry-solids reference relation by accepted upstream feed. It does not invoke all fourteen source engines during inference and does not infer water from ore flow. Removing that prior reproduces robust aligned reconciliation. The exported evidence-lag vector records earlier source observations. Dynamic inventories need additional equations and are outside this benchmark.",
+        "es": "La referencia experimental escala una relación fija de sólidos mediante alimentación aceptada. No invoca los catorce motores durante inferencia ni estima agua desde mineral. Eliminar esa referencia reproduce reconciliación robusta alineada. El vector exportado registra los tiempos anteriores de observación. Los inventarios dinámicos requieren ecuaciones adicionales y quedan fuera de esta comparación."
+      }
+    ],
+    "equation": "t_{e,j}=t_a-(14-d_j)",
+    "caption": {
+      "en": "Evidence time differs from snapshot availability time.",
+      "es": "Tiempo de evidencia y disponibilidad de instantánea difieren."
+    },
+    "note": {
+      "en": "A balance residual identifies disagreement under the assumed graph, without proving its root cause.",
+      "es": "Un residuo identifica discrepancia bajo el grafo supuesto, sin demostrar causa raíz."
+    }
+  },
+  {
+    "id": "geometry",
+    "title": {
+      "en": "Geometry exchange",
+      "es": "Intercambio geométrico"
+    },
+    "area": "engine",
+    "refs": [
+      "gltf"
+    ],
+    "paragraphs": [
+      {
+        "en": "The reference uses metres and a vertical Y axis. Every mapped glTF node carries extras.assetId, identifying a unique graph asset. The importer refuses remote buffers and images, excessive file size, accessor counts and non-finite transforms. After import, world-space labels and stream endpoints are recomputed from actual mapped objects, including their hierarchy transforms.",
+        "es": "La referencia usa metros y eje Y vertical. Cada nodo vinculado contiene extras.assetId e identifica un equipo único. Se rechazan recursos remotos, tamaños y conteos excesivos y transformaciones no finitas. Después de importar se recalculan etiquetas y extremos de corrientes en coordenadas mundiales desde los objetos y sus transformaciones jerárquicas reales."
+      },
+      {
+        "en": "An omitted asset is not silently drawn at its old position. Its spatial label and incident pipes are hidden, while the process graph retains its explicit identity. Status-colored labels remain independent of imported materials. State, camera, geometry and theme changes trigger rendering; animation runs only during replay. A paused plant does not need an endless rendering loop.",
+        "es": "Un equipo omitido no reaparece en su posición anterior. Se ocultan su etiqueta y tuberías, mientras el grafo conserva identidad explícita. Las etiquetas de estado son independientes del material importado. Se redibuja tras cambios de estado, cámara, geometría o tema; solo se anima durante reproducción. Una planta en pausa no necesita renderizado continuo."
+      }
+    ],
+    "equation": "p_{world}=T_{parent}T_{node}p_{local}",
+    "caption": {
+      "en": "Geometry and data anchors share the world transform.",
+      "es": "Geometría y anclas comparten transformación mundial."
+    },
+    "note": {
+      "en": "A valid mapping verifies identity and coordinates, without establishing survey accuracy.",
+      "es": "Un mapeo válido verifica identidad y coordenadas, sin establecer exactitud de levantamiento."
+    }
+  },
+  {
+    "id": "copper",
+    "title": {
+      "en": "Copper-route parity",
+      "es": "Paridad de ruta de cobre"
+    },
+    "area": "engine",
+    "refs": [
+      "leach",
+      "ew"
+    ],
+    "paragraphs": [
+      {
+        "en": "The browser recomputes a bounded synthetic leach, solvent-extraction and electrowinning route when residence time, acid or current changes. Shrinking-core conversion is integrated over ideal CSTR residence. Available acid caps dissolution; two ideal fresh-organic crosscurrent stages then transfer copper. Solution copper caps Faraday deposition. These outputs link to equipment rather than masquerading as independent plant instruments.",
+        "es": "El navegador recalcula una ruta acotada cuando cambian residencia, ácido o corriente. Núcleo decreciente se integra sobre residencia CSTR ideal. El ácido limita disolución; dos etapas ideales en flujo cruzado transfieren cobre. El cobre en solución limita deposición. Los resultados se vinculan a equipos, sin presentarse como instrumentos independientes ni mediciones de planta."
+      },
+      {
+        "en": "The TypeScript route is compared with Python at identical nominal input. The interface bounds residence between 0.5 and 20 hours, current between zero and 1000 kiloamperes, and acid between zero and 2000 kilograms per hour. A solution-limited cell consumes extra power without producing extra copper, exposing a downstream constraint without prescribing an optimum operating point.",
+        "es": "La ruta TypeScript se compara con Python a igual entrada nominal. La interfaz limita residencia entre 0,5 y 20 horas, corriente entre cero y 1000 kiloamperios y ácido entre cero y 2000 kilogramos por hora. Una celda limitada por suministro consume más potencia sin producir más cobre: muestra restricciones sin prescribir un punto operativo óptimo."
+      }
+    ],
+    "equation": "\\dot m_{Cu}=\\min(\\dot m_{solution},3600\\eta I M_{Cu}/(2F))",
+    "caption": {
+      "en": "Copper rate is kilograms per hour for current in amperes.",
+      "es": "El cobre se expresa en kilogramos por hora con corriente en amperios."
+    },
+    "note": {
+      "en": "Reference kinetics and equilibrium need independent mineral-specific calibration. Industrial countercurrent SX is outside this route.",
+      "es": "Cinética y equilibrio requieren calibración mineralógica independiente. La SX industrial en contracorriente queda fuera de esta ruta."
+    }
+  },
+  {
+    "id": "lanes",
+    "title": {
+      "en": "Runtime boundaries",
+      "es": "Límites de ejecución"
+    },
+    "area": "lanes",
+    "refs": [
+      "opc",
+      "security"
+    ],
+    "paragraphs": [
+      {
+        "en": "The public browser replays compact synthetic observations and model outputs. A separate information layer displays published CAOS references with their original source identity. Browser controls recompute only the bounded copper route. Source execution, training and full experiments remain offline. Switching to a site source never silently applies replay-trained numerical detectors to the new instruments.",
+        "es": "El navegador reproduce observaciones sintéticas y resultados compactos. Una capa separada muestra referencias CAOS publicadas con identidad original. Los controles recalculan solo la ruta acotada de cobre. Fuentes, entrenamiento y experimentos completos permanecen offline. Cambiar a planta no aplica silenciosamente detectores entrenados con reproducción a instrumentos nuevos, ni traslada su incertidumbre supuesta al sitio."
+      },
+      {
+        "en": "The optional gateway reads an OPC UA allow-list with bearer authentication and explicit browser origins. Remote OPC access requires signed encrypted transport with a server certificate. Each binding declares source-change or server-confirmation freshness. Both timestamps remain in the contract. Fresh server confirmation can keep a constant value current, without proving that its physical sensor is healthy.",
+        "es": "El gateway lee una lista OPC UA con token y orígenes explícitos. El acceso remoto requiere transporte firmado y cifrado con certificado. Cada vínculo declara frescura por cambio de origen o confirmación del servidor. Ambos tiempos permanecen en el contrato. La confirmación mantiene vigente una constante, sin demostrar que el sensor físico funcione correctamente."
+      }
+    ]
+  },
+  {
+    "id": "contracts",
+    "title": {
+      "en": "Typed boundaries",
+      "es": "Límites tipados"
+    },
+    "area": "contract",
+    "refs": [
+      "opc",
+      "gltf"
+    ],
+    "paragraphs": [
+      {
+        "en": "Thirteen catalogued contracts describe parameters, graph, observations, engine evidence, traces, model metadata, benchmark, analysis, downstream reference, readiness, index, manifests and API. JSON Schema checks dimensions and required fields beyond static TypeScript. Producer and consumer checks use a separate fixture provider. Trace manifests bind payloads by byte count and SHA-256, while graph revisions prevent incompatible equipment mappings.",
+        "es": "Trece contratos describen parámetros, grafo, observaciones, motores, secuencias, modelo, comparación, análisis, referencia de proceso, disponibilidad, índice, manifiestos y API. JSON Schema verifica dimensiones y campos además de TypeScript. Productor y consumidor usan un proveedor separado. Los manifiestos vinculan bytes y SHA-256; las revisiones del grafo evitan mezclar mapeos incompatibles de equipos y fuentes."
+      }
+    ]
+  },
+  {
+    "id": "deployment",
+    "title": {
+      "en": "Delivery and site setup",
+      "es": "Entrega y conexión"
+    },
+    "area": "deployment",
+    "refs": [
+      "security"
+    ],
+    "paragraphs": [
+      {
+        "en": "GitHub Pages is the single public delivery target for the static application. Its build manifest identifies the served version and commit. The site-local FastAPI gateway is configured separately; tokens, OPC endpoints, private keys and node identifiers never enter public artifacts. Publishing a reference and commissioning a plant connection are distinct outcomes requiring direct verification of actual source identity and data.",
+        "es": "GitHub Pages es el destino público único de la app estática. El manifiesto identifica versión y commit servidos. El gateway FastAPI local se configura aparte; tokens, endpoints, claves privadas y nodos no entran en artefactos públicos. Publicar una referencia y poner en marcha una conexión son resultados distintos que requieren verificar directamente identidad de fuente y datos reales."
+      }
+    ]
+  }
+]

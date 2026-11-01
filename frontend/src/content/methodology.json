@@ -1,0 +1,448 @@
+{
+  "schema": "orebridge.methodology-content/v1",
+  "purpose": "Independent bounded research content for main-agent review before integration",
+  "language_policy": "Each visible field has original English and Spanish companions",
+  "learned_family_count": 1,
+  "methods": [
+    {
+      "id": "quality-threshold",
+      "title": {
+        "en": "Observation quality and engineering thresholds",
+        "es": "Calidad de observaciones y umbrales de ingeniería"
+      },
+      "kind": "classical",
+      "paragraphs": [
+        {
+          "en": "An observation becomes usable only after its tag, equipment identity, engineering unit, quality and timestamps agree with the declared binding. Compatible units are converted before numerical interpretation: 100 kilograms per second becomes 360 tonnes per hour. An unsupported dimension, conversion overflow or non-finite reading produces an unavailable value rather than an invented zero.",
+          "es": "Una observación se vuelve utilizable cuando su etiqueta, identidad de equipo, unidad, calidad y tiempos coinciden con el vínculo declarado. Las unidades compatibles se convierten antes de interpretar números: 100 kilogramos por segundo equivalen a 360 toneladas por hora. Una dimensión incompatible, un desbordamiento o una lectura no finita produce ausencia explícita, en vez de un cero inventado."
+        },
+        {
+          "en": "Source time and server confirmation time answer different questions. A source timestamp can remain unchanged while a healthy constant value is repeatedly confirmed. Each gateway binding therefore declares which timestamp controls freshness. The implemented acceptance window is at most fifteen seconds, allows two seconds of future clock tolerance, and refuses decreasing source time or non-increasing delivery sequence.",
+          "es": "El tiempo de origen y la confirmación del servidor responden preguntas distintas. El primero puede mantenerse cuando un valor constante y sano se confirma repetidamente. Por eso cada vínculo del gateway declara qué tiempo gobierna la frescura. La ventana implementada admite hasta quince segundos, tolera dos segundos de desfase futuro y rechaza tiempos decrecientes o secuencias de entrega que no aumentan."
+        },
+        {
+          "en": "The numerical threshold comparison deliberately uses a simple reference rule. For channel i, the absolute difference from its authored nominal flow is divided by twenty percent of that nominal value. A score above one raises a numerical discrepancy. These nominal values belong to the synthetic reference plant; they are not operating limits supplied or approved by an actual mine.",
+          "es": "La comparación numérica usa deliberadamente una regla simple. En cada canal, la diferencia absoluta respecto del caudal nominal de referencia se divide por veinte por ciento de ese valor. Un puntaje mayor que uno indica discrepancia numérica. Estos nominales pertenecen a la planta sintética; no son límites de operación entregados o aprobados por una faena real."
+        },
+        {
+          "en": "Source-quality acceptance and discrepancy detection remain separate outputs. A valid reading can disagree with a model, while an invalid reading cannot become healthy because an estimate appears plausible. The benchmark excludes rejected target cells from numerical confusion counts and reports their lost coverage. The public plant replay starts paused so that a moving visual cannot imply an active instrument connection.",
+          "es": "La aceptación de calidad y la detección de discrepancias mantienen salidas separadas. Una lectura válida puede contradecir un modelo; una lectura inválida no se vuelve sana porque una estimación parezca razonable. La comparación excluye objetivos rechazados de los conteos numéricos e informa la cobertura perdida. La reproducción pública comienza en pausa para que una imagen animada no sugiera instrumentos conectados."
+        }
+      ],
+      "equations": [
+        {
+          "tex": "u_i=\\frac{|y_i-\\mu_i|}{0.20\\mu_i},\\qquad a_i=\\mathbf{1}[u_i>1]",
+          "caption": {
+            "en": "Independent discrepancy score for positive reference nominal flow mu; one is the displayed alarm boundary.",
+            "es": "Puntaje independiente para un caudal nominal positivo mu; uno es el umbral de discrepancia mostrado."
+          }
+        },
+        {
+          "tex": "-2\\le t_{now}-t_{fresh}\\le15\\ {\\rm s},\\qquad s_k>s_{k-1}",
+          "caption": {
+            "en": "Freshness uses the declared source or server policy; accepted delivery sequence must increase.",
+            "es": "La frescura usa la política declarada de origen o servidor; la secuencia aceptada debe aumentar."
+          }
+        }
+      ],
+      "stages": [
+        {
+          "en": "Bind tag to asset",
+          "es": "Vincular etiqueta y equipo"
+        },
+        {
+          "en": "Check units and quality",
+          "es": "Revisar unidades y calidad"
+        },
+        {
+          "en": "Check time and sequence",
+          "es": "Revisar tiempo y secuencia"
+        },
+        {
+          "en": "Score accepted value",
+          "es": "Puntuar valor aceptado"
+        }
+      ],
+      "limitation": {
+        "en": "Fresh confirmation establishes data availability, not proof that a physical sensor is unfrozen. A source-specific heartbeat or diagnostic is needed to distinguish those cases.",
+        "es": "Una confirmación reciente demuestra disponibilidad del dato, no que el sensor físico esté libre de congelamiento. Distinguir esos casos exige un latido o diagnóstico específico de la fuente."
+      },
+      "refs": [
+        "opc",
+        "security"
+      ],
+      "implementation_sources": [
+        "data-pipeline/pipeline/model/observations.py",
+        "data-pipeline/pipeline/stages/plant_evaluate.py",
+        "app/gateway.py",
+        "frontend/src/workbench/model.ts"
+      ]
+    },
+    {
+      "id": "weighted-reconciliation",
+      "title": {
+        "en": "Constrained weighted reconciliation",
+        "es": "Reconciliación ponderada con restricciones"
+      },
+      "kind": "classical",
+      "paragraphs": [
+        {
+          "en": "A redundant measurement network can contain readings that individually look reasonable but cannot simultaneously satisfy its stated balances. Weighted reconciliation seeks the nearest coherent flow vector under those balances. The reference experiment has sixteen dry-solids or water channels and eleven homogeneous equations. Water and dry solids retain different dimensions and never enter the same conservation row.",
+          "es": "Una red redundante puede contener lecturas razonables por separado que no satisfacen simultáneamente sus balances. La reconciliación ponderada busca el vector coherente más cercano bajo esas restricciones. El experimento tiene dieciséis canales de sólidos secos o agua y once ecuaciones homogéneas. Agua y sólidos mantienen dimensiones distintas y nunca se mezclan en una misma fila de conservación."
+        },
+        {
+          "en": "The diagonal covariance determines how much each observation may move. Here its standard deviation is the larger of one percent of the channel nominal and 0.1 in that channel's declared unit. Larger uncertainty permits a larger adjustment at lower cost. This assumption describes the authored experiment; correlated industrial measurement errors would require a separately justified covariance model.",
+          "es": "La covarianza diagonal determina cuánto puede ajustarse cada observación. Aquí la desviación estándar es el mayor valor entre uno por ciento del nominal y 0,1 en la unidad del canal. Una incertidumbre mayor permite un ajuste más grande a menor costo. Esta hipótesis describe el experimento; errores industriales correlacionados requieren justificar otra estructura de covarianza."
+        },
+        {
+          "en": "The reusable solver checks dimensions, finite inputs and positive uncertainty before solving. It supports redundant equations through a rank-aware least-squares projection and refuses an inconsistent right-hand side. With no constraints the solution is exactly the observation vector. Small systems are compared with independent constrained solutions, so conservation closure is checked separately from the reported discrepancy score.",
+          "es": "La función reutilizable revisa dimensiones, entradas finitas e incertidumbre positiva antes de resolver. Admite ecuaciones redundantes mediante una proyección que considera el rango y rechaza términos independientes incompatibles. Sin restricciones, la solución coincide con las observaciones. Los sistemas pequeños se comparan con soluciones independientes, separando la verificación de conservación del puntaje de discrepancia informado."
+        },
+        {
+          "en": "The benchmark's WLS comparison uses simultaneous readings, while the aligned robust comparisons shift each channel to a common parcel history. A healthy load transition can therefore challenge the simultaneous steady-state assumption. Neither a closed balance nor a large adjustment identifies a failed instrument by itself: several correlated channels can share an equally plausible explanation for the same observed mismatch.",
+          "es": "La comparación ponderada usa lecturas simultáneas, mientras las variantes robustas alineadas desplazan canales hacia una historia común de la parcela. Por eso un cambio sano de carga puede desafiar la hipótesis estacionaria simultánea. Un balance cerrado o un ajuste grande no identifican por sí solos un instrumento defectuoso: varios canales correlacionados pueden explicar de manera igualmente plausible la misma discrepancia."
+        }
+      ],
+      "equations": [
+        {
+          "tex": "\\hat{x}=\\arg\\min_{Ax=b}\\frac12(y-x)^T\\Sigma^{-1}(y-x)",
+          "caption": {
+            "en": "Minimize uncertainty-weighted adjustment while enforcing the declared linear constraints.",
+            "es": "Minimizar el ajuste ponderado por incertidumbre, sujeto a las restricciones lineales declaradas."
+          }
+        },
+        {
+          "tex": "\\hat{x}=y-\\Sigma A^T(A\\Sigma A^T)^+(Ay-b),\\qquad\\Sigma_{ii}=\\max(0.01\\mu_i,0.1)^2",
+          "caption": {
+            "en": "The reusable projection handles redundant rows with a pseudoinverse-equivalent least-squares solve.",
+            "es": "La proyección reutilizable admite filas redundantes mediante una solución de mínimos cuadrados equivalente a la pseudoinversa."
+          }
+        }
+      ],
+      "stages": [
+        {
+          "en": "Prepare accepted readings",
+          "es": "Preparar lecturas aceptadas"
+        },
+        {
+          "en": "Declare balance rows",
+          "es": "Declarar filas de balance"
+        },
+        {
+          "en": "Project with uncertainty",
+          "es": "Proyectar con incertidumbre"
+        },
+        {
+          "en": "Inspect adjustments",
+          "es": "Inspeccionar ajustes"
+        }
+      ],
+      "limitation": {
+        "en": "The eleven benchmark equations are steady-state reference factors. They do not estimate dynamic tank inventory or establish industrial sensor-fault identifiability.",
+        "es": "Las once ecuaciones son factores estacionarios de referencia. No estiman inventarios dinámicos de estanques ni demuestran identificabilidad de fallas instrumentales industriales."
+      },
+      "refs": [
+        "reconciliation"
+      ],
+      "implementation_sources": [
+        "data-pipeline/pipeline/model/reconciliation.py",
+        "data-pipeline/pipeline/model/scenarios.py",
+        "data-pipeline/pipeline/stages/plant_evaluate.py"
+      ]
+    },
+    {
+      "id": "huber-reconciliation",
+      "title": {
+        "en": "Huber robust reconciliation",
+        "es": "Reconciliación robusta de Huber"
+      },
+      "kind": "classical",
+      "paragraphs": [
+        {
+          "en": "Squared error gives unusually large standardized deviations a strong influence over a reconciled state. Huber loss instead remains quadratic near zero and grows linearly beyond a declared transition. The implementation uses delta equal to 1.5 standard deviations. This retains sensitivity to ordinary measurement noise while reducing the influence of a single large inconsistency on the constrained estimate.",
+          "es": "El error cuadrático concede mucha influencia a desviaciones estandarizadas inusualmente grandes. La pérdida de Huber mantiene forma cuadrática cerca de cero y crece linealmente después de una transición declarada. La implementación usa delta igual a 1,5 desviaciones estándar. Así conserva sensibilidad al ruido ordinario y reduce la influencia de una inconsistencia grande sobre la estimación restringida."
+        },
+        {
+          "en": "Iteratively reweighted least squares alternates between standardized residuals and a weighted conservation projection. A large residual receives a smaller weight, but its observation is not deleted or silently relabeled as correct. The reusable single-frame routine starts from WLS, allows twenty-five iterations and stops when the maximum state change falls below one hundred-millionth of a channel unit.",
+          "es": "Mínimos cuadrados reponderados alterna entre residuos estandarizados y proyección ponderada de conservación. Un residuo grande recibe menos peso, pero su observación no se elimina ni se declara correcta silenciosamente. La rutina de una trama comienza con la solución ponderada, admite veinticinco iteraciones y se detiene cuando el cambio máximo es menor que una cienmillonésima de la unidad del canal."
+        },
+        {
+          "en": "The exported benchmark uses a vectorized counterpart with thirty iterations and a maximum-change tolerance of one ten-millionth. It first aligns observations causally using the declared transport delays. At availability time t, channel i contributes the earlier reading at t minus fourteen plus its delay. Initial history remains unavailable, and displayed values retain this evidence-time relationship with their scores.",
+          "es": "La comparación exportada usa una variante vectorizada con treinta iteraciones y tolerancia de cambio máximo de una diezmillonésima. Primero alinea causalmente las observaciones mediante los retardos declarados. En el instante de disponibilidad t, cada canal aporta la lectura anterior ubicada en t menos catorce más su retardo. La historia inicial permanece ausente y los valores mostrados conservan esa relación temporal con sus puntajes."
+        },
+        {
+          "en": "Normal-state calibration uses seeds 300 through 307 and the higher 99.5th percentile of channel residuals, with a minimum threshold of 0.1. The displayed score divides the raw standardized adjustment by that calibration threshold. Independent constrained optimization checks the robust objective on small systems. Convergence and balance closure do not by themselves establish correct localization of the underlying process or instrument disturbance.",
+          "es": "La calibración normal usa semillas 300 a 307 y el percentil superior 99,5 de los residuos por canal, con umbral mínimo 0,1. El puntaje mostrado divide el ajuste estandarizado por ese umbral calibrado. Una optimización restringida independiente revisa el objetivo robusto en sistemas pequeños. Convergencia y cierre de balance no demuestran por sí mismos la localización correcta de la perturbación de proceso o instrumento."
+        }
+      ],
+      "equations": [
+        {
+          "tex": "\\rho_{\\delta}(r)=\\begin{cases}\\tfrac12r^2,&|r|\\le\\delta\\\\\\delta(|r|-\\tfrac12\\delta),&|r|>\\delta\\end{cases},\\qquad\\delta=1.5",
+          "caption": {
+            "en": "Huber loss changes from quadratic to linear growth at a standardized residual of 1.5.",
+            "es": "Huber cambia de crecimiento cuadrático a lineal en un residuo estandarizado de 1,5."
+          }
+        },
+        {
+          "tex": "w_i^{(k)}=\\min\\!\\left(1,\\frac{1.5}{\\max(|(x_i^{(k)}-y_i)/\\sigma_i|,10^{-12})}\\right),\\quad\\hat{x}^{(k+1)}=\\arg\\min_{Ax=b}\\sum_i\\frac{w_i^{(k)}(x_i-y_i)^2}{2\\sigma_i^2}",
+          "caption": {
+            "en": "The reweighting step keeps the same conservation constraints while limiting large residual influence.",
+            "es": "La reponderación mantiene las restricciones de conservación y limita la influencia de residuos grandes."
+          }
+        }
+      ],
+      "stages": [
+        {
+          "en": "Align parcel evidence",
+          "es": "Alinear evidencia de parcela"
+        },
+        {
+          "en": "Compute standardized residuals",
+          "es": "Calcular residuos estandarizados"
+        },
+        {
+          "en": "Reweight and project",
+          "es": "Reponderar y proyectar"
+        },
+        {
+          "en": "Calibrate discrepancies",
+          "es": "Calibrar discrepancias"
+        }
+      ],
+      "limitation": {
+        "en": "A robust projection can spread one sensor innovation across correlated channels. A discrepancy map supports investigation; it is not an automatic root-cause diagnosis.",
+        "es": "Una proyección robusta puede distribuir una innovación entre canales correlacionados. El mapa apoya la investigación; no entrega diagnóstico automático de causa raíz."
+      },
+      "refs": [
+        "huber",
+        "reconciliation"
+      ],
+      "implementation_sources": [
+        "data-pipeline/pipeline/model/reconciliation.py",
+        "data-pipeline/pipeline/stages/plant_evaluate.py",
+        "data-pipeline/pipeline/model/scenarios.py"
+      ]
+    },
+    {
+      "id": "causal-forecast",
+      "title": {
+        "en": "Causal histogram gradient boosting prediction",
+        "es": "Predicción causal mediante gradient boosting de histogramas"
+      },
+      "kind": "learned",
+      "paragraphs": [
+        {
+          "en": "The trained comparison predicts each of sixteen next-step channels from four preceding complete multichannel observations. Its input therefore has sixty-four lag features, ordered from the most recent sample backwards. Each target uses a separate histogram gradient boosting regressor within a multi-output wrapper. This is a real fitted model; it is not a renamed nominal threshold or an implementation of graph neural detection.",
+          "es": "La comparación entrenada predice cada uno de dieciséis canales desde cuatro observaciones multicanal completas anteriores. La entrada contiene sesenta y cuatro variables retardadas, ordenadas desde la más reciente hacia atrás. Cada objetivo usa un regresor de gradient boosting de histogramas dentro de un contenedor multisalida. Es un modelo ajustado real; no es un umbral nominal renombrado ni un detector neuronal de grafos."
+        },
+        {
+          "en": "Normal training uses seeds 100 through 107, with two hundred samples per sequence. The implementation fits seventy boosting iterations, at most twelve leaf nodes, sixty-four bins, L2 regularization equal to one and random state forty-one. Training-target standard deviations scale both inputs and outputs. No current target or future observation enters the lag features used to predict that target.",
+          "es": "El entrenamiento normal usa semillas 100 a 107, con doscientas muestras por secuencia. La implementación ajusta setenta iteraciones, hasta doce hojas, sesenta y cuatro intervalos, regularización L2 igual a uno y estado aleatorio cuarenta y uno. Las desviaciones de los objetivos escalan entradas y salidas. Ningún objetivo actual ni observación futura ingresa en las variables que lo predicen."
+        },
+        {
+          "en": "Calibration uses separate normal sequences from seeds 200 through 203. For each channel, the higher 99.5th percentile of absolute prediction error becomes its residual threshold, bounded below by ten to the minus eighth in the channel's unit. Held-out faults do not select this threshold. A score above one indicates an error larger than this declared normal reference distribution, rather than a known failure mechanism.",
+          "es": "La calibración usa secuencias normales separadas, con semillas 200 a 203. En cada canal, el percentil superior 99,5 del error absoluto define el umbral residual, con mínimo diez elevado a menos ocho en su unidad. Las fallas reservadas no seleccionan ese umbral. Un puntaje mayor que uno indica un error superior a la referencia normal declarada, no un mecanismo de falla demostrado."
+        },
+        {
+          "en": "Before constructing lag features, the benchmark removes rejected source values and carries the last accepted value forward only inside the predictor input. Before a first accepted sample, it uses the authored nominal. Rejected observations remain unavailable in displays and numerical scoring. This preparation avoids contaminating other channels with finite but misbound or incorrectly scaled values; it does not restore missing physical information.",
+          "es": "Antes de construir retardos, la comparación elimina valores de fuente rechazados y conserva el último aceptado solamente dentro de la entrada predictiva. Antes de la primera muestra aceptada usa el nominal de referencia. Las observaciones rechazadas siguen ausentes al mostrar y puntuar. Esta preparación evita contaminar otros canales con datos finitos mal vinculados o escalados; no recupera información física perdida."
+        }
+      ],
+      "equations": [
+        {
+          "tex": "\\hat{y}_t=\\operatorname{diag}(s)\\,f\\!\\left([\\tilde y_{t-1}/s,\\tilde y_{t-2}/s,\\tilde y_{t-3}/s,\\tilde y_{t-4}/s]\\right)",
+          "caption": {
+            "en": "Four prior accepted-history vectors predict the current state; s is the training-target standard deviation vector.",
+            "es": "Cuatro vectores anteriores de historia aceptada predicen el estado actual; s contiene desviaciones de entrenamiento."
+          }
+        },
+        {
+          "tex": "q_i=\\max\\!\\left(Q^{higher}_{0.995}(|y_i-\\hat y_i|;\\mathcal C),10^{-8}\\right),\\qquad u_{t,i}=\\frac{|y_{t,i}-\\hat y_{t,i}|}{q_i}",
+          "caption": {
+            "en": "The disjoint normal calibration set C defines a fixed per-channel residual boundary.",
+            "es": "El conjunto normal separado C define un umbral residual fijo para cada canal."
+          }
+        }
+      ],
+      "stages": [
+        {
+          "en": "Split normal seeds",
+          "es": "Separar semillas normales"
+        },
+        {
+          "en": "Prepare four causal lags",
+          "es": "Preparar cuatro retardos causales"
+        },
+        {
+          "en": "Fit sixteen regressors",
+          "es": "Ajustar dieciséis regresores"
+        },
+        {
+          "en": "Calibrate residual errors",
+          "es": "Calibrar errores residuales"
+        }
+      ],
+      "limitation": {
+        "en": "The checkpoint learns an authored short transport process. It has no site historian training, and its strong synthetic recall does not establish general industrial anomaly detection performance.",
+        "es": "El modelo aprende un proceso breve de transporte de referencia. No se entrena con un historiador de planta y su sensibilidad sintética no demuestra desempeño industrial general."
+      },
+      "refs": [
+        "hgb",
+        "gdn"
+      ],
+      "implementation_sources": [
+        "data-pipeline/pipeline/model/learning.py",
+        "data-pipeline/pipeline/stages/plant_evaluate.py"
+      ]
+    },
+    {
+      "id": "transport-aware-coherence",
+      "title": {
+        "en": "Transport-aligned state coherence",
+        "es": "Coherencia de estado alineada al transporte"
+      },
+      "kind": "classical",
+      "paragraphs": [
+        {
+          "en": "TASC tests whether causal timing, robust conservation projection and an uncertain reference relation improve discrepancy localization together. The available benchmark aligns a common parcel using the known delays, then combines sixteen observation channels with eleven fixed steady-state factors. A fourteen-sample history is required. A channel's score, displayed value and evidence time must describe the same accepted reading, even when that reading predates snapshot availability.",
+          "es": "TASC prueba si tiempos causales, proyección robusta y una relación incierta de referencia mejoran juntos la localización de discrepancias. La comparación disponible alinea una parcela mediante retardos conocidos y combina dieciséis canales con once factores estacionarios fijos. Requiere catorce muestras de historia. Puntaje, valor mostrado y tiempo de evidencia deben describir la misma lectura aceptada, aunque sea anterior a la disponibilidad de la instantánea."
+        },
+        {
+          "en": "The benchmark prior scales fixed dry-solids reference ratios by the observed upstream ROM feed. These nominal ratios are anchored to one OreFlow reference point. Water channels have no prior from that relation. Prior standard deviation is the larger of four percent of nominal flow and 0.4 in its unit. The inference never reads clean synthetic truth or the injected fault labels.",
+          "es": "El prior de la comparación escala relaciones fijas de sólidos secos mediante la alimentación ROM observada. Esos nominales se anclan en un punto de referencia OreFlow. La relación no aporta un prior de agua. Su desviación estándar es el mayor valor entre cuatro por ciento del nominal y 0,4 en su unidad. La inferencia nunca recibe verdad sintética limpia ni etiquetas de fallas inyectadas."
+        },
+        {
+          "en": "Both measurement and prior innovations use Huber loss with delta 1.5, under the same conservation constraints. The vectorized solver allows thirty reweighting iterations. If any required channel in an aligned frame is invalid, the benchmark withholds that complete constrained frame rather than showing an imputed measurement as healthy. Numerical confusion counts use only valid finite scores and retain the resulting loss of coverage.",
+          "es": "Las innovaciones de mediciones y prior usan Huber con delta 1,5 bajo las mismas restricciones. La solución vectorizada admite treinta reponderaciones. Si un canal requerido de la trama alineada es inválido, la comparación retira esa trama restringida completa en lugar de mostrar una imputación como medición sana. Los conteos numéricos usan puntajes finitos válidos y conservan la pérdida de cobertura resultante."
+        },
+        {
+          "en": "Mechanism checks remove timing, the prior or topology while preserving the paired test cases. Removing the prior reproduces aligned robust reconciliation. On the current synthetic matrix, removing topology improves recall, so the experiment does not support superiority of the combined formulation. The fourteen executed or verified CAOS engine adapters provide separate visual evidence; the benchmark does not dynamically fuse all of their outputs or infer tank inventory derivatives.",
+          "es": "Las pruebas de mecanismos eliminan tiempos, prior o topología, conservando casos pareados. Eliminar el prior reproduce la reconciliación robusta alineada. En esta matriz sintética, retirar topología mejora la sensibilidad; el experimento no respalda superioridad de la formulación conjunta. Los catorce adaptadores CAOS aportan evidencia visual separada; la comparación no fusiona dinámicamente todas sus salidas ni infiere derivadas de inventarios de estanques."
+        }
+      ],
+      "equations": [
+        {
+          "tex": "\\hat x=\\arg\\min_{Ax=0}\\left[\\sum_i\\rho_{1.5}\\!\\left(\\frac{x_i-y_i^{aligned}}{\\sigma_i}\\right)+\\sum_{i\\in E}\\rho_{1.5}\\!\\left(\\frac{x_i-m_i}{\\tau_i}\\right)\\right]",
+          "caption": {
+            "en": "The bounded experiment fuses aligned measurements with uncertain reference pseudo-observations on compatible dry-solids channels E.",
+            "es": "El experimento acotado combina mediciones alineadas y pseudoobservaciones inciertas en canales compatibles de sólidos secos E."
+          }
+        },
+        {
+          "tex": "y^{aligned}_{t,i}=\\tilde y_{t-(14-d_i),i},\\quad m_{t,i}=y^{aligned}_{t,0}\\frac{\\mu_i}{\\mu_0},\\quad\\tau_i=\\max(0.04\\mu_i,0.4),\\quad i<12",
+          "caption": {
+            "en": "Alignment uses earlier evidence only; the fixed-ratio prior covers twelve solids channels and excludes four water channels.",
+            "es": "La alineación usa evidencia anterior; el prior fijo cubre doce canales de sólidos y excluye cuatro de agua."
+          }
+        }
+      ],
+      "stages": [
+        {
+          "en": "Admit and align evidence",
+          "es": "Aceptar y alinear evidencia"
+        },
+        {
+          "en": "Build compatible ratio prior",
+          "es": "Construir prior compatible"
+        },
+        {
+          "en": "Robust constrained fusion",
+          "es": "Fusión robusta restringida"
+        },
+        {
+          "en": "Compare ablations and coverage",
+          "es": "Comparar ablaciones y cobertura"
+        }
+      ],
+      "limitation": {
+        "en": "The current topology formulation loses to its no-topology ablation and the learned predictor in recall. This is a falsifiable synthetic study, not validated industrial diagnosis or a claim of global novelty.",
+        "es": "La formulación con topología pierde sensibilidad frente a su ablación sin topología y al predictor entrenado. Es un estudio sintético refutable, no diagnóstico industrial validado ni afirmación de novedad global."
+      },
+      "refs": [
+        "huber",
+        "reconciliation",
+        "gdn"
+      ],
+      "implementation_sources": [
+        "data-pipeline/pipeline/stages/plant_evaluate.py",
+        "data-pipeline/pipeline/model/scenarios.py",
+        "data-pipeline/pipeline/model/tags.py"
+      ]
+    },
+    {
+      "id": "downstream-reference",
+      "title": {
+        "en": "Connected downstream process references",
+        "es": "Referencias conectadas de procesos aguas abajo"
+      },
+      "kind": "classical",
+      "paragraphs": [
+        {
+          "en": "The downstream route carries copper from leaching through solvent extraction to electrowinning. Its authored feed is one hundred tonnes per hour at a copper fraction of 0.005, or five hundred kilograms of copper per hour. A combined reaction and diffusion shrinking-core relation supplies particle conversion; an exponential CSTR age distribution converts that relation into a residence-time average before acid availability limits dissolution.",
+          "es": "La ruta transporta cobre desde lixiviación, a través de extracción por solventes, hasta electroobtención. La alimentación de referencia es cien toneladas por hora con fracción de cobre 0,005: quinientos kilogramos por hora. Una relación de núcleo decreciente combina reacción y difusión; una distribución exponencial de edades CSTR entrega conversión promedio antes de limitar la disolución mediante el ácido disponible."
+        },
+        {
+          "en": "The reference reaction and diffusion times are two and four hours, and the starting mean residence is six hours. Acid consumption uses an explicit coefficient of 1.543 kilograms per kilogram of dissolved copper. The solvent-extraction calculation then uses two ideal fresh-organic crosscurrent contacts: aqueous flow 150 cubic metres per hour, organic flow 120 per stage and distribution ratio two. Copper transferred plus raffinate copper closes the aqueous balance.",
+          "es": "Los tiempos de reacción y difusión son dos y cuatro horas, y la residencia media inicial es seis horas. El ácido usa un coeficiente explícito de 1,543 kilogramos por kilogramo de cobre disuelto. La extracción usa dos contactos ideales en flujo cruzado con orgánico fresco: caudal acuoso 150 metros cúbicos por hora, orgánico 120 por etapa y distribución dos. Cobre transferido y refino cierran el balance acuoso."
+        },
+        {
+          "en": "Electrowinning applies the two-electron Faraday law with copper molar mass 0.063546 kilograms per mole and Faraday constant 96485.33212 coulombs per mole. Reference current is four hundred kiloamperes, current efficiency 0.92 and cell voltage 2.1 volts. Available dissolved copper caps cathode production. Once that supply binds, increasing current raises electrical power without increasing the calculated copper output.",
+          "es": "La electroobtención aplica Faraday con dos electrones, masa molar del cobre 0,063546 kilogramos por mol y constante 96485,33212 culombios por mol. La referencia usa cuatrocientos kiloamperes, eficiencia 0,92 y voltaje 2,1 voltios. El cobre disuelto disponible limita el cátodo. Cuando ese suministro limita, aumentar corriente eleva la potencia sin aumentar la producción de cobre calculada."
+        },
+        {
+          "en": "A separate conservative settling column resolves solids volume fraction with hindered settling, Rusanov flux and a time step bounded by a 0.4 CFL factor. Its default six-metre column uses 640 cells, forty square metres of area and twenty cubic metres per hour of feed at fraction 0.08. At these inputs its outlet fraction differs by less than one percent from a 2000-cell reference; other conditions require their own refinement study.",
+          "es": "Una columna conservativa separada resuelve fracción volumétrica de sólidos mediante sedimentación obstaculizada, flujo de Rusanov y paso limitado por un factor CFL 0,4. La columna de seis metros usa 640 celdas, cuarenta metros cuadrados y alimentación de veinte metros cúbicos por hora con fracción 0,08. En estas entradas, la salida difiere menos de uno por ciento de 2000 celdas; otras condiciones requieren estudiar refinamiento."
+        }
+      ],
+      "equations": [
+        {
+          "tex": "\\frac{\\partial\\phi}{\\partial t}+\\frac{\\partial}{\\partial z}\\!\\left(v_b\\phi+v_s\\phi(1-\\phi)^{4.65}\\right)=S_f,\\qquad M_0+M_{feed}-M_{out}-M_{final}=0",
+          "caption": {
+            "en": "The one-dimensional reference separates settling transport from the independently checked solids inventory balance.",
+            "es": "La referencia unidimensional separa transporte por sedimentación y balance independiente del inventario de sólidos."
+          }
+        },
+        {
+          "tex": "\\dot m_{cathode}=\\min\\!\\left(\\dot m_{available},\\frac{\\eta I\\,3600\\,M_{Cu}}{2F}\\right),\\qquad P_{kW}=\\frac{IV}{1000}",
+          "caption": {
+            "en": "Hourly cathode mass follows charge accounting and cannot exceed copper delivered by the connected solution route.",
+            "es": "La masa horaria de cátodo sigue el balance de carga y no supera el cobre entregado por la solución conectada."
+          }
+        }
+      ],
+      "stages": [
+        {
+          "en": "Residence and acid limits",
+          "es": "Residencia y límites de ácido"
+        },
+        {
+          "en": "Crosscurrent SX balance",
+          "es": "Balance SX en flujo cruzado"
+        },
+        {
+          "en": "Faraday and supply cap",
+          "es": "Faraday y límite de suministro"
+        },
+        {
+          "en": "Independent settling reference",
+          "es": "Referencia separada de sedimentación"
+        }
+      ],
+      "limitation": {
+        "en": "These models exclude mineral-general chemistry, industrial countercurrent SX, flocculation, compression and radial thickener flow. The settling reference is not calibrated to the plant's displayed thickener geometry or throughput.",
+        "es": "Estos modelos excluyen química universal, SX industrial en contracorriente, floculación, compresión y flujo radial. La referencia de sedimentación no está calibrada a la geometría o caudal del espesador mostrado."
+      },
+      "refs": [
+        "takacs",
+        "leach",
+        "ew"
+      ],
+      "implementation_sources": [
+        "data-pipeline/pipeline/model/hydromet.py",
+        "data-pipeline/pipeline/model/thickener.py",
+        "data-pipeline/pipeline/stages/bake_plant.py",
+        "frontend/src/engine/process.ts"
+      ]
+    }
+  ]
+}

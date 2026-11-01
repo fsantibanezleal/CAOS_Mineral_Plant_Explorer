@@ -1,6 +1,7 @@
 """GET-only endpoints serving the committed documents unchanged (read-only), as docs/contracts/api.openapi.json
 declares. A document that does not exist yet, or exists but is not JSON, is a declared state: 503 with state missing
 and its reason, never an empty body that looks like data and never a 500. No write paths."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -12,8 +13,10 @@ from ..services import content
 router = APIRouter(prefix="/api")
 
 NOT_BAKED = {"en": "The pipeline has not baked this build.", "es": "El pipeline no ha generado esta versión."}
-NO_READINESS = {"en": "The readiness document is not in this build.",
-                "es": "El documento de disponibilidad no está en esta versión."}
+NO_READINESS = {
+    "en": "The readiness document is not in this build.",
+    "es": "El documento de disponibilidad no está en esta versión.",
+}
 
 
 def _unavailable(reason: dict[str, str]) -> HTTPException:
@@ -21,7 +24,9 @@ def _unavailable(reason: dict[str, str]) -> HTTPException:
 
 
 def _unreadable(exc: content.Unreadable) -> HTTPException:
-    return _unavailable({"en": f"The document {exc.rel} is unreadable.", "es": f"El documento {exc.rel} no se puede leer."})
+    return _unavailable(
+        {"en": f"The document {exc.rel} is unreadable.", "es": f"El documento {exc.rel} no se puede leer."}
+    )
 
 
 @router.get("/cases")

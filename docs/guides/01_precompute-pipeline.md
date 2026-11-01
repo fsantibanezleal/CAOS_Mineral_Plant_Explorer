@@ -1,12 +1,9 @@
-# Guide, run the precompute pipeline
+# Reproduce the connected plant evidence
 
-```bash
-./scripts/setup.sh            # or scripts/setup.ps1, builds .venv-pipeline + .venv, installs, editable pkg
-./scripts/precompute.sh       # all cases   (or:  ./scripts/precompute.sh EX02_epidemic --seed 7)
-.venv-pipeline/bin/python -m pytest        # (Scripts/python.exe on Windows)
-./scripts/smoke.sh            # CONTRACT 2 check: index <-> manifests <-> artifacts consistent
-```
+Install the exact requirements into an external environment. Set OMP_NUM_THREADS, OPENBLAS_NUM_THREADS and MKL_NUM_THREADS to 1 before Python starts; set PYTHONUTF8=1 on Windows. Provide external OREBRIDGE_CACHE_ROOT, OREBRIDGE_MODELS_ROOT and CAOS_TEMP_ROOT. Raw downloads, checkpoints and temporary outputs must not live in the repository.
 
-Outputs land in `data/derived/<case>/trace.json` + `data/derived/manifests/<case>.json` + `index.json`. The run is
-deterministic in `(params, seed)`, same seed ⇒ byte-identical artifact. Stages + their roles:
-[../architecture/05_precompute-pipeline.md](../architecture/05_precompute-pipeline.md).
+Run `python data-pipeline/run.py sources --cache-root <external-cache>` to execute the four real packages and verify the ten exact public artifacts. The result remains tied to its original source case. Then run `python data-pipeline/run.py all --benchmark --models-root <external-model-root>` for the actual fit, calibration, twelve replay cases and full 768-scenario comparison. Preserve the checkpoint and its SHA-256 manifest together.
+
+For a bounded regeneration, use `infer --no-train --models-root <external-model-root> --output <external-candidate>`. This produces graph, downstream references and case traces from the existing trusted checkpoint. `evaluate --benchmark` recomputes the full matrix; `export` finalizes index/readiness. Validate the candidate before copying its compact outputs into the release tree. The command never creates a fake trained result if the checkpoint is absent.
+
+Keep train 100-107, forecast-calibration 200-203, state-calibration 300-307 and test 1000-1015 disjoint. Changing a model, source or result requires regenerating affected evidence, a declared schema version change where appropriate, executed lessons and updated manuscripts. CI validates committed artifacts; full training is local work.

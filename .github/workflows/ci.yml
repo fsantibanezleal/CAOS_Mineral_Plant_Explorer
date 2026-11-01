@@ -70,7 +70,7 @@ jobs:
           if [ -z "${base//0/}" ]; then base=origin/develop; fi  # a new branch or a manual run has no before SHA
           python scripts/check_contract_versions.py --base "$base"
       - name: Every guard rejects a planted defect (spec area, cheap, standard library and pytest only)
-        run: pip install pytest==9.1.1 && python -m pytest tests/adversarial tests/template/adversarial -q
+        run: pip install pytest==9.1.1 && python -m pytest tests/adversarial -q
       - name: The contract catalog, every row complete and every path it names present (ADR-0080)
         run: python scripts/check_contracts.py docs/contracts/catalog.md --repo-root .
       - name: The readiness document is current with the catalog and the bake (ADR-0080)

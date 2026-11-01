@@ -1,10 +1,6 @@
-"""Stage 1, preprocess: read the raw parameter table and apply CONTRACT 1 (schema + outlier policy).
-Output = a ContractReport (accepted SIRParams + rejected rows + flags). The bring-your-own-data entry point."""
-from __future__ import annotations
+"""Asset identity and observation preparation."""
 
-from ..io.contract import ContractReport, validate_rows
-from ..io.formats import read_csv_rows
+from ..io.contract import validate_rows
+from ..model.plant import validate_graph
 
-
-def run(raw_csv_path: str) -> ContractReport:
-    return validate_rows(read_csv_rows(raw_csv_path))
+__all__ = ["validate_graph", "validate_rows"]

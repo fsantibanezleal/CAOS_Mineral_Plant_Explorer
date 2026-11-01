@@ -1,1 +1,8 @@
-{"case_id":"EX02_epidemic","beta":0.55,"gamma":0.2,"N":100000.0,"I0":50.0,"days":160}
+{
+  "case_id": "PL-01",
+  "family": "healthy",
+  "seed": 1000,
+  "severity": 1.0,
+  "noise": 1.0,
+  "steps": 160
+}

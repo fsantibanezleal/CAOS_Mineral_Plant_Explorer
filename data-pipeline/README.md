@@ -1,18 +1,13 @@
-# data-pipeline/, the offline engine
+# Connected plant pipeline
 
-The scripts of the product's science, invoked by path (`python data-pipeline/run.py`); the product declares no
-package of its own. They run in `.venv-pipeline` (`scripts/setup.sh` or `scripts/setup.ps1`), on a workstation, never in CI.
+The maintained code lives under `pipeline/`. Its named stages are source ingestion, preprocessing, training, inference, evaluation, export and validation. They share one authored equipment graph rather than separate process calculators. The default bake trains a real causal multichannel predictor; CI reads compact artifacts and never trains it.
 
-## Layout
+`run.py sources` executes four exact released packages and verifies ten public JSON artifacts at pinned commits. The source lock defines license, hash, schema and numeric paths. Source failures are explicit: there is no generated substitute for missing external evidence.
 
-- `pipeline/pipeline.py`: the orchestrator and its CLI (`python data-pipeline/run.py [all|<case>] [--seed N]
-  [--output <sandbox>]`)
-- `pipeline/registry.py`: the cases, grouped by category, and the default case
-- `pipeline/io/`: `contract.py` (contract 1), `formats.py` (readers and writers), `schema.py` (types)
-- `pipeline/core/`: `rng.py` (seeded determinism), `trace.py` and `manifest.py` (contract 2), `gate.py` (the lane
-  gate), `expect.py` (the expected ranges every result is checked against)
-- `pipeline/model/`: the engine (the example is SIR)
-- `pipeline/stages/`: preprocess, feature extraction, train, infer, evaluate, export
-- `pipeline/cases/`: the cases, each with its bilingual title, category, expected band and expected ranges
+`run.py all --benchmark` creates twelve 160-sample scenarios, calibrates on disjoint normal seeds, compares eight methods over 768 held-out scenarios, computes paired seed-block intervals, and exports 32 compact JSON files. `--models-root` and raw `--cache-root` must resolve outside this repository. The model manifest identifies the actual external checkpoint by SHA-256.
 
-See [../docs/architecture/05_precompute-pipeline.md](../docs/architecture/05_precompute-pipeline.md).
+`infer --no-train` regenerates graph, downstream references and traces from the existing checkpoint. `evaluate --benchmark` recomputes measured comparisons. `export` updates index/readiness and validates hashes and dimensions. `validate` checks existing payloads. No stage invents a model if its checkpoint is missing.
+
+Numerical interpretation is deliberately bounded: sixteen solids/water channels, eleven steady-state factors, known causal delays and a fixed dry-solids prior anchored to one OreFlow reference. The fourteen visual engine records are not all fused into this experiment. Source truth is used for evaluation only. Invalid sources are masked before history preparation; missing display values remain missing.
+
+See [experiment](../docs/problem-types/02_state-coherence-experiment.md), [downstream assumptions](../docs/problem-types/01_downstream-process-boundaries.md), [contracts](../docs/contracts/catalog.md) and [reproduction](../docs/guides/01_precompute-pipeline.md).

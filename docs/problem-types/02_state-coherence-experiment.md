@@ -1,0 +1,19 @@
+# A causal experiment for plant state coherence
+
+The numerical comparison uses a single sixteen-channel material/water network. Dry-solids channels have a tonne-per-hour basis; water channels have a cubic-metre-per-hour basis. They never share a conservation equation. The initial solids flow, recycle ratio and concentrate fraction are anchored to the exact OreFlow soft-porphyry reference output. This does not calibrate the authored transport process to a real site.
+
+A common source load reaches each observed stream after a declared transport delay. Consequently, a load transition can make simultaneous readings violate a steady-state equation even though every instrument is healthy. The causal alignment operator evaluates material-parcel time: at observation time t, a channel with delay d is shifted back by the maximum delay minus d. It uses only earlier observations. The first maximum-delay rows are explicitly unavailable.
+
+The proposed method's engine prior is driven by an observed upstream feed, not by clean latent truth. Fixed source-engine ratios supply only compatible dry-solids quantities. They do not infer water, assay chemistry or an unobserved process response. A recovery-relation shift changes the fixed-prior relation while preserving balance at simultaneous raw time. Unequal alignment can introduce transient factor residuals at the event boundaries, so this family does not isolate prior compatibility. An unmodeled transport delay is a healthy negative control: a detector that flags it has a false alert, even if the graph residual looks persuasive.
+
+## Learned comparison
+
+The actual maintained scikit-learn histogram gradient boosting implementation is trained independently for each next-step channel using four complete preceding multichannel observations. Every feature precedes its target. Training and calibration have disjoint seeds; all reported test seeds are disjoint from both. Calibration uses the higher 99.5th-percentile absolute forecast error on normal records, per channel, with no fault labels. The method is a reproducible published-model comparison, not a claim that gradient boosting is universally the best industrial detector.
+
+Rejected source values are masked before the predictor input is prepared. The last accepted value is carried forward only inside model features, with authored nominal initialization before the first accepted value. Display and scoring retain the rejected state. The benchmark records where a model cannot score; source-quality alarms remain separate from numerical process alarms. A nan-to-zero operation would create a false process fault and is forbidden.
+
+## Evidence and interpretation
+
+The full matrix includes healthy load changes, bias, drift, frozen data, incompatible unit, incorrect equipment binding, missing data, out-of-order source sequence, balance break, model mismatch, water discrepancy and unmodeled delay. Severity and held-out seeds vary; sensor-noise scale is fixed at one. Pointwise precision/recall, false alerts, localization and detection latency are measured without expanding a single detection to an entire fault interval. The confusion counts and denominator remain available, including failed or unscorable cells.
+
+Topology-aware sensor forecasting is established prior art: [GDN](https://arxiv.org/abs/2106.06947) learns sensor relationships; [GST-Pro](https://arxiv.org/abs/2401.05800) treats missing values. TASC tests a specific robust, quality- and transport-aware projection with a fixed dry-solids ratio prior anchored to one OreFlow reference. The fourteen actual source adapters provide separate visual evidence. The benchmark does not dynamically fuse all engines, estimate inventory derivatives or export per-alarm causal paths. Its global novelty and field advantage remain unverified, and any negative comparison must be retained.

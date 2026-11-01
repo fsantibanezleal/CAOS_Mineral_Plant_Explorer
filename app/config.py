@@ -1,4 +1,5 @@
 """Config from environment (stdlib; no extra deps for the dormant lane). Only used when the backend is active."""
+
 from __future__ import annotations
 
 import os
@@ -12,6 +13,7 @@ VERSION = (REPO_ROOT / "VERSION").read_text(encoding="utf-8").strip()  # the sin
 @dataclass
 class Settings:
     """Read from the environment when instantiated (not at import), so a test or a process can set DATA_DIR."""
+
     app_env: str = field(default_factory=lambda: os.getenv("APP_ENV", "dev"))
     app_host: str = field(default_factory=lambda: os.getenv("APP_HOST", "127.0.0.1"))
     app_port: int = field(default_factory=lambda: int(os.getenv("APP_PORT", "8000")))

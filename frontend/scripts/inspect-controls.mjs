@@ -1,0 +1,2 @@
+import {chromium} from 'playwright';
+const browser=await chromium.launch({headless:true});const page=await browser.newPage();await page.goto('http://127.0.0.1:4178/app');await page.getByTestId('plant-scene').waitFor();console.log(await page.locator('a,input,[role=tab],button').evaluateAll(es=>es.map(e=>({tag:e.tagName,role:e.getAttribute('role'),type:e.getAttribute('type'),name:e.getAttribute('aria-label'),text:(e.textContent||'').trim().slice(0,45)})).filter(e=>e.text||e.name||e.type==='radio')));await browser.close();

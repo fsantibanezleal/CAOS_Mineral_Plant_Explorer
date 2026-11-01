@@ -1,236 +1,196 @@
-# Software design document: the template's example product
+# Software design document: OreBridge
 
-This is the SDD of the example the template ships (ADR-0075): an SIR epidemic model, replayed and re-run live.
-It exists so the structure, the contracts, the lanes and the gates are exercised by something real on the first
-day. A product writes its own SDD here, after its research and its plan and before it instantiates, and the
-guard `scripts/check_sdd.py` holds every requirement to a gate that exists.
+Status: design reviewed before core implementation, 2026-10-31. The product was created from the current template; domain implementation follows this reviewed design. Review findings and their resolutions are in this document's final section.
 
 ## Problem and non-goals
 
-Problem: show, end to end, how a CAOS product turns cases into committed artifacts, replays them, re-runs them
-live, and proves each step: a pipeline that bakes and checks cases, a web workbench that reads and recomputes
-them, documentation transcribed from sources, and gates that fail when any of it breaks.
+Provide one connected 3D mineral-processing plant with synchronized process diagrams, current observation context and actual CAOS engine evidence. Stable asset and stream IDs join geometry, instrument tags, model capabilities and source manifests. Users trace upstream/downstream, select equipment, inspect time series and source quality, and distinguish actual instrument observations from model outputs and deterministic replay.
 
-Non-goals, each something a reader could reasonably assume:
-
-- Epidemiology. The SIR model is a placeholder with textbook assumptions (closed, homogeneous, deterministic);
-  it is not a forecasting tool and carries no real data.
-- A choice of integrator. Forward Euler at a quarter-day step is enough to show parity and convergence; a
-  product picks its scheme from its own error budget.
-- A backend. `app/` is a dormant read-only API; the example is a static site.
-- A learned model of record. The surrogate exists to show where a trained model sits in the pipeline and how its
-  held-out error is reported.
+The public reference plant is an authored copper sulfide/oxide complex with physically distinct concentrator and leach routes, shared ore arrival and water services. It is not an as-built representation of any mine. No actual site data has been supplied. The gateway is read-only; no write, setpoint, PLC method, dispatch or control route is implemented. Displayed tailings observations never establish geotechnical safety.
 
 ## Executive brief
 
-The executive view of the Introduction is data, kept apart from this document: one file frames the problem space for a
-decision maker (a landing block, five sub-tabs, three illustrations and a linked source for every figure), in English
-and Spanish. It is written from the research before any development, is valid against the shell's `executive.schema.json`
-2.0.0, and is rendered by the shell as the first view of the Introduction, where the product lands (the header order stays App, Introduction,
-Methodology, Implementation, Experiments, Benchmark: the landing never moves the tabs). The standard is
-[`docs/guides/06_executive-brief.md`](../guides/06_executive-brief.md). The example's file frames the example's own
-problem space and is replaced by every product.
-
 Data file: content/executive.json
+
+The brief frames current energy and water pressures for plant operations, engineering, instrumentation/reliability and water/tailings roles. Cochilco's electricity and water projections are sector context, never claimed savings. Three original, themed bilingual SVGs explain fragmented context, shared asset identity and linked selection. Written before dimensioning and model code.
 
 ## Research basis
 
-Done before the plan, and kept here so a reader can re-check it (ADR-0075; rule 11 section 12). The example is a
-placeholder model, so the research is short; a product's is the persisted dossier summarised claim by claim, each
-with its source. The list shows what was decided and from what; every DOI below was resolved against the Crossref
-record on 2026-10-11 (HTTP 200 each; the two of Dormand and Prince and of Virtanen et al. on 2026-10-26, HTTP 200 each).
-
 | decision | what the research found | source |
 |---|---|---|
-| The model is the closed SIR system, dS/dt = -beta S I / N, dI/dt = beta S I / N - gamma I, dR/dt = gamma I | The threshold and the whole course follow from R0 = beta / gamma | Kermack and McKendrick 1927, https://doi.org/10.1098/rspa.1927.0118 |
-| The model family and its textbook assumptions (closed, homogeneous, deterministic) | The survey states the assumptions the non-goals list | Hethcote 2000, https://doi.org/10.1137/S0036144500371907 |
-| R0 as the threshold, and the herd threshold 1 - 1/R0 | The definition of the basic reproduction ratio and its computation | Diekmann, Heesterbeek and Metz 1990, https://doi.org/10.1007/BF00178324 |
-| The same threshold for compartmental models | R0 < 1 is the stability condition of the disease-free state | van den Driessche and Watmough 2002, https://doi.org/10.1016/S0025-5564(02)00108-6 |
-| The final-size relation z = 1 - exp(-R0 z) is the oracle independent of the time course | A closed derivation of the final size | Miller 2012, https://doi.org/10.1007/s11538-012-9749-6 |
-| Forward Euler at a quarter-day step, converging at first order | The scheme's global error is first order in the step | Hairer, Norsett and Wanner 1993, https://doi.org/10.1007/978-3-540-78862-1 |
-| A higher-order reference for the engine's integrator: the embedded pair RK45 | A fifth-order formula with a fourth-order error estimate that chooses the step, six evaluations per step | Dormand and Prince 1980, https://doi.org/10.1016/0771-050X(80)90013-3 |
-| The implementation of that pair that the level 3 notebook runs as the reference | `scipy.integrate.solve_ivp` offers RK45 and the eighth-order DOP853 | Virtanen et al. 2020, https://doi.org/10.1038/s41592-019-0686-2 |
-| Requirements are written in EARS form, each with its gate | The five EARS patterns used in the requirements files | Mavin et al. 2009, https://doi.org/10.1109/RE.2009.9 |
+| Do not claim 3D/data binding is a new invention | Azure 3D Scenes and AWS TwinMaker already map scene geometry to twin entities, live data, graph relationships and overlays | https://learn.microsoft.com/en-us/azure/digital-twins/how-to-use-3d-scenes-studio ; https://docs.aws.amazon.com/iot-twinmaker/latest/guide/tm-knowledge-graph-scene.html |
+| Preserve instrument semantics | OPC UA Mining General 1.01 supplies mining type definitions, while DataValues carry status, source and server timestamps | https://reference.opcfoundation.org/specs/OPC-40560/full ; https://reference.opcfoundation.org/specs/OPC-10000-4/7.11 |
+| Separate site observation and public replay | OPC UA security requires certificate trust and authorization; data access does not imply safe remote exposure | https://reference.opcfoundation.org/specs/OPC-10000-2/full |
+| Share process identity without claiming DEXPI conformance | DEXPI 2.0.1 models plant/process engineering exchange; our bounded asset graph is not a full DEXPI implementation | https://dexpi.org/specifications/ |
+| Use standard geometry node identity | glTF 2.0 has hierarchical nodes and extras; geometry and instrument mappings remain separate checked contracts | https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html |
+| Weighted reconciliation baseline | Linear constrained WLS projects inconsistent measured flows onto conservation constraints; rank/observability limit fault identifiability | https://doi.org/10.1016/j.mineng.2018.04.023 |
+| Robust residual estimator | Huber loss reduces large-residual influence; it does not establish causal fault identity | https://doi.org/10.1214/aoms/1177703732 |
+| Implemented learned predictor | Histogram gradient boosting is a real trained multivariate causal-lag comparison, not an implementation of GDN | https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.HistGradientBoostingRegressor.html |
+| Learned multichannel forecasting comparison | GDN learns sensor relationships and scores deviations; graph-based anomaly localization already has prior art | https://arxiv.org/abs/2106.06947 |
+| Do not hide missing values as healthy | Graph spatiotemporal anomaly detection explicitly studies missing values; data-quality flags are separate from process anomalies | https://arxiv.org/abs/2401.05800 |
+| Real source engines | minehaulsim, bedblend, milldem and oreblocks are released PyPI packages; app-specific outputs are ingested from exact public source SHAs | https://pypi.org/project/minehaulsim/ ; https://pypi.org/project/bedblend/ ; https://pypi.org/project/milldem/ ; https://pypi.org/project/oreblocks/ |
+| Current problem context | Cochilco projects 20.2 percent electricity growth 2025-2034 and 67.6 percent seawater supply share in 2034 | https://www.cochilco.cl/web/informe-proyeccion-del-consumo-de-energia-electrica-en-la-mineria-del-cobre-periodo-2025-2034-2/ ; https://www.cochilco.cl/web/https-www-cochilco-cl-web-download-1014-2026-15581-informe-proyeccion-de-la-demanda-de-agua-en-la-mineria-del-cobre-en-chile-periodo-2025-2034-pdf/ |
 
-Choices with no source because the example does not need one: the surrogate's four-term basis (a placeholder that
-shows where a trained model sits) and the 1500 ms run budget (the template's lane gate, measured in the Lanes
-section below).
-
-UNVERIFIED: what each work says beyond its title, scope and DOI record (kept in `frontend/src/content/citations.ts`):
-the page text of the works was not re-read for this release, only their Crossref records, so the "what the research
-found" cells restate the reason the example cites each work, not a quotation.
+UNVERIFIED: field performance, site geometry/credentials and global priority/superiority of the proposed method. Published vendor features establish prior art, not independent performance. No site-specific predictive claim is made.
 
 ## Sizing and contracts
 
-The design rests on two artifacts of contract-first parallel delivery (ADR-0080): the sizing, kept with the
-coordination records outside the product (for this release: the repositories, components, modules with their owner
-units, the seven boundaries, the technology versions verified on primary sources, the machine limits and three
-parallel units with disjoint write scopes), and the contract catalog, kept here,
-[`docs/contracts/catalog.md`](../contracts/catalog.md). Every boundary below is a catalog row with one schema file,
-an example, a test on each side, its missing-data behavior, a provider and a swap test; the units of a feature are
-the sizing's parallel units, built at once against the fixed rows.
+One coherent plant has at least 35 equipment assets, 40 material/water streams and 16 benchmark observation channels across extraction, stockpiling, crushing, grinding/classification, flotation, thickening/filtering, leaching/SX/EW, utilities and tailings. A procedural engineering scene is authored at real relative dimensions; imported glTF assets bind by an explicit node-to-asset map. The current scene has 36 distinct assets; an unmeasured large-plant scalability claim is not made.
 
-- Ingestion (params-record, contract 1, `data-pipeline/pipeline/io/contract.py`): each case's parameters are
-  validated before a run. A missing, non-numeric, NaN or out-of-range value is rejected with its reason, never
-  coerced; an unusual value (R0 above 20) is accepted and flagged into the manifest.
-- Artifacts (case-index, case-manifest, trace, contract 2): `data/derived/manifests/index.json`
-  (`example.index/v2`: cases with bilingual titles and categories, the default case), one manifest per case
-  (`example.manifest/v4`: parameters, seed, engine and version, artifact, lane verdict, metrics and the model behind them, expected ranges,
-  bilingual expected band) and one trace per case (`example.trace/v1`: at most 200 points, summary). The web's
-  types are generated from the schema files (`frontend/src/lib/contract.gen.ts`), and
-  `frontend/src/lib/contract.test.ts` reads every committed document and the provider tree against them in both
-  directions.
-- The model slot (surrogate-model): r0 to the peak infected fraction; the analytic baseline answers while no
-  trained bundle is released, behind the same contract.
-- Readiness: `data/derived/readiness.json`, what is real in this build, row by row, in one of six declared states;
-  the site labels what a provider, a stale bake or the baseline serves, and shows not available yet for what is
-  missing.
-- The dormant API (api, `docs/contracts/api.openapi.json`): GET only; 503 with the declared state when a document
-  is absent.
+Twelve case scenarios, four severity levels at fixed noise scale 1 and sixteen held-out seeds give 768 paired test scenarios. Training/calibration uses disjoint seeds and normal periods. Every model is evaluated on the same observations, fault truth and event timestamps; metrics are pointwise with no point-adjusted score. Families include healthy load transition, bias, drift, frozen/stale tag, unit mismatch, tag swap, missing data, out-of-order delivery, topology break, engine disagreement, water imbalance and downstream delay.
+
+Raw caches/models/screenshots stay outside the repository via environment roots. Compact derived public artifacts carry SHA-256, source commit, license and synthetic/real class. Every boundary is a catalog row with a schema, producer/consumer checks and missing-data behavior. The new boundaries are plant asset graph, observation, engine capability/evidence, visual snapshot and state-model bundle.
 
 ## Technology and versions
 
-Every pinned dependency of `requirements-precompute.txt` (through `data-pipeline/requirements.txt`),
-`requirements-dev.txt` and `frontend/package.json`, with the version actually installed; `scripts/check_tech_matrix.py`
-fails when a pin and this table disagree. A package.json range is recorded at the version `frontend/package-lock.json`
-resolves it to. The runtimes are Python 3.12 (CI; the device's venv may be newer) and Node 22 (CI).
+The verified runtime is Python 3.12.10 and Node v24.14.1. Template 0.14.001 and shell 0.19.9 are verified. All direct dependencies below are resolved from the installed environment and lock.
 
 | component | package | version | use | alternative considered |
 |---|---|---|---|---|
-| engine | numpy | 2.4.6 | the SIR engine and the surrogate's least squares (numpy only, so the template installs with no native build); the same pin in `notebooks/requirements.txt` | scipy.integrate, rejected: a second heavy dependency for a one-line integrator |
-| notebooks | matplotlib | 3.11.2 | the figures of the notebooks (`notebooks/requirements.txt`); https://pypi.org/pypi/matplotlib/json read on 2026-10-19, released 2026-09-11 | none: the figures of the notebooks need a plotting library, and the web's uplot runs in the browser only |
-| notebooks | scipy | 1.18.1 | the pinned reference implementation of the level 3 example notebook (`scipy.integrate.solve_ivp`, RK45 and DOP853; `notebooks/requirements.txt`); https://pypi.org/pypi/scipy/json read on 2026-10-26, released 2026-08-21 | none: it is the state-of-the-art solver the level 3 notebook compares the engine with; the engine itself stays numpy only |
-| notebooks | nbclient | 0.11.0 | executes a notebook top to bottom in a fresh kernel (`scripts/run_notebooks.py`); https://pypi.org/pypi/nbclient/json read on 2026-10-19, released 2026-06-05 | nbconvert --execute, rejected: a heavier install for the same execution |
-| notebooks | nbformat | 5.11.1 | reads and writes the notebook format (`scripts/run_notebooks.py`); https://pypi.org/pypi/nbformat/json read on 2026-10-19, released 2026-08-17 | none: the format's own library |
-| notebooks | ipykernel | 7.4.0 | the Python kernel the notebooks run in; https://pypi.org/pypi/ipykernel/json read on 2026-10-19, released 2026-09-29 | none: nbclient needs a kernel |
-| tests | pytest | 9.1.1 | the pipeline, contract, guard and adversarial tests | unittest, rejected: no parametrisation or fixtures |
-| lint | ruff | 0.15.18 | lint of data-pipeline, tests, scripts and app | flake8 plus isort, rejected: two tools for one |
-| contracts | jsonschema | 4.26.0 | validates every document against its schema file | fastjsonschema, rejected: no support for the draft the schemas declare |
-| contracts | openapi-spec-validator | 0.9.0 | validates `docs/contracts/api.openapi.json` | none: the only maintained validator for the OpenAPI 3.1 document |
-| API | fastapi | 0.143.0 | the dormant `app/`, run by the API contract tests | flask, rejected: no response models to compare with the OpenAPI document |
-| API | httpx | 0.28.1 | the test client of the dormant `app/` | requests, rejected: FastAPI's test client needs httpx |
-| shell | @fasl-work/caos-app-shell | 0.19.1 | the shared app shell (pinned exactly, ADR-0078) | a hand-rolled shell, forbidden by ADR-0078 |
-| web | react | 19.3.0 | the UI | none: the shell requires it |
-| web | react-dom | 19.3.0 | the UI renderer | none: the shell requires it |
-| web | react-router | 8.4.0 | the routes | none: the shell requires it |
-| web | zustand | 5.0.15 | the workbench selection store | redux, rejected: one store of a few keys |
-| web | katex | 0.19.1 | typeset equations on the pages | MathJax, rejected: heavier and slower to render |
-| web | lucide-react | 1.52.0 | icons | the shell's own set where it has one |
-| web | uplot | 1.6.32 | the interactive curves (`UPlotChart`) | a static SVG, rejected: no hover or zoom |
-| build | vite | 8.3.5 | bundler and dev server | webpack, rejected: slower and needs more configuration |
-| build | @vitejs/plugin-react | 6.1.1 | the React transform for vite | none |
-| build | typescript | 5.9.3 | type check of the web and the generated contract types | none |
-| build | openapi-typescript | 7.13.0 | generates `contract.gen.ts` from the OpenAPI document | hand-written types, rejected: they drift (the build checks them) |
-| build | @types/node | 24.19.1 | types of the build scripts | none |
-| build | @types/react | 19.3.0 | types of React | none |
-| build | @types/react-dom | 19.3.0 | types of React DOM | none |
-| tests | vitest | 5.0.3 | the web unit tests | jest, rejected: needs a transform for the vite config |
-| gate | playwright | 1.63.0 | the measured UI gate (`npm run gate`), local only | cypress, rejected: heavier install |
+| Python | asyncua | 2.1.0 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | bedblend | 0.7.3 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | fastapi | 0.162.0 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | httpx | 0.28.1 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | ipykernel | 7.4.0 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | joblib | 1.6.0 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | jsonschema | 4.26.0 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | matplotlib | 3.11.2 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | milldem | 0.3.1 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | minehaulsim | 0.12.1 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | nbclient | 0.11.0 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | nbformat | 5.11.1 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | numpy | 2.2.6 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | openapi-spec-validator | 0.9.0 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | oreblocks | 0.6.6 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | pytest | 9.2.0 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | ruff | 0.15.18 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | scikit-learn | 1.9.1 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | scipy | 1.18.1 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | uvicorn | 0.54.0 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| shell | @fasl-work/caos-app-shell | 0.19.9 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | katex | 0.19.1 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | lucide-react | 1.52.0 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | react | 19.3.0 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | react-dom | 19.3.0 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | react-router | 8.4.0 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | three | 0.187.0 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | uplot | 1.6.32 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | zustand | 5.0.15 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | @types/node | 24.19.1 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | @types/react | 19.3.0 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | @types/react-dom | 19.3.0 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | @types/three | 0.187.0 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | @vitejs/plugin-react | 6.1.1 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | ajv | 8.20.0 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | ajv-formats | 3.0.1 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | openapi-typescript | 7.13.0 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | playwright | 1.63.0 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | typescript | 5.9.3 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | vite | 8.3.5 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | vitest | 5.0.3 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| Browser | minimatch | 11.0.1 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
 
 ## Resources
 
-What each stage needs on the development workstation (Windows 11, 2026-10-11; peak is the largest working set of the
-stage's processes, polled every 20 ms; the commands and outputs of the bake, the live engine and the site are in
-[`measured-resources.md`](measured-resources.md)). No stage uses a GPU or a
-network after the install. Bounds are stated where a figure depends on the product: a product measures its own and
-replaces this table.
-
 | stage | memory | disk | time | where it runs |
 |---|---|---|---|---|
-| bake (`data-pipeline/run.py`, five cases, the released surrogate) | 33 MB peak | 35 KB of artifacts in `data/derived/` (35,145 bytes) | 0.1 s | workstation, never CI |
-| training (the surrogate, folded into a bake with no released bundle, five cases) | 33 MB peak | 1 KB (`models/surrogate.json`) | 0.3 s | workstation, never CI |
-| tests (pytest, the whole suite, 599 tests of which 3 skip without node: 117 s in one run on 2026-10-12, behind the workstation's shared heavy-job lock) | 107 MB peak per process, 3.1 GB summed over the 253 processes the first suite started (not re-measured for the larger suite) | temporary copies of the few files each guard reads, under a MB each | 117 s | workstation (the plants alone, `tests/adversarial`, also run in CI; the first CI time is recorded in the release notes) |
-| install (`npm ci`) | 240 MB peak | 181 MB in `node_modules` | 123 s with a cold cache | workstation and CI web job |
-| build (`npm run build`) | 340 MB peak | 1.9 MB in `frontend/dist` (1,917,973 bytes; 2.2 MB allocated on disk) | 5 s | workstation and CI web job |
-| web unit tests (`npm test`, 55 tests) | 110 MB peak | none | 1 s | workstation and CI web job |
-| deploy payload (GitHub Pages) | none | 1.9 MB uploaded | one Pages deploy, under 2 min | CI after main |
+| bake | 2 GiB budget, CPU threads bounded to one | 1 MiB checkpoint and less than 20 MiB compact replay; external cache | Full matrix measured 146.8 s; training budget 5 min | External Python environment on workstation |
+| tests | 2 GiB budget per worker | Temporary fixtures outside repository | Core and gateway measured under 30 s; full suite budget 15 min | Workstation and cheap CI |
+| build | 2 GiB Node budget | Static output budget 20 MiB | Vite measured 2.4 s after type checking | Workstation and GitHub Actions |
+| deploy | Static host, no model process | GitHub Pages artifact budget 100 MiB | Deployment budget 10 min | GitHub Pages |
+
+## Contracts
+
+1. Plant graph: stable equipment and directed stream IDs, stage, equipment type, coordinates/dimensions, diagram coordinates, units, semantic tag bindings and provenance. Reject duplicate/dangling IDs, non-finite geometry and wrong units.
+2. Observation: tag/asset/quantity, finite value or explicit absent state, canonical unit, UTC source/receipt times, monotone source sequence and quality code. Reject future time beyond tolerance; stale and out-of-order values cannot replace newer healthy state.
+3. Engine evidence: engine source/release/SHA, artifact SHA-256 or package version, input configuration, actual output paths, units, validity and execution/replay lane. Import refuses changed source hash and missing numeric path. No private engine modules are imported.
+4. Twin snapshot: graph revision, selected time, aligned observations, engine evidence, quality states, model results and reasons. The same snapshot drives the 3D view, process diagram, asset table and trends.
+5. State bundle: training seeds, normalization, baseline/learned parameters, calibration threshold, source hash and environment. The held-out case never tunes these fields.
 
 ## Lanes
 
-- Offline: `data-pipeline/run.py` bakes every case (about a millisecond each) and checks it against its expected
-  ranges; it runs on a workstation, never in CI and never in the browser.
-- Replay: the committed artifacts, copied into the site by `frontend/scripts/copy-data.mjs` (exactly the declared
-  files) and fetched with the version in the address.
-- Live: `frontend/src/engine/sir.ts`, a step-for-step port of the Python engine. The basis for putting it in the
-  browser is measured, not assumed: the lane gate (`data-pipeline/pipeline/core/gate.py`) gives each case a run
-  budget of 1500 ms and a trace budget of 256 KiB, and the Benchmark page measures the live engine against that
-  budget in the reader's browser (a median of 0.006 to 0.010 ms per case under Node 24 on the development workstation, 2026-10-12,
-  [`measured-resources.md`](measured-resources.md)).
+Offline: download exact public source artifacts, execute real released engine packages, build the authored plant, prepare disjoint normal/fault scenarios, fit/calibrate, infer, compare, export and validate. Full benchmark/training stays outside CI. Public replay: immutable, versioned, compact snapshots and model evidence. Browser live: selection, timeline, thresholds and bounded topology checks, with Python parity fixtures. Site observation: an operator-configured read-only local gateway serves the same typed snapshot contract; actual site access is separate from public release evidence. No live-site connection is claimed.
 
 ## Method ladder
 
-Every method of the product is a row, with the tier it belongs to: `classical` (the established methods of the problem),
-`sota` (the current solutions, replicated or implemented) or `beyond` (the product's own proposals beyond the state of the
-art). A product has at least one method in each tier ([`docs/guides/09_method-tiers.md`](../guides/09_method-tiers.md));
-this teaching example has two tiers and says so under "Beyond the state of the art". Each row has one acceptance criterion and
-its gate, per ADR-0069.
-
 | id | tier | method | acceptance criterion | gate |
 |---|---|---|---|---|
-| M-1 | classical | The SIR system of Kermack and McKendrick integrated by Forward Euler, the example engine | The live engine reproduces every baked trace to the trace rounding (0.005 people), and both converge to the final-size relation at first order in the step | `frontend/src/engine/sir.parity.test.ts` |
-| M-2 | sota | A higher-order Runge-Kutta solver, SciPy's RK45 and DOP853, run on the same five cases | The level 3 notebook runs RK45 and DOP853 on the engine's cases and reports the engine's Forward Euler error against them in the peak and the attack rate | `notebooks/en/01-getting-started/03-a-higher-order-solver.ipynb` (`scripts/check_notebooks.py` fails when no level 3 notebook names M-2) |
+| M-1 | classical | Independent engineering thresholds and freshness/units validation | Exact channel-specific alarms and invalid-input refusal under hand-worked boundary cases | `tests/test_observations.py` |
+| M-2 | classical | Linear constrained weighted least-squares reconciliation | Exact solution agrees with independent constrained solve, conservation residual below 1e-9 and no singular solve on deficient graphs | `tests/test_models.py` |
+| M-3 | sota | Huber robust reconciliation using SciPy optimization | Independent objective checks, finite convergence and correct degeneracy on zero residual, with held-out detection results | `tests/test_models.py` |
+| M-4 | sota | Calibrated multichannel normal-state prediction | Real trained normal-state model, held-out forecast errors and calibration threshold; next-step inputs never use future observations | `tests/test_learning.py` |
+| BS-1 | beyond | Topology-Aware State Coherence | A temporal validity mask and robust fusion of compatible fixed OreFlow-reference ratio pseudo-observations with conservation factors; declared source/graph metadata, same-matrix evaluation and topology/engine/freshness ablations | `tests/test_tasc.py` |
 
 ## Cases
 
-Five cases in two categories. Outbreak regimes: sub-critical (R0 0.72, no outbreak), epidemic (R0 2.75), fast burn
-(R0 6), slow spread (R0 1.2, still running when the horizon ends). Controls: no initial infection (R0 2, nothing
-happens). Each exists to test a different part of the engine and the views: the threshold, a full epidemic, a
-sharp early peak, a horizon that cuts the run, and the degenerate start. Every case states numeric expected
-ranges, enforced by `data-pipeline/pipeline/core/expect.py`. Variants: immunisation of 0%, 30% and 60% at the
-start, computed live.
+The twelve scenario families above apply to the same connected reference plant. They are not different isolated calculators. Variants change only a declared fault magnitude, source-noise level or load. Zero fault is an explicit negative control. The accounting graph distinguishes water and dry solids. Circulating-load ratios are authored reference quantities. No dynamic inventory state is inferred; the sixteen-channel benchmark uses steady-state factors only after declared causal alignment. The leach route and concentrator share ore arrival via explicit routing and do not imply all ores are chemically interchangeable.
 
 ## Oracles
 
-- The final-size relation z = 1 - exp(-R0 z) (Kermack and McKendrick 1927; Miller 2012), independent of the time
-  course: a run that ends inside its horizon must reach it, to first order in the step.
-- The threshold R0 = 1 and the herd threshold 1 - 1/R0 (Diekmann, Heesterbeek and Metz 1990): a sub-critical case
-  must not grow, and an immunisation above the threshold must prevent the outbreak.
-- Parity: the Python engine is the reference for the live engine, to the trace rounding.
-None of these is a model judging a model.
+The recovery-relation perturbation is balanced at simultaneous raw time. Unequal alignment can introduce transient factor residuals at its boundaries, so that family does not isolate prior compatibility. Event latency starts at first comparable aligned-label availability and excludes alignment wait from raw fault onset.
+
+Stable asset ID and graph adjacency come from the authored graph manifest. Exact closed balances and independent constrained optimization check reconciliation. Known injected faults establish detection truth; delay events are scored after declared transport time, not treated as simultaneous contradictory values. Engine output is compared with its source artifact or actual package result, never with a hand-invented expected win. Neither TASC nor a language model is an oracle. Metrics retain missed faults and false alerts.
 
 ## Beyond the state of the art
 
-None claimed. The example is a teaching model: its engine is the textbook SIR system integrated by Forward Euler, and
-the state of the art it is compared with (a higher-order Runge-Kutta solver, SciPy's RK45) is in the level 3 notebook
-of `notebooks/`. This is valid only for the template: `scripts/check_sdd.py` fails a product whose SDD says it, because
-every CAOS product proposes at least one method beyond the state of the art. A product lists each proposal here under an
-identifier of the form BS-<n> with its hypothesis, its method and the evaluation that would confirm or refute it, gives it
-a row of tier `beyond` in the method ladder, and covers it with a level 4 notebook in each language
-([`docs/guides/08_notebooks.md`](../guides/08_notebooks.md)). A validation protocol, a calibration or a benchmark design
-is not a method beyond the state of the art by itself: a proposal answers the problem differently, and a proposal that does
-not improve on the state of the art is reported as the negative result it is
-([`docs/guides/09_method-tiers.md`](../guides/09_method-tiers.md)).
+BS-1 proposes Topology-Aware State Coherence (TASC). Hypothesis: explicitly aligning source quality, process transport time and engine validity before robust constrained state projection reduces false localization under asynchronous observations while retaining detection of process imbalance. The method is not simply a benchmark: it changes state inference by treating compatible fixed-reference relations as uncertain pseudo-observations, excluding stale/misunit data, aligning source time to each process factor, and solving a robust constrained fusion problem. Its batch score is a calibrated standardized measurement adjustment. Exported trace metadata identifies channels, method evidence times and source reference cases; it does not export per-alarm causal diagnosis paths. The reusable single-frame function can report algebraic factor membership, which is not proof of physical root cause.
+
+For state x, accepted observations y, observation map H, engine prior m and process constraints A x=b, minimize the sum of Huber losses on normalized measurement innovations and compatible engine-prior innovations subject to valid conservation constraints. Freshness/units/identity gates define the admissible rows; compatibility and model variance weight the fixed reference relative to observations, without a universal guarantee that its influence is appropriate. The benchmark has eleven fixed homogeneous steady-state factors. Dynamic inventory estimation is not implemented; a site with accumulation needs additional state equations before those balances apply. With no admissible engine prior it reduces to robust observation reconciliation. With identity topology it reduces to independent residuals.
+
+Novelty is a proposed combination with a precise algorithm; global priority and improvement over industrial twin platforms are unverified. Existing robust reconciliation, graph diagnosis and model fusion are cited. Compare thresholds, WLS, robust reconciliation and the learned baseline under identical held-out cases. Ablate timing alignment, engine priors and graph factors. Publish neutral/negative results. Public reader-facing names never call the method by its internal tier.
 
 ## Deploy driver
 
-GitHub Pages: a static site with every artifact committed, no secret and no server. The measurement behind it is
-the lane gate above (every case is live-eligible) and the site size (1.88 MB of site files, most of it KaTeX
-fonts, and 35 KB of artifacts, 1.9 MB in all, measured on the 2026-10-12 build, [`measured-resources.md`](measured-resources.md)). The target is written in `deploy/TARGET` and checked by `scripts/check_deploy_place.py`.
+Public GitHub Pages at orebridge.fasl-work.com is the candidate for static Three.js code and compact replay artifacts. A local gateway is a site deployment tool, not a second public hosted copy. Measure compressed JS, total scene/artifact payload, triangle count, workstation memory, frame times and p95 observation projection latency. If static delivery cannot meet them, choose a supported service target based on measurement before release. Domain and deployment remain unclaimed until verified.
 
 ## Risks and kill criteria
 
-- Risk: an instantiated product keeps pieces of the example. Kill: `scripts/check_template_residue.py` fails.
-- Risk: the two engines drift. Kill: the parity test fails.
-- Risk: a test rewrites the committed artifacts. Kill: the session guard in `tests/conftest.py` fails the run.
-- Risk: the site looks right and is not (a blank drawing, a dead control, a broken deep link). Kill: the measured
-  gate (`npm run gate`) fails before a deploy.
-- Risk: a contract changes on one side only. Kill: the generated types fail the web build when they are not
-  current, and the contract tests of both sides read the same schema files.
-- Risk: a provider ships as if it were the product. Kill: the readiness document labels it on every view, and
-  `scripts/check_skeleton.py` lists every row still on a provider.
+Incorrect asset mapping: reject duplicate bindings and expose source node IDs. Misleading live labeling: synthetic/replay remains explicit in every view and export. Missing observations: explicit invalid/stale state, never zero or retained healthy color. Ill-conditioned state estimation: SVD rank/condition check and refusal, not silent inversion. Unsupported engine input: enforce capability envelopes and preserve upstream caveats. Scene overload: measured stress profile and bounded label/LOD budgets. OT boundary: read-only tags, no method/write calls, local secrets and explicit origins. No site-specific/live performance claim without an authorized measured connection.
 
 ## ADR fit
 
-How the example meets the ADRs it is bound by, and where the base carries the rule (ADR-0078):
-
 | ADR | Rule | Carried by |
 |---|---|---|
-| ADR-0057 | two contracts, named stages, lanes | `data-pipeline/`, `docs/contracts/catalog.md` (the two contracts are its rows) |
-| ADR-0058 | architecture modal, five themed bilingual tabs | `frontend/src/architecture/`, validated by the shell on mount |
-| ADR-0069 | method vertical with its acceptance criterion | this SDD, the parity and convergence tests |
-| ADR-0070 | Focus mode for the App: a workbench opens the open group of a case in the full viewport, a surface opens each view with a stage; `?focus=1`, Escape or the exit button returns to the same case or view, group and sub-view | `frontend/src/workbench/Workbench.tsx` (`focus`), `npm run gate` with `--require-focus` (G18); the App's kind is `product.json` `app` (this example is a workbench), and only a surface App without simulation waives Focus, with its reason here as "not applicable: <reason>" |
-| ADR-0071 | the page is the viewport; one tab row; drawing at least half the viewport | the shell's `CaseWorkbench`; the gate (G5, G6) |
-| ADR-0074 | CI runs cheap checks only | `.github/workflows/ci.yml`, `scripts/check_ci_budget.py` |
-| ADR-0075 | every requirement names its gate | `docs/design/features/`, `scripts/check_sdd.py` |
-| ADR-0078 | rules live in the base | shell 0.19.1 (pinned exactly) and this template; no product re-implements them |
-| ADR-0080 | contract-first parallel delivery: catalog, one schema per boundary, providers, declared states, readiness | `docs/contracts/`, `tests/contracts/`, `frontend/src/readiness/`, `scripts/check_contracts.py`, `scripts/check_readiness.py` |
+| ADR-0057 | Instantiate frozen product substrate | Current template 0.14.001, named offline stages and two data contracts |
+| ADR-0058 | Five bilingual themed architecture diagrams | `frontend/src/architecture/` |
+| ADR-0069 | Complete scientific method verticals | Offline stages, checkpoint manifests, same-matrix benchmark and notebooks |
+| ADR-0070 | Workbench Focus and return state | `CaseWorkbench` with focus and shared selection |
+| ADR-0071 | Viewport, reachable controls and stage dimensions | Shared shell and full browser gate |
+| ADR-0074 | CI never trains | Cheap artifact/contract/model smoke only |
+| ADR-0075 | Design and named verification gates before code | This SDD and feature requirements |
+| ADR-0078 | Fix base issues in base | Exact shared-shell pin, no frame CSS overrides |
+| ADR-0080 | Dimensioned typed contracts with missing behavior | Contract catalog, examples and two-sided tests |
+
+## Commands
+
+| purpose | command | expected result |
+|---|---|---|
+| bake | `python data-pipeline/run.py all` | Versioned, hashed complete reference plant and benchmark artifacts |
+| tests | `python -m pytest` | Contracts, source adapters, algebraic oracles and adversarial cases pass |
+| build | `cd frontend && npm run build` | Generated contract types, TypeScript and static routes pass |
+| deploy | GitHub Actions deploy-pages on the reviewed main release | Exact commit and artifact hashes reachable at the sole public host |
+
+## Pre-implementation design review
+
+Reviewed 2026-10-31 against actual CAOS sources and current twin-platform documentation. Finding D1: ordinary 3D/live binding already exists; no novelty claim for that feature. D2: app engines are not libraries; consume versioned exported artifacts, public APIs or real released packages, never private-module imports. D3: a mill power model is not a flotation model and does not predict an actual plant; retain each source's support and calibration limits. D4: dynamic process storage invalidates naive steady-state balances; include inventory derivatives or refuse that factor. D5: synthetic plant examples cannot validate live operating efficacy. D6: asynchronous data must be checked before model residuals, with out-of-order arrival tested independently. Each finding is incorporated in the contracts, method definition and kill criteria. The subsequent independent numerical/source review and corrected-candidate recheck are recorded below; final release checks remain separate.
+
+## Notebook method entrypoints
+
+The didactic notebooks invoke these canonical implementations directly. They do not define replacement methods.
+
+- `pipeline.model.scenarios.generate`
+- `pipeline.model.scenarios.align`
+- `pipeline.model.scenarios.conservation_matrix`
+- `pipeline.model.scenarios.engine_prior`
+- `pipeline.model.learning.lagged`
+- `pipeline.model.learning.forecast_scores`
+- `pipeline.model.thickener.simulate_thickener`
+- `pipeline.stages.plant_evaluate.batch_projection`
+- `pipeline.stages.plant_evaluate.calibrate`
+- `pipeline.stages.plant_evaluate.raw_scores`
+- `pipeline.stages.plant_evaluate.confusion`
+- `pipeline.stages.analysis.analyze`
+
+## Corrected independent review
+
+An independent read-only review reproduced all four released package digests and all ten pinned artifact hashes/metrics, checked 48 robust objectives against an independent optimizer and reconciled every aggregate count. Its corrected-candidate recheck resolved eleven identity, timing, boundary, causality, geometry and numerical-resolution findings. Claim scope is bounded here: fixed noise scale one, fixed dry-solids ratio prior, eleven steady-state factors, explicit evidence times and no dynamic-inventory or automatic causal-diagnosis claim. Full local release checks, exact-commit CI and served-artifact verification remain separate evidence.

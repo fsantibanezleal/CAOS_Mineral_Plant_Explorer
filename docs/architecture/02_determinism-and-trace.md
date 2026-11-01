@@ -1,10 +1,7 @@
-# Determinism + the trace
+# Determinism and evidence time
 
-**A run is a pure function of `(params, seed)`.** Use `core/rng.py :: make_rng(seed)`, never a global/implicit
-RNG. Same inputs ⇒ byte-identical artifact (asserted in `tests/test_pipeline_smoke.py`). This is what makes the
-committed artifact a trustworthy source-of-truth the SPA merely animates (ADR-0052 / ADR-0054).
+A trace contains observed, valid, truth and fault arrays, calibrated scores, a separate TASC estimate and exact per-method/channel evidence_lag_s. All arrays have 160 rows and 16 channels. The first 14 numerical rows are unavailable. Manifests record exact bytes and SHA-256; elapsed performance measurements stay out of deterministic trace content.
 
-**The trace** (`core/trace.py`, schema `example.trace/v1`) is the compact, decimated replay artifact, not the raw
-solver state. `build_trace()` down-samples long trajectories to `MAX_POINTS` so the committed JSON stays small.
-For a heavy product the offline run also emits the full raw output (kept local/LFS, git-ignored); only the compact
-trace is committed and shipped. Its shape is mirrored by `frontend/src/lib/contract.types.ts` (CONTRACT 2).
+For an aligned method, channel j at availability t describes raw evidence at t-(14-delay_j). The UI resolves that earlier raw value and validity before assigning its score/color. The trend comparison uses aligned observation, truth and estimate on availability time. Unaligned methods retain zero evidence lag. A snapshot is causally available at t even when its channels describe earlier parcels.
+
+The generator seeds a load process and sensor noise independently of inference. Training uses 100-107, forecast calibration 200-203, state calibration 300-307 and test 1000-1015. Noise scale is fixed 1 in the full matrix; four severities vary fault magnitude. Engine and delay families update current latent process truth when the physical relationship changes. No clean truth enters model features or the fixed reference prior.

@@ -1,20 +1,20 @@
-# Cases + categories
+# Connected reference-plant cases
 
-Each case (`data-pipeline/pipeline/cases/`) declares a **CATEGORY** (the domain problem-type taxonomy), its
-params, an expected band (what a domain expert should see), and a real|synthetic flag. `registry.list_categories()`
-groups them. The **App shows ONE selected case**; **Experiments/Benchmark show cross-case summaries by category**
-(never mixed into the App).
+All twelve cases share one graph, sixteen channels and a common declared transport model. They are authored synthetic examples, not different isolated process calculators. Noise scale remains1; severity and held-out seed vary.
 
-## Coverage matrix (EXAMPLE, SIR; replace with your real, varied matrix)
-
-| id | category | expected band | real/synthetic |
+| Case | Family | Question/context | Category |
 |---|---|---|---|
-| `EX01_subcritical` | sub-critical (R0<1) | no outbreak; attack rate ≈ 0 | synthetic |
-| `EX02_epidemic` | epidemic (R0>1) | clear single peak; attack rate ≈ 0.7–0.9 | synthetic |
-| `EX03_fast_burn` | fast-burn (high R0) | early sharp peak; attack rate → ~1 | synthetic |
-| `EX04_slow_spread` | slow-spread (R0~1.2) | broad low peak | synthetic |
-| `CTRL_degenerate` | control: degenerate | `I0=0` → no dynamics (must not crash) | synthetic |
+| [PL-01](PL-01.md) | healthy | Operating load change | controls |
+| [PL-02](PL-02.md) | bias | Flotation feed bias | process |
+| [PL-03](PL-03.md) | drift | Cyclone flow drift | process |
+| [PL-04](PL-04.md) | frozen | Frozen mill observation | data-quality |
+| [PL-05](PL-05.md) | unit | Incompatible water unit | data-quality |
+| [PL-06](PL-06.md) | mapping | Wrong equipment binding | data-quality |
+| [PL-07](PL-07.md) | missing | Missing water observation | data-quality |
+| [PL-08](PL-08.md) | ordering | Out-of-order cyclone data | data-quality |
+| [PL-09](PL-09.md) | imbalance | Concentrate balance break | process |
+| [PL-10](PL-10.md) | engine | Changed recovery relation | model-mismatch |
+| [PL-11](PL-11.md) | water | Return-water discrepancy | process |
+| [PL-12](PL-12.md) | delay | Unmodeled transport delay | controls |
 
-A real product fills a matrix spanning its real axes (not "two of everything") + explicit negative/sanity
-controls, and adds one `docs/cases/<category>/<case-id>.md` per case (formalization + expected results + anchor).
-Copy [`00_TEMPLATE.md`](00_TEMPLATE.md) as the starting point for each per-case page.
+Quality-rejection families emulate a known ingestion decision. Healthy load and delay controls have no sensor-fault label. A changed recovery relation is a real modeled process change, not a claim of a broken instrument. The full benchmark retains null ratios, refusals and negative comparisons.

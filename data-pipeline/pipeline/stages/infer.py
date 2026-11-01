@@ -1,9 +1,5 @@
-"""Stage 4, infer: run the (research-chosen) engine for a case's params. EXAMPLE = the SIR simulate()."""
-from __future__ import annotations
+"""Causal multichannel inference and source refusal."""
 
-from ..io.schema import SIRParams, SIRResult
-from ..model.sir import simulate
+from .plant_evaluate import raw_scores
 
-
-def run(params: SIRParams) -> SIRResult:
-    return simulate(params)
+__all__ = ["raw_scores"]
