@@ -16,7 +16,7 @@ def test_plant_is_connected_and_bilingual():
         "refining",
         "tailings",
         "extraction",
-    } <= set(a["stage"] for a in g["assets"])
+    } <= {a["stage"] for a in g["assets"]}
     assert "CAT" in neighbors(g, "ROM") and "CON" in neighbors(g, "ROM")
     assert "ROM" in neighbors(g, "FL1", upstream=True)
 

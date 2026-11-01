@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "plant-graph.schema.json",
+  "title": "PlantGraph",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "id",
+    "revision",
+    "provenance",
+    "coordinate_unit",
+    "assets",
+    "streams"
+  ],
+  "properties": {
+    "schema": {
+      "const": "orebridge.plant/v1"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "revision": {
+      "type": "string",
+      "minLength": 1
+    },
+    "provenance": {
+      "const": "authored_synthetic"
+    },
+    "coordinate_unit": {
+      "const": "m"
+    },
+    "assets": {
+      "type": "array",
+      "minItems": 35,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "stage",
+          "kind",
+          "position",
+          "size",
+          "description"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "en",
+              "es"
+            ],
+            "properties": {
+              "en": {
+                "type": "string",
+                "minLength": 1
+              },
+              "es": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "stage": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "type": "string",
+            "minLength": 1
+          },
+          "position": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "items": {
+              "type": "number"
+            }
+          },
+          "size": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "items": {
+              "type": "number"
+            }
+          },
+          "description": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "en",
+              "es"
+            ],
+            "properties": {
+              "en": {
+                "type": "string",
+                "minLength": 1
+              },
+              "es": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "streams": {
+      "type": "array",
+      "minItems": 40,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "source",
+          "target",
+          "material",
+          "nominal",
+          "unit",
+          "delay_s"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1
+          },
+          "target": {
+            "type": "string",
+            "minLength": 1
+          },
+          "material": {
+            "type": "string",
+            "minLength": 1
+          },
+          "nominal": {
+            "type": "number",
+            "minimum": 0
+          },
+          "unit": {
+            "type": "string",
+            "minLength": 1
+          },
+          "delay_s": {
+            "type": "number",
+            "minimum": 0
+          }
+        }
+      }
+    }
+  }
+}

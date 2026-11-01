@@ -17,13 +17,13 @@ from ..io.contract import validate_rows
 from ..io.formats import read_csv_rows, write_json
 from ..model.baseline import is_valid_bundle
 
-SCHEMA = "example.readiness/v1"
+SCHEMA = "orebridge.readiness/v1"
 CATALOG_REL = "docs/contracts/catalog.md"
 INDEX_REL = "manifests/index.json"
 PARAMS_REL = "data/examples/params.csv"
-MARKER_REL = "training/surrogate-model"
+MARKER_REL = "training/state-model"
 STATUSES = ("real", "active")  # the catalog's status vocabulary (its Contracts section), exactly, lower case
-MODEL_SLOT = "surrogate-model"
+MODEL_SLOT = "state-model"
 
 # the catalog's reasons as (en, es) templates, in the order of its Missing-data table
 T_PROVIDER = ("Served by its provider ({provider}); the real producer is not built yet.",
@@ -124,7 +124,7 @@ class _Facts:
             self.params_total = len(rows)
             self.params_rejected_rows = len(report.rejected)
             self.params_rejected = sorted({r["case_id"] for r in report.rejected})
-        self.bundle_ok = is_valid_bundle(_json(models_dir / "surrogate.json"))
+        self.bundle_ok = is_valid_bundle(_json(derived_root / "state-model.json"))
         self.marker = (models_dir / MARKER_REL).is_file()
 
 
@@ -159,11 +159,11 @@ def _rule(row: dict[str, str], f: _Facts) -> dict:
     if rid == "params-record" and f.params_rejected_rows:
         return _entry(row, "partial", "real", _fill(T_REJECTED, n=f.params_rejected_rows, total=f.params_total),
                       f.params_rejected)
-    if rid == "surrogate-model" and not f.bundle_ok:
+    if rid == MODEL_SLOT and not f.bundle_ok:
         return _entry(row, "training", "baseline", _fill(T_NO_BUNDLE))
     if rid == MODEL_SLOT and f.baseline_bake:
         return _entry(row, "training", "baseline", _fill(T_BASELINE_BAKE))
-    if rid == "surrogate-model" and f.marker:
+    if rid == MODEL_SLOT and f.marker:
         return _entry(row, "training", "real", _fill(T_TRAINING))
     if rid == "api":
         return _entry(row, "missing", None, _fill(T_API))
