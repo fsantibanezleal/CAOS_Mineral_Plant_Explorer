@@ -7,6 +7,8 @@ The area is `docs/design/` (the design), `docs/contracts/` (the contracts as cod
 
 ## The order
 
+For the current product design, begin with [the live reference review](visual-reference-review.md), then read the focused [workbench SDD](plant-workbench-sdd.md) and its [TDD acceptance matrix](plant-workbench-tdd.md). The repo-wide document [`SDD.md`](SDD.md) remains the authoritative research, sizing and contracts index.
+
 Research, then the executive brief, then sizing, contracts and the units.
 
 1. **Research basis.** What was researched before the plan and what it decided: each claim with a source (a DOI or a

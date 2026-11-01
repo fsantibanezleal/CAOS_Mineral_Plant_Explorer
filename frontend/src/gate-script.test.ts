@@ -29,7 +29,7 @@ function run(options: { product?: Record<string, unknown>; sdd?: string; target?
   mkdirSync(join(root, 'docs', 'design'), { recursive: true });
   mkdirSync(join(root, 'deploy'), { recursive: true });
   cpSync(join(frontend, 'scripts', 'gate.mjs'), join(root, 'frontend', 'scripts', 'gate.mjs'));
-  writeFileSync(join(root, 'product.json'), JSON.stringify({ ...realProduct, ...options.product }));
+  writeFileSync(join(root, 'product.json'), JSON.stringify({ ...realProduct, app: 'workbench', ...options.product }));
   writeFileSync(join(root, 'docs', 'design', 'SDD.md'), options.sdd ?? realSdd);
   writeFileSync(join(root, 'deploy', 'TARGET'), `${options.target ?? 'pages'}\n`);
   const shell = join(root, 'frontend', 'node_modules', '@fasl-work', 'caos-app-shell');
@@ -81,7 +81,7 @@ describe('the gate script', () => {
 
 describe('the gate runner by the App kind (WB-014, WB-015)', () => {
   it('a workbench, with no app field: --require-focus and no --workbench, as before the App had a kind', () => {
-    const r = run();
+    const r = run({ product: { app: undefined } });
     expect(r.status).toBe(0);
     expect(r.args).toContain('--require-focus');
     expect(r.args).not.toContain('--workbench');
@@ -89,7 +89,7 @@ describe('the gate runner by the App kind (WB-014, WB-015)', () => {
   });
 
   it('a workbench named "workbench" runs the same arguments as one with no field', () => {
-    expect(run({ product: { app: 'workbench' } }).args).toEqual(run().args);
+    expect(run({ product: { app: 'workbench' } }).args).toEqual(run({ product: { app: undefined } }).args);
   });
 
   it('a surface with Focus: --workbench with an empty value, and --require-focus', () => {
