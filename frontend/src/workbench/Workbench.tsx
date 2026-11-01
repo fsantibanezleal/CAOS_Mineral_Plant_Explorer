@@ -1,22 +1,46 @@
-import { Children, useEffect, useMemo, useState } from 'react';
-import { CaseWorkbench, useShellLang, type CaseDef } from '@fasl-work/caos-app-shell';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router';
+import { SurfacePage, useShellLang, type TabDef } from '@fasl-work/caos-app-shell';
 import { getJSON, loadCase, loadIndex, useArtifact, type CaseData } from '../api/artifacts';
 import type { Plant, EngineEvidence, Observation, SiteSample } from '../lib/contract.types';
 import { acceptSnapshot, linked, METHODS, safeStep } from './model';
-import { AssetValues, DiagramView, EvidenceView, ModelView, SceneView, TrendsView, type ViewState } from './views';
+import { AssetValues, EvidenceView, ModelView, SceneView, TrendsView, type ViewState } from './views';
+import { PlantOverviewView, ProcessSchematicView, SitePlanView } from './AreaVisuals';
+import type { PlantScope } from './areas';
+import { buildAreaModel, PLANT_AREAS } from './areas';
 import { ProcessRail, type ProcessControls } from './ProcessView';
 import './plant.css';
+
+type PlantView = 'overview' | 'site-plan' | 'schematic' | '3d' | 'trends' | 'engines';
+const VIEWS: Array<{ id: PlantView; en: string; es: string }> = [
+  { id: 'overview', en: 'Global overview', es: 'Vista global' },
+  { id: 'site-plan', en: '2D site plan', es: 'Plano 2D' },
+  { id: 'schematic', en: 'Process schematic', es: 'Esquema de proceso' },
+  { id: '3d', en: '3D plant', es: 'Planta 3D' },
+  { id: 'trends', en: 'Trends', es: 'Tendencias' },
+  { id: 'engines', en: 'CAOS engines', es: 'Motores CAOS' },
+];
+const asView = (value: string | null): PlantView => value === 'map' ? 'overview' : value === 'diagram' ? 'schematic' : VIEWS.some((view) => view.id === value) ? value as PlantView : 'overview';
+const asScope = (value: string | null): PlantScope => value === 'global' || PLANT_AREAS.some((area) => area.id === value) ? value as PlantScope : 'global';
+
 export function Workbench() {
- const lang=useShellLang();const t=(en:string,es:string)=>lang==='es'?es:en;
+ const lang=useShellLang(), t=(en:string,es:string)=>lang==='es'?es:en;
+ const [search,setSearch]=useSearchParams();
  const index=useArtifact(s=>loadIndex(s),[]),graph=useArtifact(s=>getJSON<Plant>('plant.json',s),[]),engines=useArtifact(s=>getJSON<EngineEvidence>('engine-evidence.json',s),[]);
- const [overlay,setOverlay]=useState<'observations'|'engines'>('observations');
- const [caseId,setCaseId]=useState(''),[selected,setSelected]=useState('SAG'),[step,setStep]=useState(80),[playing,setPlaying]=useState(false),[method,setMethod]=useState('threshold'),[direction,setDirection]=useState<'none'|'upstream'|'downstream'>('none');
+ const [caseId,setCaseId]=useState(()=>search.get('case')??'');
  const selectedCase=caseId||(index.state==='ready'?index.data.default_case:'');
  const loaded=useArtifact(s=>selectedCase?loadCase(selectedCase,s):new Promise<CaseData>(()=>undefined),[selectedCase]);
+ const [scope,setScopeState]=useState<PlantScope>(()=>asScope(search.get('area')));
+ const [view,setViewState]=useState<PlantView>(()=>asView(search.get('view')));
+ const [selected,setSelectedState]=useState(()=>search.get('asset')||'SAG');
+ const [step,setStepState]=useState(()=>safeStep(Number(search.get('step')??80),160));
+ const [playing,setPlaying]=useState(false),[method,setMethodState]=useState(search.get('method')||'threshold');
+ const [analysisMode,setAnalysisMode]=useState<'engines'|'models'>('engines');
+ const [overlay,setOverlay]=useState<'observations'|'engines'>('observations');
  const [processControls,setProcessControls]=useState<ProcessControls>({tau:6,current:400,acid:700});
  const [url,setUrl]=useState(''),[token,setToken]=useState(''),[live,setLive]=useState<Observation[]|null>(null),[history,setHistory]=useState<SiteSample[]>([]),[connected,setConnected]=useState(false),[sourceError,setSourceError]=useState(''),[now,setNow]=useState(Date.now());
  useEffect(()=>{if(!connected)return;const id=setInterval(()=>setNow(Date.now()),1000);return()=>clearInterval(id);},[connected]);
- useEffect(()=>{if(!playing)return;const id=setInterval(()=>setStep(s=>{if(s>=159){setPlaying(false);return 159;}return s+1;}),250);return()=>clearInterval(id);},[playing]);
+ useEffect(()=>{if(!playing)return;const id=setInterval(()=>setStepState(s=>{if(s>=159){setPlaying(false);return 159;}return s+1;}),250);return()=>clearInterval(id);},[playing]);
  useEffect(()=>{
    if(!connected||graph.state!=='ready')return;const abort=new AbortController();let busy=false;const previous=new Map<string,Observation>();
    async function poll(){if(busy)return;busy=true;try{const u=new URL(url);if(u.protocol!=='https:'&&!(u.protocol==='http:'&&['localhost','127.0.0.1','[::1]'].includes(u.hostname)))throw Error('HTTPS gateway or local test endpoint required');
@@ -27,31 +51,52 @@ export function Workbench() {
    void poll();const timer=setInterval(()=>void poll(),2000);return()=>{abort.abort();clearInterval(timer);};
  },[connected,url,token,graph.state]);
  const data=loaded.state==='ready'&&loaded.data.manifest.case_id===selectedCase?loaded.data:null;
- const highlight=useMemo(()=>graph.state==='ready'&&direction!=='none'?linked(graph.data,selected,direction):new Set<string>(),[graph,selected,direction]);
- const s:ViewState|null=graph.state==='ready'&&engines.state==='ready'&&data?{plant:graph.data,trace:data.trace,engines:engines.data,selected,step,method,highlight,playing,live,now,onSelect:setSelected,history,processControls,overlay,onOverlay:setOverlay}:null;
- const cases:CaseDef[]=index.state==='ready'?index.data.cases.map(c=>({id:c.case_id,name:c.title[lang],category:c.category[lang]})):[];
- const rail=<>
-   <p className="ob-source"><i className={`ob-dot ${live===null?'context':sourceError?'unavailable':'normal'}`}/>{live===null?t('Synthetic replay · paused by default','Reproducción sintética · inicio en pausa'):t('Site gateway · read-only','Gateway de planta · solo lectura')}</p>
-   <label className="ob-control">{t('Equipment','Equipo')}<select aria-label={t('Equipment','Equipo')} value={selected} onChange={e=>setSelected(e.target.value)}>{graph.state==='ready'&&graph.data.assets.map(a=><option key={a.id} value={a.id}>{a.id} · {a.name[lang]}</option>)}</select></label>
-   <label className="ob-control">{t('Trace connections','Seguir conexiones')}<select aria-label={t('Trace connections','Seguir conexiones')} value={direction} onChange={e=>setDirection(e.target.value as typeof direction)}><option value="none">{t('Selected asset','Equipo seleccionado')}</option><option value="upstream">{t('Upstream','Aguas arriba')}</option><option value="downstream">{t('Downstream','Aguas abajo')}</option></select></label>
-   <label className="ob-control">{t('Replay time','Tiempo de reproducción')} · {step} s<input type="range" aria-label={t('Replay time','Tiempo de reproducción')} min="0" max="159" step="1" value={step} disabled={live!==null} onChange={e=>{setStep(safeStep(+e.target.value,160));setPlaying(false);}}/></label>
-   <div className="ob-toolbar"><button disabled={live!==null} onClick={()=>setPlaying(!playing)} aria-pressed={playing}>{playing?t('Pause','Pausar'):t('Play replay','Reproducir')}</button><button disabled={live!==null} onClick={()=>{setStep(0);setPlaying(false);}}>{t('Reset time','Reiniciar tiempo')}</button></div>
-   <label className="ob-control">{t('Discrepancy method','Método de discrepancia')}<select aria-label={t('Discrepancy method','Método de discrepancia')} value={method} disabled={live!==null} onChange={e=>setMethod(e.target.value)}>{METHODS.map(m=><option key={m}>{m}</option>)}</select></label>
-   {s&&<AssetValues s={s}/>}
-   <details className="ob-connect"><summary>{t('Connect plant source','Conectar fuente de planta')}</summary><p className="ob-note">{t('Use the configured read-only gateway. The token stays in memory. Replay models do not run on site data.','Use el gateway de solo lectura configurado. El token permanece en memoria. Los modelos de reproducción no se aplican a datos de planta.')}</p><label className="ob-control">{t('Gateway URL','URL del gateway')}<input type="url" value={url} disabled={connected} onChange={e=>setUrl(e.target.value)} placeholder="https://gateway.example"/></label><label className="ob-control">{t('Access token','Token de acceso')}<input type="password" autoComplete="off" value={token} disabled={connected} onChange={e=>setToken(e.target.value)}/></label><button onClick={()=>{if(connected){setConnected(false);setLive(null);setHistory([]);setToken('');setSourceError('');}else{setPlaying(false);setLive([]);setHistory([]);setConnected(true);}}} disabled={!connected&&(!url||!token)}>{connected?t('Disconnect','Desconectar'):t('Connect read-only','Conectar solo lectura')}</button>{sourceError&&<p role="alert">{sourceError}</p>}</details>
- </>;
+ const highlight=useMemo(()=>graph.state==='ready'&&selected&&view?linked(graph.data,selected,'downstream'):new Set<string>(),[graph,selected,view]);
+ const updateQuery=(values:Record<string,string|null>)=>setSearch(previous=>{const next=new URLSearchParams(previous);for(const [key,value] of Object.entries(values))value===null?next.delete(key):next.set(key,value);return next;},{replace:true});
+ useEffect(()=>{if(graph.state!=='ready'||scope==='global')return;const core=buildAreaModel(graph.data,scope).coreAssets;if(core.some(asset=>asset.id===selected)||!core[0])return;setSelectedState(core[0].id);updateQuery({asset:core[0].id});},[graph,scope,selected]);
+ const chooseView=(next:PlantView)=>{setViewState(next);updateQuery({view:next});};
+ const chooseScope=(next:PlantScope)=>{setScopeState(next);let nextAsset=selected;if(next!=='global'&&graph.state==='ready'){const core=buildAreaModel(graph.data,next).coreAssets;if(!core.some(asset=>asset.id===selected)&&core[0])nextAsset=core[0].id;}if(nextAsset!==selected)setSelectedState(nextAsset);updateQuery({area:next==='global'?null:next,asset:nextAsset});};
+ const chooseAsset=(id:string)=>{setSelectedState(id);updateQuery({asset:id});};
+ const setStep=(next:number)=>{const safe=safeStep(next,160);setStepState(safe);updateQuery({step:String(safe)});};
+ const setMethod=(next:string)=>{setMethodState(next);updateQuery({method:next});};
+ const chooseCase=(id:string)=>{setCaseId(id);setPlaying(false);setStep(80);updateQuery({case:id});};
+ const s:ViewState|null=graph.state==='ready'&&engines.state==='ready'&&data?{plant:graph.data,trace:data.trace,engines:engines.data,selected,step,method,highlight,playing,live,now,onSelect:chooseAsset,history,processControls,overlay,onOverlay:setOverlay,scope,onScopeChange:chooseScope}:null;
  const pending=<p data-state={loaded.state==='error'?'unavailable':'loading'} className="caos-pending" role="status">{loaded.state==='error'?loaded.error:t('Loading plant and verified replay artifacts…','Cargando planta y artefactos verificados…')}</p>;
- const controls=Children.toArray(rail.props.children);
- return <CaseWorkbench caseId={selectedCase} source={live?'real':'synthetic'} cases={{cases,selectedId:selectedCase,onSelect:id=>{setCaseId(id);setPlaying(false);setStep(80);},layout:'select',deepLink:true}} controls={{asset:selected,time:step,method,trace:direction,source:live?'site':'replay',liveSequence:live?.[0]?.sequence??0,overlay,...processControls}} rail={[
- {id:'inspect',label:{en:'Inspect',es:'Inspeccionar'},content:<>{controls.filter((_,i)=>[0,1,2,6].includes(i))}</>},
- {id:'replay',label:{en:'Replay',es:'Reproducir'},content:<>{controls.slice(3,6)}</>},
- {id:'process',label:{en:'Process',es:'Proceso'},content:<ProcessRail value={processControls} onChange={setProcessControls}/>},
- {id:'source',label:{en:'Source',es:'Fuente'},content:controls[7]},
- ]} focus groups={[
-  {id:'plant',label:{en:'3D plant',es:'Planta 3D'},lane:overlay==='engines'?'replay':live?'live':'replay',provenance:overlay==='engines'?'published':live?'real':'synthetic',content:s?<SceneView s={s}/>:pending},
-  {id:'diagram',label:{en:'Process diagram',es:'Diagrama de proceso'},lane:live?'live':'replay',provenance:live?'real':'synthetic',content:s?<DiagramView s={s}/>:pending},
-  {id:'trends',label:{en:'Trends',es:'Tendencias'},lane:live?'live':'replay',provenance:live?'real':'synthetic',content:s?<TrendsView s={s}/>:pending},
-  {id:'engines',label:{en:'Engine evidence',es:'Evidencia de motores'},lane:'replay',provenance:'published',content:s?<EvidenceView s={s}/>:pending},
-  {id:'models',label:{en:'Method comparison',es:'Comparar métodos'},lane:'replay',provenance:'synthetic',content:s?<ModelView s={s}/>:pending},
- ]} context={{content:<div className="ob-scroll"><h3>{t('Read this case','Leer este caso')}</h3><p>{data?.manifest.title[lang]}</p><p>{data?.manifest.expected_band[lang]}</p><p>{t('Select equipment to inspect process connections and exact engine evidence. The timeline controls synthetic replay. Source quality and numerical disagreement are separate.','Seleccione equipos para inspeccionar conexiones y evidencia exacta. El tiempo controla la reproducción sintética. Calidad de fuente y discrepancia numérica son distintas.')}</p><a href="/methodology">{t('Methods and assumptions','Métodos e hipótesis')}</a></div>}}/>;
+ const scopeName=scope==='global'?t('Whole plant','Planta completa'):PLANT_AREAS.find(area=>area.id===scope)?.name[lang]??scope;
+ const availableCases=index.state==='ready'?index.data.cases:[];
+ const renderView=(active:PlantView):React.ReactNode=>{
+   if(!s)return pending;
+   if(active==='overview')return <PlantOverviewView s={s}/>;
+   if(active==='site-plan')return <SitePlanView s={s}/>;
+   if(active==='schematic')return <ProcessSchematicView s={s}/>;
+   if(active==='3d')return <SceneView s={s}/>;
+   if(active==='trends')return <TrendsView s={s}/>;
+   return <div className="ob-analysis-view"><div className="ob-area-nav" role="tablist" aria-label={t('Engine views','Vistas de motores')}><button type="button" role="tab" aria-selected={analysisMode==='engines'} className={`ob-area-chip ${analysisMode==='engines'?'active':''}`} onClick={()=>setAnalysisMode('engines')}>{t('CAOS engine evidence','Evidencia de motores CAOS')}</button><button type="button" role="tab" aria-selected={analysisMode==='models'} className={`ob-area-chip ${analysisMode==='models'?'active':''}`} onClick={()=>setAnalysisMode('models')}>{t('Method comparison','Comparar métodos')}</button></div>{analysisMode==='engines'?<EvidenceView s={s}/>:<ModelView s={s}/>}</div>;
+ };
+ const controls=<aside className="ob-explorer-side" aria-label={t('Plant inspection and replay controls','Inspección de planta y reproducción')}>
+   <section className="ob-side-section"><span className="ob-eyebrow">{t('CURRENT AREA','ÁREA ACTUAL')}</span><h2>{scopeName}</h2><p>{scope==='global'?t('Open an area to inspect its dedicated process diagram, assets, boundaries and connected engine evidence.','Abra un área para inspeccionar su diagrama de proceso, equipos, límites y evidencia de motores.'):PLANT_AREAS.find(area=>area.id===scope)?.purpose[lang]}</p></section>
+   <label className="ob-control">{t('Equipment','Equipo')}<select aria-label={t('Equipment','Equipo')} value={selected} onChange={event=>chooseAsset(event.target.value)}>{graph.state==='ready'&&(scope==='global'?graph.data.assets:buildAreaModel(graph.data,scope).coreAssets).map(asset=><option key={asset.id} value={asset.id}>{asset.id} · {asset.name[lang]}</option>)}</select></label>
+   {s&&<AssetValues s={s}/>}
+   <details className="ob-side-section" open><summary>{t('Replay and methods','Reproducción y métodos')}</summary>
+     <label className="ob-control">{t('Replay case','Caso de reproducción')}<select aria-label={t('Replay case','Caso de reproducción')} value={selectedCase} onChange={event=>chooseCase(event.target.value)}>{availableCases.map(item=><option key={item.case_id} value={item.case_id}>{item.case_id} · {item.title[lang]}</option>)}</select></label>
+     <label className="ob-control">{t('Replay time','Tiempo de reproducción')} · {step} s<input type="range" aria-label={t('Replay time','Tiempo de reproducción')} min="0" max="159" step="1" value={step} disabled={live!==null} onChange={event=>{setStep(+event.target.value);setPlaying(false);}}/></label>
+     <div className="ob-toolbar"><button disabled={live!==null} onClick={()=>setPlaying(!playing)} aria-pressed={playing}>{playing?t('Pause','Pausar'):t('Play replay','Reproducir')}</button><button disabled={live!==null} onClick={()=>{setStep(0);setPlaying(false);}}>{t('Reset','Reiniciar')}</button></div>
+     <label className="ob-control">{t('Discrepancy method','Método de discrepancia')}<select aria-label={t('Discrepancy method','Método de discrepancia')} value={method} disabled={live!==null} onChange={event=>setMethod(event.target.value)}>{METHODS.map(item=><option key={item}>{item}</option>)}</select></label>
+   </details>
+   <details className="ob-side-section"><summary>{t('Process model controls','Controles del modelo de proceso')}</summary><ProcessRail value={processControls} onChange={setProcessControls}/></details>
+   <details className="ob-side-section"><summary>{t('Connect read-only plant source','Conectar fuente de planta de solo lectura')}</summary><p className="ob-note">{t('Credentials stay in memory. Plant observations are never used to run synthetic replay models.','Las credenciales permanecen en memoria. Las observaciones de planta nunca se usan para ejecutar modelos de reproducción sintética.')}</p><label className="ob-control">{t('Gateway URL','URL del gateway')}<input type="url" value={url} disabled={connected} onChange={event=>setUrl(event.target.value)} placeholder="https://gateway.example"/></label><label className="ob-control">{t('Access token','Token de acceso')}<input type="password" autoComplete="off" value={token} disabled={connected} onChange={event=>setToken(event.target.value)}/></label><button disabled={!connected&&(!url||!token)} onClick={()=>{if(connected){setConnected(false);setLive(null);setHistory([]);setToken('');setSourceError('');}else{setPlaying(false);setLive([]);setHistory([]);setConnected(true);}}}>{connected?t('Disconnect','Desconectar'):t('Connect read-only','Conectar solo lectura')}</button>{sourceError&&<p role="alert">{sourceError}</p>}</details>
+ </aside>;
+ const liveState=<span className={`ob-live-state ${live===null?'synthetic':sourceError?'unavailable':'live'}`}><i/>{live===null?t('Synthetic reference','Referencia sintética'):sourceError?t('Source unavailable','Fuente no disponible'):t('Read-only plant source','Fuente de planta de solo lectura')}</span>;
+ const areaControl=<label className="ob-area-control"><span>{t('Area','Área')}</span><select aria-label={t('Plant area','Área de planta')} value={scope} onChange={event=>chooseScope(event.target.value as PlantScope)}><option value="global">{t('Whole plant','Planta completa')}</option>{PLANT_AREAS.map(area=><option key={area.id} value={area.id}>{area.name[lang]}</option>)}</select></label>;
+ const focusControls=<aside className="ob-focus-controls" aria-label={t('Focused plant controls','Controles de planta enfocada')}>
+   <label className="ob-control">{t('Plant area','Área de planta')}<select aria-label={t('Plant area','Área de planta')} value={scope} onChange={event=>chooseScope(event.target.value as PlantScope)}><option value="global">{t('Whole plant','Planta completa')}</option>{PLANT_AREAS.map(area=><option key={area.id} value={area.id}>{area.name[lang]}</option>)}</select></label>
+   <label className="ob-control">{t('Equipment','Equipo')}<select aria-label={t('Equipment','Equipo')} value={selected} onChange={event=>chooseAsset(event.target.value)}>{graph.state==='ready'&&(scope==='global'?graph.data.assets:buildAreaModel(graph.data,scope).coreAssets).map(asset=><option key={asset.id} value={asset.id}>{asset.id} · {asset.name[lang]}</option>)}</select></label>
+   <label className="ob-control">{t('Replay case','Caso de reproducción')}<select aria-label={t('Replay case','Caso de reproducción')} value={selectedCase} onChange={event=>chooseCase(event.target.value)}>{availableCases.map(item=><option key={item.case_id} value={item.case_id}>{item.case_id} · {item.title[lang]}</option>)}</select></label>
+   <label className="ob-control">{t('Replay time','Tiempo de reproducción')} · {step} s<input type="range" aria-label={t('Replay time','Tiempo de reproducción')} min="0" max="159" step="1" value={step} disabled={live!==null} onChange={event=>{setStep(+event.target.value);setPlaying(false);}}/></label>
+   <label className="ob-control">{t('Discrepancy method','Método de discrepancia')}<select aria-label={t('Discrepancy method','Método de discrepancia')} value={method} disabled={live!==null} onChange={event=>setMethod(event.target.value)}>{METHODS.map(item=><option key={item}>{item}</option>)}</select></label>
+ </aside>;
+ const focused=search.get('focus')==='1';
+ const tabs:TabDef[]=VIEWS.map(item=>({id:item.id,label:item[lang],content:<div className="ob-view-layout" aria-label={`${scopeName} · ${item[lang]}`}>{!focused&&controls}<div className="ob-explorer-stage"><div className="ob-plot-layout">{renderView(item.id)}</div></div></div>,focus:{title:item[lang],description:scopeName,rail:focusControls}}));
+
+ return <SurfacePage title={{en:scopeName,es:scopeName}} lede={scope==='global'?t('Mine to plant · global and area views','Mina a planta · vistas globales y por área'):PLANT_AREAS.find(area=>area.id===scope)?.purpose[lang]} actions={<div className="ob-surface-actions">{areaControl}{liveState}</div>} tabs={tabs} value={view} onChange={id=>chooseView(id as PlantView)} deepLinkView="view" ariaLabel={{en:'Plant views',es:'Vistas de planta'}} instrument focus />;
 }

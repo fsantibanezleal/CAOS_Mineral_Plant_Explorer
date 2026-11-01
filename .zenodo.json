@@ -1,6 +1,6 @@
 {
-  "title": "fsantibanezleal/CAOS_OreBridge: 0.01.001",
-  "version": "0.01.001",
+  "title": "fsantibanezleal/CAOS_Mineral_Plant_Explorer: 0.02.000",
+  "version": "0.02.000",
   "upload_type": "software",
   "access_right": "open",
   "license": "mit",
@@ -12,7 +12,7 @@
       "affiliation": "CAOS open-research programme, Santiago, Chile"
     }
   ],
-  "description": "<p>OreBridge connects an authored 3D mineral-processing plant, process diagrams, observation histories and versioned process-engine evidence through shared asset identities. It includes a configurable read-only OPC UA gateway, transport-aligned reconciliation, two fitted causal prediction families, controlled synthetic experiments and executed English and Spanish notebooks.</p><p>The reference has 36 assets and 47 streams. Four released packages are executed and ten immutable public artifacts retain their upstream case identities. These references are not measurements of an operating plant. The original 6144-cell study preserves the negative TASC comparisons; a separately documented extension adds 768 Ridge evaluations and reuses 768 HGB rows on already-known test slots. No field efficacy, industrial capacity, site commissioning or owner acceptance is established.</p><p>Software is MIT licensed. Scientific reports have their own CC BY 4.0 records and are related below. Upstream sources retain their stated licenses and provenance.</p>",
+  "description": "<p>CAOS Mineral Plant Explorer presents one mine-to-plant operation globally and by process area. It provides separate area-aware 2D site plans, directed process schematics and 3D spatial views, plus source-bound observations and versioned CAOS engine evidence.</p><p>The included reference plant has 36 assets and 47 streams. Four released packages are executed and ten immutable public artifacts retain their upstream case identities. The reference data is synthetic and is not a measurement of an operating plant. Process water contributions include slurry and solution. Balance closure is not claimed without complete site boundaries. No field efficacy, industrial capacity, site commissioning or owner acceptance is established.</p><p>Software is MIT licensed. Scientific reports have their own CC BY 4.0 records and are related below. Upstream sources retain their stated licenses and provenance.</p>",
   "keywords": [
     "mineral processing",
     "3D plant visualization",

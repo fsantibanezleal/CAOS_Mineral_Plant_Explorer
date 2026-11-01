@@ -76,6 +76,7 @@ function redirectProblems(doc, extra) {
   if (extra.includes('--workbench')) out.push('--workbench: the kind of App comes from product.json (app); a run cannot move the routes G18 measures while --require-focus applies');
   if (extra.includes('--app-route') && !surface) out.push('--app-route is valid only for "app": "surface" (a workbench App is measured at --workbench, /app)');
   const routes = value('--routes');
+  if (surface && value('--app-route') !== null && routes === null) out.push('--app-route must be paired with --routes so the surface Focus check can measure the declared App route');
   if (routes !== null) {
     const appRoute = (surface ? value('--app-route') : null) || '/app';
     const trim = (r) => r.trim().replace(/(.)\/+$/, '$1');

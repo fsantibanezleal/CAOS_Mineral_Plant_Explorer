@@ -24,7 +24,13 @@ OK = "check_sdd: OK"
 
 @pytest.fixture
 def app_repo(tmp_path: Path) -> Path:
-    return add_schema(make_tree(tmp_path / "repo", *INPUTS))
+    repo = add_schema(make_tree(tmp_path / "repo", *INPUTS))
+    # Exercise both supported App kinds independently of this product's selected surface kind.
+    path = repo / "product.json"
+    doc = json.loads(path.read_text(encoding="utf-8"))
+    doc["app"] = "workbench"
+    path.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    return repo
 
 
 def set_product(repo: Path, **fields: object) -> None:
@@ -71,7 +77,7 @@ def runner(repo: Path, *extra: str) -> tuple[subprocess.CompletedProcess, list[s
     return r, (json.loads(out.read_text(encoding="utf-8")) if out.is_file() else None)
 
 
-def test_the_template_example_is_a_workbench_with_focus_and_passes(app_repo: Path) -> None:
+def test_a_workbench_with_focus_passes(app_repo: Path) -> None:
     r = guard(app_repo, "check_sdd.py", ok_marker=OK)
     assert r.returncode == 0, r.stdout
 
@@ -95,7 +101,7 @@ def test_an_unknown_app_value_fails(app_repo: Path) -> None:
 
 
 def test_a_waiver_on_a_workbench_fails(app_repo: Path) -> None:
-    set_product(app_repo, focus=False, focus_reason=REASON)
+    set_product(app_repo, app="workbench", focus=False, focus_reason=REASON)
     set_row(app_repo, f"not applicable: {REASON}")
     r = sdd(app_repo)
     assert r.returncode == 1 and '"focus": false' in r.stdout and "workbench" in r.stdout, r.stdout
@@ -177,6 +183,7 @@ needs_node = pytest.mark.skipif(NODE is None, reason="needs node")
 
 @needs_node
 def test_the_runner_passes_the_arguments_of_each_kind(app_repo: Path) -> None:
+    set_product(app_repo, app="workbench")
     r, args = runner(app_repo)
     assert r.returncode == 0 and args and "--require-focus" in args and "--workbench" not in args, (r.stderr, args)
     set_product(app_repo, app="surface")
@@ -206,7 +213,7 @@ def test_the_runner_refuses_a_waiver_without_its_sdd_row(app_repo: Path) -> None
 
 @needs_node
 def test_the_runner_refuses_a_waiver_on_a_workbench(app_repo: Path) -> None:
-    set_product(app_repo, focus=False, focus_reason=REASON)
+    set_product(app_repo, app="workbench", focus=False, focus_reason=REASON)
     set_row(app_repo, f"not applicable: {REASON}")
     r, args = runner(app_repo)
     assert r.returncode != 0 and args is None and '"focus"' in r.stderr, (r.stdout, r.stderr)
