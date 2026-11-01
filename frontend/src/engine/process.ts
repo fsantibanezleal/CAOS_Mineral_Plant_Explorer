@@ -1,6 +1,6 @@
 /** Bounded connected leach/SX/EW reference; all flows have explicit units. */
 export function conversion(age:number,reaction=2,diffusion=4){
- if(!Number.isFinite(age)||age<0||reaction<=0||diffusion<0)throw Error('Invalid kinetic domain');
+ if(![age,reaction,diffusion].every(Number.isFinite)||age<0||reaction<=0||diffusion<0)throw Error('Invalid kinetic domain');
  if(age>=reaction+diffusion)return 1;
  let lo=0,hi=1;for(let i=0;i<55;i++){const x=(lo+hi)/2;const time=reaction*(1-Math.cbrt(1-x))+diffusion*(1-3*(1-x)**(2/3)+2*(1-x));if(time<age)lo=x;else hi=x;}return (lo+hi)/2;
 }

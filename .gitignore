@@ -56,5 +56,10 @@ models/*.pth
 .DS_Store
 Thumbs.db
 *.log
+# Reproducible manuscript sources and figures are tracked; build products stay local.
+manuscripts/**/*.aux
+manuscripts/**/*.out
+manuscripts/**/*.toc
+manuscripts/**/*.pdf
 # the training marker (models/training/<contract-id>): runtime state of a long training job, never committed
 models/training/

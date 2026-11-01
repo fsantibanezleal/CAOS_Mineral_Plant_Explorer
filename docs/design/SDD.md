@@ -25,6 +25,7 @@ The brief frames current energy and water pressures for plant operations, engine
 | Use standard geometry node identity | glTF 2.0 has hierarchical nodes and extras; geometry and instrument mappings remain separate checked contracts | https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html |
 | Weighted reconciliation baseline | Linear constrained WLS projects inconsistent measured flows onto conservation constraints; rank/observability limit fault identifiability | https://doi.org/10.1016/j.mineng.2018.04.023 |
 | Robust residual estimator | Huber loss reduces large-residual influence; it does not establish causal fault identity | https://doi.org/10.1214/aoms/1177703732 |
+| Implemented learned predictor | Histogram gradient boosting is a real trained multivariate causal-lag comparison, not an implementation of GDN | https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.HistGradientBoostingRegressor.html |
 | Learned multichannel forecasting comparison | GDN learns sensor relationships and scores deviations; graph-based anomaly localization already has prior art | https://arxiv.org/abs/2106.06947 |
 | Do not hide missing values as healthy | Graph spatiotemporal anomaly detection explicitly studies missing values; data-quality flags are separate from process anomalies | https://arxiv.org/abs/2401.05800 |
 | Real source engines | minehaulsim, bedblend, milldem and oreblocks are released PyPI packages; app-specific outputs are ingested from exact public source SHAs | https://pypi.org/project/minehaulsim/ ; https://pypi.org/project/bedblend/ ; https://pypi.org/project/milldem/ ; https://pypi.org/project/oreblocks/ |
@@ -36,7 +37,7 @@ UNVERIFIED: field performance, site geometry/credentials and global priority/sup
 
 One coherent plant has at least 35 equipment assets, 40 material/water streams and 16 benchmark observation channels across extraction, stockpiling, crushing, grinding/classification, flotation, thickening/filtering, leaching/SX/EW, utilities and tailings. A procedural engineering scene is authored at real relative dimensions; imported glTF assets bind by an explicit node-to-asset map. The current scene has 36 distinct assets; an unmeasured large-plant scalability claim is not made.
 
-Twelve case scenarios, four severity/noise levels and sixteen held-out seeds give 768 paired test scenarios. Training/calibration uses disjoint seeds and normal periods. Every model is evaluated on the same observations, fault truth and event timestamps; metrics are pointwise with no point-adjusted score. Families include healthy load transition, bias, drift, frozen/stale tag, unit mismatch, tag swap, missing data, out-of-order delivery, topology break, engine disagreement, water imbalance and downstream delay.
+Twelve case scenarios, four severity levels at fixed noise scale 1 and sixteen held-out seeds give 768 paired test scenarios. Training/calibration uses disjoint seeds and normal periods. Every model is evaluated on the same observations, fault truth and event timestamps; metrics are pointwise with no point-adjusted score. Families include healthy load transition, bias, drift, frozen/stale tag, unit mismatch, tag swap, missing data, out-of-order delivery, topology break, engine disagreement, water imbalance and downstream delay.
 
 Raw caches/models/screenshots stay outside the repository via environment roots. Compact derived public artifacts carry SHA-256, source commit, license and synthetic/real class. Every boundary is a catalog row with a schema, producer/consumer checks and missing-data behavior. The new boundaries are plant asset graph, observation, engine capability/evidence, visual snapshot and state-model bundle.
 
@@ -62,11 +63,11 @@ The verified runtime is Python 3.12.10 and Node v24.14.1. Template 0.14.001 and 
 | Python | openapi-spec-validator | 0.9.0 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
 | Python | oreblocks | 0.6.6 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
 | Python | pytest | 9.2.0 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
-| Python | ruff | 0.17.3 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
+| Python | ruff | 0.15.18 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
 | Python | scikit-learn | 1.9.1 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
 | Python | scipy | 1.18.1 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
 | Python | uvicorn | 0.54.0 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
-| Browser | @fasl-work/caos-app-shell | 0.19.9 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| shell | @fasl-work/caos-app-shell | 0.19.9 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
 | Browser | katex | 0.19.1 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
 | Browser | lucide-react | 1.52.0 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
 | Browser | react | 19.3.0 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
@@ -118,21 +119,23 @@ Offline: download exact public source artifacts, execute real released engine pa
 | M-2 | classical | Linear constrained weighted least-squares reconciliation | Exact solution agrees with independent constrained solve, conservation residual below 1e-9 and no singular solve on deficient graphs | `tests/test_models.py` |
 | M-3 | sota | Huber robust reconciliation using SciPy optimization | Independent objective checks, finite convergence and correct degeneracy on zero residual, with held-out detection results | `tests/test_models.py` |
 | M-4 | sota | Calibrated multichannel normal-state prediction | Real trained normal-state model, held-out forecast errors and calibration threshold; next-step inputs never use future observations | `tests/test_learning.py` |
-| BS-1 | beyond | Topology-Aware State Coherence | A temporal validity mask and robust fusion of compatible CAOS model pseudo-observations with conservation factors; fault-local evidence paths, same-matrix evaluation and topology/engine/freshness ablations | `tests/test_tasc.py` |
+| BS-1 | beyond | Topology-Aware State Coherence | A temporal validity mask and robust fusion of compatible fixed OreFlow-reference ratio pseudo-observations with conservation factors; declared source/graph metadata, same-matrix evaluation and topology/engine/freshness ablations | `tests/test_tasc.py` |
 
 ## Cases
 
-The twelve scenario families above apply to the same connected reference plant. They are not different isolated calculators. Variants change only a declared fault magnitude, source-noise level or load. Zero fault is an explicit negative control. Water loops, circulating load and inventory storage have separate state equations; a dynamic inventory is not constrained by an invalid steady-state mass balance. The leach route and concentrator share ore arrival via explicit routing and do not imply all ores are chemically interchangeable.
+The twelve scenario families above apply to the same connected reference plant. They are not different isolated calculators. Variants change only a declared fault magnitude, source-noise level or load. Zero fault is an explicit negative control. The accounting graph distinguishes water and dry solids. Circulating-load ratios are authored reference quantities. No dynamic inventory state is inferred; the sixteen-channel benchmark uses steady-state factors only after declared causal alignment. The leach route and concentrator share ore arrival via explicit routing and do not imply all ores are chemically interchangeable.
 
 ## Oracles
+
+The recovery-relation perturbation is balanced at simultaneous raw time. Unequal alignment can introduce transient factor residuals at its boundaries, so that family does not isolate prior compatibility. Event latency starts at first comparable aligned-label availability and excludes alignment wait from raw fault onset.
 
 Stable asset ID and graph adjacency come from the authored graph manifest. Exact closed balances and independent constrained optimization check reconciliation. Known injected faults establish detection truth; delay events are scored after declared transport time, not treated as simultaneous contradictory values. Engine output is compared with its source artifact or actual package result, never with a hand-invented expected win. Neither TASC nor a language model is an oracle. Metrics retain missed faults and false alerts.
 
 ## Beyond the state of the art
 
-BS-1 proposes Topology-Aware State Coherence (TASC). Hypothesis: explicitly aligning source quality, process transport time and engine validity before robust constrained state projection reduces false localization under asynchronous observations while retaining detection of process imbalance. The method is not simply a benchmark: it changes state inference by treating admissible engine outputs as uncertain pseudo-observations, excluding stale/misunit data, aligning source time to each process factor, and solving a robust constrained fusion problem. Its score is derived from measured innovation and local conservation factors; it returns the contributing observation/engine/graph paths.
+BS-1 proposes Topology-Aware State Coherence (TASC). Hypothesis: explicitly aligning source quality, process transport time and engine validity before robust constrained state projection reduces false localization under asynchronous observations while retaining detection of process imbalance. The method is not simply a benchmark: it changes state inference by treating compatible fixed-reference relations as uncertain pseudo-observations, excluding stale/misunit data, aligning source time to each process factor, and solving a robust constrained fusion problem. Its batch score is a calibrated standardized measurement adjustment. Exported trace metadata identifies channels, method evidence times and source reference cases; it does not export per-alarm causal diagnosis paths. The reusable single-frame function can report algebraic factor membership, which is not proof of physical root cause.
 
-For state x, accepted observations y, observation map H, engine prior m and process constraints A x=b, minimize the sum of Huber losses on normalized measurement innovations and compatible engine-prior innovations subject to valid conservation constraints. Freshness/units/identity gates define the admissible rows; compatibility and model variance prevent an uncalibrated engine from overruling measurements. Dynamic inventory factors use dM/dt explicitly. With no admissible engine prior it reduces to robust observation reconciliation. With identity topology it reduces to independent residuals.
+For state x, accepted observations y, observation map H, engine prior m and process constraints A x=b, minimize the sum of Huber losses on normalized measurement innovations and compatible engine-prior innovations subject to valid conservation constraints. Freshness/units/identity gates define the admissible rows; compatibility and model variance weight the fixed reference relative to observations, without a universal guarantee that its influence is appropriate. The benchmark has eleven fixed homogeneous steady-state factors. Dynamic inventory estimation is not implemented; a site with accumulation needs additional state equations before those balances apply. With no admissible engine prior it reduces to robust observation reconciliation. With identity topology it reduces to independent residuals.
 
 Novelty is a proposed combination with a precise algorithm; global priority and improvement over industrial twin platforms are unverified. Existing robust reconciliation, graph diagnosis and model fusion are cited. Compare thresholds, WLS, robust reconciliation and the learned baseline under identical held-out cases. Ablate timing alignment, engine priors and graph factors. Publish neutral/negative results. Public reader-facing names never call the method by its internal tier.
 
@@ -169,4 +172,25 @@ Incorrect asset mapping: reject duplicate bindings and expose source node IDs. M
 
 ## Pre-implementation design review
 
-Reviewed 2026-10-31 against actual CAOS sources and current twin-platform documentation. Finding D1: ordinary 3D/live binding already exists; no novelty claim for that feature. D2: app engines are not libraries; consume versioned exported artifacts, public APIs or real released packages, never private-module imports. D3: a mill power model is not a flotation model and does not predict an actual plant; retain each source's support and calibration limits. D4: dynamic process storage invalidates naive steady-state balances; include inventory derivatives or refuse that factor. D5: synthetic plant examples cannot validate live operating efficacy. D6: asynchronous data must be checked before model residuals, with out-of-order arrival tested independently. Each finding is incorporated in the contracts, method definition and kill criteria. Full independent adversarial review is still required before release.
+Reviewed 2026-10-31 against actual CAOS sources and current twin-platform documentation. Finding D1: ordinary 3D/live binding already exists; no novelty claim for that feature. D2: app engines are not libraries; consume versioned exported artifacts, public APIs or real released packages, never private-module imports. D3: a mill power model is not a flotation model and does not predict an actual plant; retain each source's support and calibration limits. D4: dynamic process storage invalidates naive steady-state balances; include inventory derivatives or refuse that factor. D5: synthetic plant examples cannot validate live operating efficacy. D6: asynchronous data must be checked before model residuals, with out-of-order arrival tested independently. Each finding is incorporated in the contracts, method definition and kill criteria. The subsequent independent numerical/source review and corrected-candidate recheck are recorded below; final release checks remain separate.
+
+## Notebook method entrypoints
+
+The didactic notebooks invoke these canonical implementations directly. They do not define replacement methods.
+
+- `pipeline.model.scenarios.generate`
+- `pipeline.model.scenarios.align`
+- `pipeline.model.scenarios.conservation_matrix`
+- `pipeline.model.scenarios.engine_prior`
+- `pipeline.model.learning.lagged`
+- `pipeline.model.learning.forecast_scores`
+- `pipeline.model.thickener.simulate_thickener`
+- `pipeline.stages.plant_evaluate.batch_projection`
+- `pipeline.stages.plant_evaluate.calibrate`
+- `pipeline.stages.plant_evaluate.raw_scores`
+- `pipeline.stages.plant_evaluate.confusion`
+- `pipeline.stages.analysis.analyze`
+
+## Corrected independent review
+
+An independent read-only review reproduced all four released package digests and all ten pinned artifact hashes/metrics, checked 48 robust objectives against an independent optimizer and reconciled every aggregate count. Its corrected-candidate recheck resolved eleven identity, timing, boundary, causality, geometry and numerical-resolution findings. Claim scope is bounded here: fixed noise scale one, fixed dry-solids ratio prior, eleven steady-state factors, explicit evidence times and no dynamic-inventory or automatic causal-diagnosis claim. Full local release checks, exact-commit CI and served-artifact verification remain separate evidence.

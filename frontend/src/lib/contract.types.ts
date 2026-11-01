@@ -14,6 +14,7 @@ export type Asset = Plant['assets'][number];
 export type Stream = Plant['streams'][number];
 export type EngineEvidence = Schemas['EngineEvidence'];
 export type Observation = Schemas['Observation'];
+export interface SiteSample { receivedAt:number; records:Observation[]; }
 export type StateModel = Schemas['StateModel'];
 export const SCHEMAS = { trace: 'orebridge.trace/v1', manifest: 'orebridge.manifest/v1', index: 'orebridge.index/v1', readiness: 'orebridge.readiness/v1' } as const;
 

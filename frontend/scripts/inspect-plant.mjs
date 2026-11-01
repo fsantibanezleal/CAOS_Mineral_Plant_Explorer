@@ -1,6 +1,7 @@
 import { chromium } from 'playwright';
 import { mkdir, writeFile } from 'node:fs/promises';
-const out=process.env.OREBRIDGE_QA_ROOT||'D:/_Temp/orebridge/browser';
+const out=process.env.OREBRIDGE_QA_ROOT;
+if(!out)throw Error('Set OREBRIDGE_QA_ROOT to an external temporary directory');
 await mkdir(out,{recursive:true});
 const browser=await chromium.launch({headless:true,args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
 const page=await browser.newPage({viewport:{width:1440,height:1000}});

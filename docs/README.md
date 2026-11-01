@@ -1,21 +1,17 @@
-# Docs, the product wiki
+# OreBridge technical reference
 
-The product wiki (ADR-0056), written as the product is built, unit by unit, never at the end. The pipeline, its
-validation and these documents are the product; the web app is its companion workbench. The design, with every
-requirement and its gate, is [design/SDD.md](design/SDD.md).
+The application joins equipment identity, three-dimensional geometry, directed process relationships and timestamped observations. Its numerical examples are supporting evidence within that connected plant, with explicit source and operating limits.
 
-## Map
-- **[architecture/](architecture/)**, how the repo works: the frozen base, the two data contracts, determinism +
-  trace, the live/precompute gate, the staged pipeline, model evaluation, deploy.
-- **[frameworks/](frameworks/)**, one card per research-chosen engine/library (what/why · install · usage ·
-  applying). The deep research, made binding (each is pinned in a `requirements-*.txt`).
-- **[guides/](guides/)**, runnable how-tos: **instantiate the template**, run the precompute pipeline,
-  **bring your own data**, the GPU lane, run the API.
-- **[cases/](cases/)**, the CATEGORY taxonomy + the coverage matrix + one page per documented case.
+- [Design and requirements](design/SDD.md): intended behavior, current primary research, resource bounds and named verification.
+- [Plant/state architecture](architecture/01_plant-and-state.md): asset graph, physical quantities and time semantics.
+- [Architecture index](architecture.md): execution lanes, inference, contracts and delivery.
+- [Engine integration](frameworks/01_engine-consumers.md): real packages and exact public artifacts.
+- [Causal experiment](problem-types/02_state-coherence-experiment.md): training/calibration/test boundaries, coverage and negative results.
+- [Primary research and integration review](research/01_connected-plant-research.md): cited interoperability, process-model and evaluation foundations.
+- [Downstream model assumptions](problem-types/01_downstream-process-boundaries.md): settling, leach, SX and electrowinning.
+- [Applied guides](guides.md): reproduce, import geometry, configure a source and inspect results.
+- [Case matrix](cases/README.md): all twelve known-truth families on the same network.
+- [Contracts](contracts/catalog.md): thirteen typed, versioned boundaries and explicit missing behavior.
+- [Executed lessons](../notebooks/README.md): four progressive questions, each fully developed in English and Spanish.
 
-## Honesty + data policy
-- Numbers come from the calibrated engine / committed artifacts, never from a claim. The EXAMPLE engine (SIR) is
-  synthetic and clearly labelled; a real product states sources, licenses and what is real vs synthetic.
-- Public derived artifacts are committed (`data/derived/`); raw/private sources stay out of git (`data/raw/`,
-  vault) per ADR-0055. The two data contracts ([architecture/08_data-contracts.md](architecture/08_data-contracts.md))
-  govern raw→pipeline and pipeline→web.
+Observation acceptance, model inference and physical diagnosis are different statements. The public reference contains no site historian or as-built survey. Its retained negative comparisons prevent a visually convincing scene from being used as evidence of a better industrial detector.

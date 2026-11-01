@@ -31,7 +31,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["Unavailable"];
+                        "application/json": components["schemas"]["UnavailableBody"];
                     };
                 };
             };
@@ -75,7 +75,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["Unavailable"];
+                        "application/json": components["schemas"]["UnavailableBody"];
                     };
                 };
             };
@@ -119,7 +119,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["Unavailable"];
+                        "application/json": components["schemas"]["UnavailableBody"];
                     };
                 };
             };
@@ -163,7 +163,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["Unavailable"];
+                        "application/json": components["schemas"]["UnavailableBody"];
                     };
                 };
             };
@@ -377,6 +377,9 @@ export interface components {
             scores: {
                 [key: string]: (number | null)[][];
             };
+            evidence_lag_s: {
+                [key: string]: number[];
+            };
             estimate: (number | null)[][];
             metrics: {
                 method: string;
@@ -454,6 +457,16 @@ export interface components {
                 delay_s: number;
                 water_m3_h: number;
             }[];
+            tags: {
+                tag_id: string;
+                asset_id: string;
+                label: {
+                    en: string;
+                    es: string;
+                };
+                unit: string;
+                minimum: number;
+            }[];
         };
         /** EngineEvidence */
         EngineEvidence: {
@@ -501,8 +514,10 @@ export interface components {
             asset_id: string;
             value: number | null;
             unit: string;
-            /** Format: date-time */
-            source_time: string;
+            source_time: string | null;
+            server_time: string | null;
+            /** @enum {unknown} */
+            freshness_basis: "source" | "server";
             /** Format: date-time */
             receipt_time: string;
             sequence: number;
@@ -526,6 +541,8 @@ export interface components {
                 channels: 16;
                 /** @constant */
                 steps: 160;
+                /** @constant */
+                noise_scale: 1;
                 /** @constant */
                 numerical_quality_separation: true;
                 threshold_quantile: number;
@@ -659,7 +676,7 @@ export interface components {
             catalog_sha256: string;
             contracts: components["schemas"]["entry"][];
         };
-        Unavailable: {
+        UnavailableBody: {
             detail: {
                 /** @constant */
                 state: "missing";

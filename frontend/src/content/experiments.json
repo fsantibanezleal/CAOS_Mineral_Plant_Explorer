@@ -1,0 +1,104 @@
+[
+  {
+    "id": "topology",
+    "title": {
+      "en": "Does topology help?",
+      "es": "¿Ayuda la topología?"
+    },
+    "paragraphs": [
+      {
+        "en": "The hypothesis asks whether causal alignment, robust projection and a compatible reference relation improve discrepancy localization together. The same known-truth scenarios are evaluated by thresholds, WLS, Huber, a trained predictor and TASC variants. Three-dimensional binding is tested as an integration capability separately; a convincing scene cannot establish numerical superiority or field efficacy.",
+        "es": "La hipótesis pregunta si alineación, proyección robusta y referencia compatible mejoran juntas la localización. Los mismos escenarios se evalúan con umbrales, mínimos cuadrados, Huber, predictor y variantes TASC. La vinculación tridimensional se prueba como integración por separado: una escena convincente no demuestra superioridad numérica ni eficacia en terreno, aunque ayude a leer el contexto."
+      },
+      {
+        "en": "The combined formulation has slightly higher recall than aligned Huber on this matrix, but loses substantially to the no-topology ablation. Projection distributes an innovation among correlated channels, producing plausible but misleading localization. This negative result limits the scientific claim: conservation closure can improve coherence without reliably identifying which physical observation generated the disagreement.",
+        "es": "La formulación conjunta tiene algo más de sensibilidad que Huber alineado, pero pierde claramente frente a retirar topología. La proyección distribuye innovaciones entre canales correlacionados y puede localizar de forma plausible pero engañosa. Este resultado negativo limita la afirmación: cerrar conservación puede mejorar coherencia sin identificar con fiabilidad qué observación física originó la discrepancia."
+      }
+    ]
+  },
+  {
+    "id": "quality",
+    "title": {
+      "en": "Can rejected data contaminate prediction?",
+      "es": "¿Contaminan datos rechazados?"
+    },
+    "paragraphs": [
+      {
+        "en": "A finite number can still be invalid when its asset mapping, unit or source sequence is wrong. The forecast preparation masks those readings before constructing any lag feature. Last accepted values are carried only inside model input, with authored nominal initialization before the first accepted sample. The visible observation remains unavailable rather than being replaced by the imputation.",
+        "es": "Un número finito puede ser inválido por equipo, unidad o secuencia. La preparación enmascara esas lecturas antes de construir retardos. Se conserva el último valor aceptado solamente dentro de la entrada del predictor, con nominal inicial antes de la primera muestra válida. La observación visible permanece ausente y no se reemplaza por la imputación."
+      },
+      {
+        "en": "An adversarial comparison replaces rejected finite values with extremely large numbers while retaining the same validity mask. The actual prepared forecast input must remain identical. This verifies the information boundary without demanding a particular detector score. Source-quality labels are known synthetic masks in this study, so their acceptance performance does not establish an independently learned industrial fault detector.",
+        "es": "Una comparación adversaria reemplaza valores rechazados por números extremos y conserva la máscara. La entrada real del predictor debe permanecer idéntica. Así se verifica el límite de información sin exigir un puntaje particular. Las etiquetas de calidad son máscaras sintéticas conocidas: aceptar o rechazar según ellas no demuestra un detector aprendido independiente de fallas industriales."
+      }
+    ]
+  },
+  {
+    "id": "timing",
+    "title": {
+      "en": "What does a delayed alarm describe?",
+      "es": "¿Qué describe una alarma retardada?"
+    },
+    "paragraphs": [
+      {
+        "en": "Different channels observe the same material parcel at different times. At availability time t, alignment uses each earlier observation at t minus fourteen plus its declared delay. The first fourteen samples remain unavailable. Every exported method has an evidence-lag vector, and spatial values, colors and trend comparisons resolve the exact observation represented by that method score.",
+        "es": "Cada canal observa la parcela en un momento diferente. Al estar disponible una instantánea en t, la alineación usa la observación de t menos catorce más su retardo. Las primeras catorce muestras quedan ausentes. Cada método exporta retardos de evidencia y valores, colores y tendencias resuelven exactamente la observación que representa su puntaje."
+      },
+      {
+        "en": "The delayed-transport family deliberately changes physical timing without injecting a sensor fault. Its current process truth changes with the delayed observation; the old timing reference is not mislabeled as current truth. False alerts in that family reveal sensitivity to misspecified transport. Such a result matters when a real plant changes residence time, routing or inventory behavior after calibration.",
+        "es": "La familia de transporte cambia tiempos físicos sin inyectar falla de sensor. La verdad actual cambia con la observación retardada; la referencia anterior no se etiqueta como verdad vigente. Las falsas alertas revelan sensibilidad a tiempos mal especificados. Esto importa cuando una planta cambia residencia, ruta o inventario después de calibrar una relación de proceso."
+      }
+    ]
+  },
+  {
+    "id": "latency",
+    "title": {
+      "en": "Was the event detected?",
+      "es": "¿Se detectó el evento?"
+    },
+    "paragraphs": [
+      {
+        "en": "A false alert after a missed event must not be reported as successful detection with a long delay. Latency is therefore defined only by a true positive on an affected channel during the event. If no such sample exists, the delay remains null. Pointwise confusion counts and event aggregation remain separate so one isolated detection never repairs every missed sample.",
+        "es": "Una falsa alerta posterior no convierte un evento omitido en detección exitosa con retardo largo. La latencia se define por un verdadero positivo en un canal afectado durante el evento. Sin esa muestra el retardo es nulo. Conteos puntuales y agregación de eventos van separados: una detección aislada no repara todas las muestras omitidas."
+      },
+      {
+        "en": "Coverage is equally necessary for interpretation. Every scored point belongs to exactly one numerical confusion cell, and scored plus unscorable points equals the common horizon. Complete-frame projection loses coverage when a required source is rejected. The analysis therefore also compares source-valid scenarios, preventing a method from appearing safer merely because it declined a difficult numerical frame.",
+        "es": "La cobertura también es necesaria. Cada punto puntuado pertenece a una celda de confusión, y puntuados más ausentes suman el horizonte común. La proyección pierde cobertura al rechazar una fuente requerida. El análisis compara además escenarios con fuentes válidas, para impedir que un método parezca más seguro solo porque evitó una trama numérica difícil."
+      }
+    ]
+  },
+  {
+    "id": "physics",
+    "title": {
+      "en": "Is conservation enough?",
+      "es": "¿Basta conservar masa?"
+    },
+    "paragraphs": [
+      {
+        "en": "An exact mass balance does not guarantee an adequately resolved transport solution. The settling study compares several meshes at the same physical input. Forty cells conserve solids but strongly diffuse the concentration front. The 640-cell default outlet differs by less than one percent from the 2000-cell reference; other input conditions require an independent refinement study.",
+        "es": "Un balance exacto no garantiza resolución adecuada del transporte. El estudio compara mallas con igual entrada. Cuarenta celdas conservan sólidos pero difunden fuertemente el frente. La salida de 640 celdas difiere menos de uno por ciento respecto de 2000; otras condiciones requieren su propio estudio. La conservación verifica contabilidad, mientras el refinamiento estudia error numérico."
+      },
+      {
+        "en": "The copper route has separate independent limits: reaction-controlled conversion has a closed form, ideal extraction closes aqueous copper, and Faraday deposition follows electric charge. Acid and solution copper can cap production. These checks establish bounded mathematical behavior. They do not validate mineral-specific kinetics, an industrial countercurrent solvent circuit or the capacity of the displayed plant thickener.",
+        "es": "La ruta tiene límites independientes: conversión controlada por reacción con solución cerrada, extracción ideal con cierre acuoso y deposición según carga eléctrica. Ácido y cobre disponible limitan producción. Estos controles establecen comportamiento matemático acotado. No validan cinética mineralógica, un circuito industrial en contracorriente ni capacidad del espesador mostrado: cada uno exige datos y validación específicos."
+      }
+    ]
+  },
+  {
+    "id": "identity",
+    "title": {
+      "en": "Does the visual preserve identity?",
+      "es": "¿Conserva identidad la vista?"
+    },
+    "paragraphs": [
+      {
+        "en": "The integration question follows one selected asset across geometry, diagram, values and trends. Importing a translated glTF node must move its label and incident streams to the same world position. Imported materials need not contain the reference status marker, so an independent colored label carries alarm or unavailable status. Omitted assets do not leave floating telemetry at old positions.",
+        "es": "La pregunta sigue un equipo entre geometría, diagrama, valores y tendencias. Al importar un nodo trasladado, su etiqueta y corrientes deben compartir posición mundial. Los materiales externos pueden carecer de marcadores, por lo que una etiqueta independiente conserva alarma o ausencia. Los equipos omitidos no dejan información flotante en posiciones anteriores, separada de su geometría real."
+      },
+      {
+        "en": "Browser interaction checks exercise keyboard selection, replay controls, source connection, GLB refusal and round-trip, language, themes and Focus return at phone and desktop sizes. Numerical functions have separate tests for time, units and ordering. Both evidence types matter: a correct optimizer can still be displayed against the wrong source, and a polished diagram can still hide a scientifically weak model.",
+        "es": "Las pruebas de navegador ejercitan teclado, reproducción, fuente, rechazo e intercambio GLB, idiomas, temas y retorno de Focus en teléfono y escritorio. Las funciones prueban tiempo, unidades y orden por separado. Ambas evidencias importan: un optimizador correcto puede mostrarse junto a la fuente incorrecta, y un diagrama cuidado puede ocultar un modelo científicamente débil o mal calibrado."
+      }
+    ]
+  }
+]

@@ -8,14 +8,45 @@
   "repo": "https://github.com/fsantibanezleal/CAOS_OreBridge",
   "visibility": "public",
   "license": "MIT",
-  "holder": "Felipe SantibÃ¡Ã±ez-Leal",
+  "holder": "Felipe Santibáñez-Leal",
   "year": 2026,
   "method_entrypoints": [
     "pipeline.model.reconciliation.weighted_reconcile",
     "pipeline.model.reconciliation.robust_reconcile",
     "pipeline.model.reconciliation.tasc",
     "pipeline.model.learning.fit_normal",
-    "pipeline.stages.plant_evaluate.evaluate_one"
+    "pipeline.stages.plant_evaluate.evaluate_one",
+    "pipeline.model.scenarios.generate",
+    "pipeline.model.scenarios.align",
+    "pipeline.model.scenarios.conservation_matrix",
+    "pipeline.model.scenarios.engine_prior",
+    "pipeline.model.learning.lagged",
+    "pipeline.model.learning.forecast_scores",
+    "pipeline.model.thickener.simulate_thickener",
+    "pipeline.stages.plant_evaluate.batch_projection",
+    "pipeline.stages.plant_evaluate.calibrate",
+    "pipeline.stages.plant_evaluate.raw_scores",
+    "pipeline.stages.plant_evaluate.confusion",
+    "pipeline.stages.analysis.analyze"
   ],
-  "manuscripts": []
+  "manuscripts": [
+    {
+      "kind": "technical-report",
+      "concept_doi": "10.5281/zenodo.23851364",
+      "title": "Connected plant visualization with timestamped observations and versioned process-engine evidence",
+      "version": "0.01.000",
+      "covers": [
+        "BS-1"
+      ]
+    },
+    {
+      "kind": "manuscript",
+      "concept_doi": "10.5281/zenodo.23851368",
+      "title": "Transport-aligned robust reconciliation can degrade discrepancy localization: a controlled plant-network study",
+      "version": "1.0",
+      "covers": [
+        "BS-1"
+      ]
+    }
+  ]
 }

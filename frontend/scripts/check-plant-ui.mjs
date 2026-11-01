@@ -1,9 +1,11 @@
 // Product interactions, in addition to the complete shared-shell browser matrix.
 import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
-import { mkdir, writeFile, stat } from 'node:fs/promises';
+import { mkdir, writeFile, stat, readFile } from 'node:fs/promises';
 const base=process.env.OREBRIDGE_PREVIEW_URL||'http://127.0.0.1:4178';
-const out=process.env.OREBRIDGE_QA_ROOT||'D:/_Temp/orebridge/browser';
+const out=process.env.OREBRIDGE_QA_ROOT;
+const graph=JSON.parse(await readFile(new URL('../../data/derived/plant.json',import.meta.url),'utf8'));
+if(!out)throw Error('Set OREBRIDGE_QA_ROOT to an external temporary directory');
 await mkdir(out,{recursive:true});
 const browser=await chromium.launch({headless:true,args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
 const page=await browser.newPage({viewport:{width:1440,height:1000}});const errors=[];const checks=[];
@@ -25,7 +27,7 @@ try{
   const cyclone=page.getByRole('button',{name:'CY1 Cyclone cluster',exact:true});await cyclone.focus();await cyclone.press('Enter');
   assert.equal(await page.getByLabel('Equipment',{exact:true}).inputValue(),'CY1');
   assert.equal(await cyclone.getAttribute('aria-pressed'),'true');
-  await tab('Engine evidence').click();assert.match(await page.locator('body').innerText(),/CAOS_OreFlow|No reference engine/);
+  await tab('Engine evidence').click();await page.getByRole('button',{name:'CAOS_OreFlow → FL1',exact:true}).click();assert.equal(await page.getByLabel('Equipment',{exact:true}).inputValue(),'FL1');
  });
  await checked('timeline, case quality and method state',async()=>{
   await tab('Inspect').click();await page.getByLabel('Equipment',{exact:true}).selectOption('SAG');
@@ -42,7 +44,7 @@ try{
   await tab('Process').click();
   const current=page.getByRole('slider',{name:/Electrowinning current/});await sliderTo(current,0);
   await page.waitForFunction(()=>document.querySelector('.ob-route')?.textContent?.includes('0 kg/h'));
-  assert.match(await page.locator('.ob-route').innerText(),/0 kg\/h/);
+  assert.match(await page.locator('.ob-route').textContent(),/0 kg\/h/);
   await sliderTo(current,400);
  });
  await checked('GLB export round trip and hostile external resource refusal',async()=>{
@@ -54,6 +56,47 @@ try{
   await page.locator('input[type=file]').setInputFiles(bad);await page.getByRole('alert').waitFor();assert.match(await page.getByRole('alert').innerText(),/External resources/);
  });
  await page.reload();await page.getByTestId('plant-scene').waitFor();
+ await checked('engine overlay preserves external case provenance',async()=>{
+  await page.getByLabel('Information layer',{exact:true}).selectOption('engines');
+  await page.getByText('Upstream reference cases; these are not plant measurements.',{exact:false}).waitFor();
+  await page.getByLabel('Information layer',{exact:true}).selectOption('observations');
+ });
+ await checked('3D rendering stops at rest and resumes only for explicit replay',async()=>{
+  const count=()=>page.getByTestId('plant-scene').getAttribute('data-render-count').then(Number);
+  await page.waitForTimeout(400);const resting=await count();assert.ok(resting>0);await page.waitForTimeout(350);assert.equal(await count(),resting);
+  await tab('Replay').click();await page.getByRole('button',{name:'Play replay',exact:true}).click();const before=await count();
+  await page.waitForFunction(n=>Number(document.querySelector('[data-testid="plant-scene"]')?.getAttribute('data-render-count'))>n+4,before);
+  await page.getByRole('button',{name:'Pause',exact:true}).click();await page.waitForTimeout(200);const paused=await count();await page.waitForTimeout(350);assert.equal(await count(),paused);
+ });
+ await checked('gateway accepts fresh confirmation and refuses ordering, identity, units and stale values',async()=>{
+  // The HTTP boundary is controlled here; real asyncua server/client transport is tested in Python.
+  const endpoint=base+'/qa-gateway';let mode='good',sequence=100,requests=0;
+  const source=new Date(Date.now()-180000).toISOString();
+  await page.route('**/qa-gateway/api/observations',async route=>{
+   assert.equal(route.request().headers().authorization,'Bearer browser-test-token-123456789');
+   const now=Date.now();const row={tag_id:'ROM.feed',asset_id:'ROM',unit:'t/h',value:720,quality:'good',sequence:mode==='older'?sequence-1:++sequence,source_time:source,server_time:new Date(now-(mode==='stale'?20000:0)).toISOString(),receipt_time:new Date(now).toISOString(),freshness_basis:'server'};
+   if(mode==='unit')row.unit='MW';if(mode==='asset')row.asset_id='SAG';
+   await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({schema:'orebridge.observations/v1',graph_revision:graph.revision,records:[row]})});requests++;
+  });
+  await tab('Inspect').click();await page.getByLabel('Equipment',{exact:true}).selectOption('ROM');
+  await tab('Source').click();await page.getByText('Connect plant source',{exact:true}).click();
+  await page.getByLabel('Gateway URL',{exact:true}).fill(endpoint);await page.getByLabel('Access token',{exact:true}).fill('browser-test-token-123456789');
+  await page.getByRole('button',{name:'Connect read-only',exact:true}).click();
+  await tab('Inspect').click();await page.waitForFunction(()=>document.querySelector('.ob-values')?.textContent.includes('Fresh accepted observation'));
+  assert.match(await page.locator('.ob-values').textContent(),/720/);
+  for(const next of ['older','unit','asset','stale']){
+   mode=next;const before=requests;await page.waitForFunction(()=>document.querySelector('.ob-values')?.textContent.includes('Unavailable / unscorable'));
+   while(requests<=before)await page.waitForTimeout(100);
+   assert.doesNotMatch(await page.locator('.ob-values').textContent(),/720/);
+   mode='good';await page.waitForFunction(()=>document.querySelector('.ob-values')?.textContent.includes('Fresh accepted observation'));
+  }
+  await tab('Trends').click();await page.getByText('History from this connection; missing or invalid source values leave gaps.',{exact:true}).waitFor();
+  assert.equal(await page.evaluate(()=>JSON.stringify([localStorage,sessionStorage]).includes('browser-test-token')),false);
+  await tab('Source').click();await page.getByText('Connect plant source',{exact:true}).click();await page.getByRole('button',{name:'Disconnect',exact:true}).click();assert.equal(await page.getByLabel('Access token',{exact:true}).inputValue(),'');
+  await tab('Replay').click();assert.equal(await page.getByLabel('Replay time',{exact:true}).isEnabled(),true);
+  await tab('Inspect').click();await tab('3D plant').click();await page.getByTestId('plant-scene').waitFor();
+  await page.unroute('**/qa-gateway/api/observations');
+ });
  await checked('phone Focus returns to the same equipment and language',async()=>{
   await page.setViewportSize({width:390,height:844});await page.getByLabel('Equipment',{exact:true}).selectOption('TTH');
   await page.getByRole('button',{name:'Open this case in focus mode',exact:true}).click();
