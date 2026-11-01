@@ -1,0 +1,74 @@
+{
+  "id": "causal-ridge-forecast",
+  "title": {
+    "en": "Causal ridge autoregression",
+    "es": "Predicción autorregresiva causal con ridge"
+  },
+  "kind": "learned",
+  "paragraphs": [
+    {
+      "en": "The second trained predictor fits a linear relation from four earlier multichannel observations to the sixteen current channels. The sixty-four lag features are the same temporal information supplied to the histogram gradient boosting comparison. Ridge regularization penalizes large coefficients while retaining a fitted intercept. It provides a transparent learned linear reference, without imposing the conservation equations or learning a physical causal graph.",
+      "es": "El segundo predictor entrenado ajusta una relación lineal entre cuatro observaciones multicanal anteriores y los dieciséis canales actuales. Sus sesenta y cuatro variables retardadas contienen la misma información temporal que recibe la comparación de gradient boosting de histogramas. La regularización ridge penaliza coeficientes grandes y conserva un intercepto ajustado. Aporta una referencia lineal aprendida, sin imponer balances ni aprender un grafo de causalidad física."
+    },
+    {
+      "en": "Each channel's training-target standard deviation supplies its scale, bounded below by ten to the minus ninth. The same sixteen scales are repeated across all four input lags. Dividing features and targets by those scales makes the fitted quantities dimensionless; prediction is then multiplied by the target scales to restore tonnes per hour or cubic metres per hour. An intercept handles the offset; scaling alone does not subtract the mean.",
+      "es": "La desviación estándar de cada objetivo de entrenamiento define su escala, con un mínimo de diez elevado a menos nueve. Las mismas dieciséis escalas se repiten en los cuatro retardos. Dividir entradas y objetivos por ellas entrega magnitudes adimensionales; después se restituyen toneladas por hora o metros cúbicos por hora. El intercepto representa el desplazamiento: dividir por una escala no equivale a restar la media."
+    },
+    {
+      "en": "The normal training seeds remain 100 through 107, and separate normal calibration uses seeds 200 through 203. Alpha is fixed at one in the standardized ridge objective. Per-channel calibration takes the higher 99.5th percentile of absolute forecast error after returning predictions to their original units, with a minimum threshold of ten to the minus eighth. Fault labels do not enter coefficient fitting or residual calibration.",
+      "es": "El entrenamiento normal conserva las semillas 100 a 107, y la calibración normal separada usa 200 a 203. Alfa se fija en uno dentro del objetivo ridge escalado. Por canal se toma el percentil superior 99,5 del error absoluto, después de devolver las predicciones a sus unidades, con umbral mínimo diez elevado a menos ocho. Las etiquetas de fallas no participan del ajuste ni de la calibración residual."
+    },
+    {
+      "en": "Rejected source values are masked before preparing lag history, so a finite value with the wrong unit or equipment binding cannot contaminate later predictions. Last accepted values, or authored nominals before the first accepted sample, prepare model inputs only. Displays and numerical denominators retain the validity mask. The additional paired comparison preserves the original eight-method study and evaluates ridge separately against HGB on the same configured test slots. This is a post-publication extension on already known test seeds: it adds 768 ridge evaluations and reuses 768 HGB rows, rather than providing 1536 independent new trials.",
+      "es": "Los datos rechazados se enmascaran antes de preparar la historia, evitando que un número finito con unidad o equipo incorrectos contamine predicciones posteriores. El último valor aceptado, o el nominal antes de la primera muestra válida, prepara solamente la entrada del modelo. Visualización y denominadores mantienen la máscara de validez. La comparación adicional conserva el estudio original de ocho métodos y evalúa ridge frente a HGB en las mismas configuraciones reservadas. Esta extensión posterior a la publicación utiliza semillas de prueba ya conocidas: agrega 768 evaluaciones ridge y reutiliza 768 filas HGB; no entrega 1536 ensayos nuevos independientes."
+    }
+  ],
+  "equations": [
+    {
+      "tex": "\\begin{aligned}(\\hat W,\\hat b)&=\\arg\\min_{W,b}\\|\\tilde Y-\\tilde XW^T-\\mathbf1b^T\\|_F^2+\\alpha\\|W\\|_F^2,\\\\ \\alpha&=1,\\quad W\\in\\mathbb R^{16\\times64},\\quad b\\in\\mathbb R^{16}.\\end{aligned}",
+      "caption": {
+        "en": "The residual sum is not divided by sample count. The fitted intercept b is not included in the L2 penalty.",
+        "es": "La suma residual no se divide por la cantidad de muestras. El intercepto ajustado b queda fuera de la penalización L2."
+      }
+    },
+    {
+      "tex": "\\begin{aligned}z_t&=[h_{t-1}/s,h_{t-2}/s,h_{t-3}/s,h_{t-4}/s],\\\\ \\hat y_t&=s\\odot(\\hat Wz_t+\\hat b),\\qquad s_i=\\max(\\operatorname{sd}_{train}(y_i),10^{-9}).\\end{aligned}",
+      "caption": {
+        "en": "Accepted-history h retains original units; z is dimensionless. Rows of the fitted design matrix are z transposed, and scaled targets are y divided by s. Multiplication by s restores each engineering unit.",
+        "es": "La historia aceptada h conserva unidades; z es adimensional. Las filas de diseño son z transpuesto y los objetivos escalados son y dividido por s. Multiplicar por s restituye cada unidad."
+      }
+    },
+    {
+      "tex": "q_i=\\max\\!\\left(Q_{0.995}^{higher}(|y_i-\\hat y_i|;\\mathcal C),10^{-8}\\right),\\qquad u_{t,i}=\\frac{|y_{t,i}-\\hat y_{t,i}|}{q_i}",
+      "caption": {
+        "en": "Disjoint normal calibration C determines q in the original channel unit. The displayed discrepancy u is dimensionless.",
+        "es": "La calibración normal separada C determina q en la unidad original. La discrepancia mostrada u es adimensional."
+      }
+    }
+  ],
+  "stages": [
+    {
+      "en": "Split normal seeds",
+      "es": "Separar semillas normales"
+    },
+    {
+      "en": "Mask and scale four lags",
+      "es": "Enmascarar y escalar cuatro retardos"
+    },
+    {
+      "en": "Fit multi-output ridge",
+      "es": "Ajustar ridge multisalida"
+    },
+    {
+      "en": "Calibrate original-unit errors",
+      "es": "Calibrar errores en unidades originales"
+    }
+  ],
+  "limitation": {
+    "en": "A linear predictor can miss nonlinear operating changes, and carrying history does not restore missing physical information. The fit and thresholds describe authored synthetic normal data; no site-calibrated performance, fault cause or superiority is established.",
+    "es": "Un predictor lineal puede omitir cambios no lineales y conservar historia no recupera información física ausente. Ajuste y umbrales describen datos normales sintéticos propios; no establecen rendimiento calibrado en terreno, causa de falla ni superioridad."
+  },
+  "refs": [
+    "ridge"
+  ]
+}

@@ -664,3 +664,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+    from define_learned_comparison import main as add_learned_comparison
+
+    add_learned_comparison()

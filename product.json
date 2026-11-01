@@ -27,14 +27,17 @@
     "pipeline.stages.plant_evaluate.calibrate",
     "pipeline.stages.plant_evaluate.raw_scores",
     "pipeline.stages.plant_evaluate.confusion",
-    "pipeline.stages.analysis.analyze"
+    "pipeline.stages.analysis.analyze",
+    "pipeline.model.learning.fit_ridge",
+    "pipeline.stages.learned_compare.evaluate_ridge",
+    "pipeline.stages.learned_compare.compare"
   ],
   "manuscripts": [
     {
       "kind": "technical-report",
       "concept_doi": "10.5281/zenodo.23851364",
       "title": "Connected plant visualization with timestamped observations and versioned process-engine evidence",
-      "version": "0.01.000",
+      "version": "0.01.001",
       "covers": [
         "BS-1"
       ]

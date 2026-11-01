@@ -45,9 +45,9 @@
     "sha256": "5aa90783357f665332e12c59384f481e30cbd14e70ab5ea7e35242b311440f7e"
   },
   "api": {
-    "version": "3.0.0",
+    "version": "3.2.0",
     "schema": "docs/contracts/api.openapi.json",
-    "sha256": "17ddb191436ad592184694fdc80c1f4cafedf8dcde697150d6bced3a91b3d3cd"
+    "sha256": "4483a0cffd4259471e5e7d4cfccbf505f451ff5359d1a9bfecdb024378c42044"
   },
   "benchmark": {
     "version": "2.0.0",
@@ -63,5 +63,15 @@
     "version": "1.0.0",
     "schema": "docs/contracts/schemas/benchmark-analysis.schema.json",
     "sha256": "0bbd6fea9d2b02a72f0d8b1183bbaf2e7a4dca7f17b160a9f0137e608808b597"
+  },
+  "learned-comparison": {
+    "version": "1.0.1",
+    "schema": "docs/contracts/schemas/learned-comparison.schema.json",
+    "sha256": "c4e525c31250d3fe8878b8ecbfc388afd821fdc025d120a8b89bca53fa0bb936"
+  },
+  "model-registry": {
+    "version": "1.0.0",
+    "schema": "docs/contracts/schemas/model-registry.schema.json",
+    "sha256": "e66c064ca06cb004452ad4c92fded291554781f6ec5c873d98a5d36ba6b4bc0c"
   }
 }

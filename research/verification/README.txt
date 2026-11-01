@@ -38,3 +38,5 @@ experiment. They do not reproduce every benchmark inference, validate a real
 plant, independently discover synthetic quality faults, or support superiority
 or global novelty claims. Review the script, execute it in the destination
 checkout with an external output, then cite only the resulting actual output.
+
+The original-study-verification.json preserves the first eight-method source hash snapshot. verification.json is the same independent calculation rerun against the current source tree after adding Ridge. Both reproduce the unchanged48 original robust checks and6144 original comparison counts. Additional Ridge evidence and checkpoint metadata are reported separately; this verifier does not fit or evaluate Ridge.

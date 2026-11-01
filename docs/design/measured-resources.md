@@ -4,7 +4,7 @@ Measured 2026-10-31 on the development workstation with Python 3.12.10, NumPy 2.
 
 | Quantity | Measured result | Scope |
 |---|---|---|
-| Public JSON artifacts | 32 files; 6,762,352 content bytes | Canonical data/derived, excluding duplicated fixture provider |
+| Public JSON artifacts | 34 files; 7,797,699 content bytes | Canonical data/derived, excluding duplicated fixture provider |
 | Full held-out comparison | 80.313s; 6144 cells | Existing fitted checkpoint, 768 paired scenarios |
 | Causal model | 1568 training rows, 784 forecast-calibration rows; 64 lag features | Four earlier 16-channel observations; actual HGB fit |
 | Reference geometry | 36 assets, 47 streams; about 36,786 triangles in the initial view | Authored procedural scene; browser overlay reports actual current draw |
@@ -13,3 +13,5 @@ Measured 2026-10-31 on the development workstation with Python 3.12.10, NumPy 2.
 The task's independent review re-executed all four released package configurations, verified all ten exact artifacts, checked 48 robust objectives against independent optimization and reconciled 6144 aggregate cells. The corrected snapshot check examined 245,760 channel values and their evidence-time indices.
 
 Frontend build and complete browser/notebook results are recorded for their exact milestone separately. A compressed JavaScript size is a transfer measurement, not a frame-time guarantee. The scene renders on demand while paused and animates only during explicit replay. No large-plant scaling or site commissioning result is claimed.
+
+The additive Ridge evaluation took 1.068 s for 768 new rows; its two-family artifact also reuses 768 HGB rows. The original 6144-cell comparison bytes and timing are preserved. The separate fitted Ridge checkpoint is small because it stores linear coefficients, not another tree ensemble.

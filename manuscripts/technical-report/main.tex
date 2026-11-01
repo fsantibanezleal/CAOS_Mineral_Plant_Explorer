@@ -10,9 +10,9 @@
 \setlength{\parskip}{4pt}
 \setlength{\parindent}{0pt}
 \newcommand{\doctype}{Technical report}
-\newcommand{\docversion}{v0.01.000}
-\newcommand{\docdate}{31 October 2026}
-\newcommand{\versiondoi}{10.5281/zenodo.23851365}
+\newcommand{\docversion}{v0.01.001}
+\newcommand{\docdate}{1 November 2026}
+\newcommand{\versiondoi}{10.5281/zenodo.23851639}
 \newcommand{\conceptdoi}{10.5281/zenodo.23851364}
 \newcommand{\docrepo}{github.com/fsantibanezleal/CAOS\_OreBridge}
 \newcommand{\headerblock}{\begin{center}\fbox{\parbox{0.94\textwidth}{\small\raggedright
@@ -30,7 +30,7 @@ Not peer reviewed. Source code, data and computational results:\\
 \maketitle
 \headerblock
 \begin{abstract}
-Plant observations are difficult to interpret when equipment identity, engineering units, process relationships and time support are fragmented across views. OreBridge connects an authored copper-processing complex of 36 equipment assets and 47 directed streams to synchronized three-dimensional geometry, process diagrams, trends and source evidence. Four released Python engines are executed and ten public CAOS artifacts are verified at immutable source identifiers; each retains its original case identity. An optional authenticated read-only OPC UA adapter preserves source-change, server-confirmation and arrival times under an explicit per-binding freshness policy. Numerical experiments use sixteen synthetic solids/water channels, eleven steady-state factors and known transport delays. Engineering thresholds, weighted and Huber reconciliation, a fitted causal histogram predictor and transport-aware fusion variants are compared over 768 protocol scenarios and 6144 method/scenario cells. The combined TASC formulation reaches recall 0.3419, compared with 0.8399 for the predictor and 0.5191 after removing topology. Coverage and paired seed-block uncertainty accompany those negative comparisons. Independent constrained-objective checks, source recomputation, timestamp tests and a settling-grid study distinguish mathematical consistency from applicability. The available evidence supports a working integration and reproducible controlled models; it does not establish field detection, automatic root-cause diagnosis or facility safety.
+Plant observations are difficult to interpret when equipment identity, engineering units, process relationships and time support are fragmented across views. OreBridge connects an authored copper-processing complex of 36 assets and 47 streams to synchronized three-dimensional geometry, diagrams, trends and source evidence. Four released Python engines are executed and ten public CAOS artifacts verified at immutable source identifiers. An optional authenticated read-only OPC UA adapter preserves source-change, server-confirmation and arrival times. A controlled sixteen-channel network compares thresholds, constrained reconciliation, a fitted causal histogram predictor and transport-aware fusion over 6144 method/scenario cells. TASC recall is 0.3419, compared with 0.8399 for the predictor and 0.5191 without topology. An additional regularized linear causal model is fitted separately and evaluated on the same already-known test slots: 768 new ridge evaluations accompany 768 reused histogram rows. Ridge recall is 0.9204, with false-positive rate 0.02921 versus 0.01591 for the histogram predictor. Seed-block intervals preserve dependence; the extension is not prospectively untouched validation. Independent constrained and linear-algebra checks, source recomputation, timestamp tests and a settling-grid study distinguish numerical consistency from applicability. The evidence supports working integration and reproducible controlled models, without establishing field detection, automatic diagnosis or facility safety.
 \end{abstract}
 \clearpage
 \tableofcontents
@@ -209,6 +209,17 @@ The fitted model predicts sixteen next-step channels from four earlier multichan
 
 Absolute prediction errors on disjoint normal calibration define higher 99.5th-percentile channel thresholds, bounded below by $10^{-8}$. Test labels never set these parameters. Rejected source values are masked before lag preparation. Last accepted values are carried only inside model input, with nominal initialization before the first accepted sample. Display and scoring retain the rejected target state; missing information is not physically restored.
 
+\subsection{Regularized linear causal prediction}
+A second fitted family uses native multioutput ridge regression on the same four earlier multichannel vectors. With $\tilde X\in\mathbb R^{1568\times64}$, $\tilde Y\in\mathbb R^{1568\times16}$, coefficient matrix $W\in\mathbb R^{16\times64}$ and intercept $b\in\mathbb R^{16}$,
+\begin{equation}
+ (\widehat W,\widehat b)=\arg\min_{W,b}\|\tilde Y-\tilde XW^T-\mathbf1b^T\|_F^2+\alpha\|W\|_F^2,\qquad\alpha=1.
+\end{equation}
+The squared residual sum is unaveraged; the intercept is unpenalized. Native multiple targets share the input design without estimating a coupled output-error covariance. Ridge is a regularized linear causal predictor, not an advanced nonlinear model merely because its implementation is maintained~\cite{ridge}.
+
+The training-target standard deviation scales both targets and the corresponding channels repeated across four lags. This division does not itself subtract a mean; the fitted intercept accounts for the offset. Predictions return to each channel's original units before absolute-error calibration. Training seeds 100--107, normal calibration seeds 200--203, higher 99.5th-percentile thresholds and the common fourteen-sample numerical horizon match the histogram protocol. Rejected finite values are removed before carry-forward; an inconsistent mask admitting a non-finite target is refused.
+
+The linear penalty, SVD solver and intercept setting were fixed before viewing the added aggregate. The test seeds were already known from the published controlled study. This is a post-publication extension rather than prospectively untouched model selection. The additional artifact reuses the original 768 histogram rows and adds 768 ridge evaluations; it does not create 1536 independent new trials. The original eight-method counts, paired analysis and twelve trace byte sequences are preserved.
+
 \subsection{Transport-aware fusion and ablations}
 TASC combines aligned observations with compatible uncertain pseudo-observations under the same conservation factors:
 \begin{equation}
@@ -270,6 +281,18 @@ TASC minus aligned-Huber recall is 0.0056875, with paired 95\% interval $[0.0043
 \caption{Measured severity response at fixed noise scale. Repeated controls and quality scenarios retain the same protocol weight at each slot. Curves summarize the controlled matrix rather than a distribution of industrial failure magnitudes.}
 \end{figure}
 
+\subsection{Paired extension with a second fitted family}
+Ridge has 29454 true positives, 51003 false positives and 2546 false negatives. Its recall is 0.9204375, precision 0.3660837 and false-positive rate 0.0292105, compared with 0.8399375, 0.4917487 and 0.0159102 for the histogram model. Both score 1778048 points and leave 16000 unavailable. Higher recall therefore accompanies more false alerts and lower precision; the linear family is not uniformly better.
+
+The ridge-minus-histogram recall difference is 0.0805. A 5000-resample, seed-414 bootstrap over the same sixteen complete seed blocks gives the 95\% interval $[0.0482797,0.1189695]$. Family, severity, channel and time dependence remain inside each block. Reused test slots and supplied admission masks limit this interpretation to the authored design.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=.98\textwidth]{../shared/ridge-comparison.png}
+\caption{The additional fitted linear family gains recall at a higher false-alert rate. These are paired records on the already-known synthetic protocol, including 768 reused histogram rows. No universal advantage is inferred.}
+\end{figure}
+
+Independent augmented least squares reproduces ridge coefficients to approximately $3.1\times10^{-14}$, the intercept to $2.2\times10^{-14}$ and original-unit predictions to $4.0\times10^{-12}$. Separate recomputation from the actual checkpoint reconciles all 768 ridge counts and event latencies, its higher-quantile calibration and the paired interval. Missing model manifests, wrong checkpoint identities and missing or duplicate protocol cells fail validation.
+
 \subsection{Why closure can hurt localization}
 A balance factor observes a syndrome, not an instrument identity. In a three-channel flotation balance, an extra 10\,t/h at feed and a missing 10\,t/h at tailings produce the same scalar residual. One equation leaves two unconstrained physical directions. A unique weighted optimum comes from uncertainty assumptions; it does not eliminate that ambiguity.
 
@@ -294,7 +317,7 @@ The settling column's convergence result applies only to its default input. Its 
 A visual integration may still be useful for inspecting relationships, provenance and missing data when these boundaries are explicit. Evaluating operational benefit requires measured site use, independently calibrated mappings/time support and outcomes that remain favorable under held-out operating regimes.
 
 \section{Reproduction and availability}
-The public repository supplies source, source lock, compact observations, fitted-model metadata, comparison counts, paired analysis, notebook outputs and figure code. External roots hold raw caches, the trusted joblib checkpoint and temporary computations. The checkpoint digest is in the model manifest; an unknown serialized model must not be loaded merely because it has a filename resembling the expected one.
+The public repository supplies source, source lock, compact observations, metadata for both fitted families, comparison counts, paired analysis, notebook outputs and figure code. External roots hold raw caches, the trusted joblib checkpoint and temporary computations. Each checkpoint digest is in its model manifest; an unknown serialized model must not be loaded merely because it has a filename resembling the expected one.
 
 The numerical environment uses Python 3.12.10, NumPy 2.2.6, SciPy 1.18.1 and scikit-learn 1.9.1 with numerical thread counts bounded to one. The full comparison using the fitted checkpoint took approximately 80.3\,s on the recorded workstation. Transfer size, render duration and numerical runtime describe that configuration, not arbitrary larger facilities.
 

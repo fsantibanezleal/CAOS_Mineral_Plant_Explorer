@@ -1,6 +1,6 @@
 {
   "schema": "orebridge.index/v1",
-  "engine_version": "0.01.000",
+  "engine_version": "0.01.001",
   "n_cases": 1,
   "default_case": "PL-01",
   "cases": [
@@ -24,6 +24,8 @@
     "downstream.json",
     "benchmark.json",
     "state-model.json",
+    "state-model-ridge.json",
+    "learned-comparison.json",
     "readiness.json"
   ]
 }

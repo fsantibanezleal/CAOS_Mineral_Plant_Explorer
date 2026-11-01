@@ -11,7 +11,9 @@ The application joins equipment identity, three-dimensional geometry, directed p
 - [Downstream model assumptions](problem-types/01_downstream-process-boundaries.md): settling, leach, SX and electrowinning.
 - [Applied guides](guides.md): reproduce, import geometry, configure a source and inspect results.
 - [Case matrix](cases/README.md): all twelve known-truth families on the same network.
-- [Contracts](contracts/catalog.md): thirteen typed, versioned boundaries and explicit missing behavior.
+- [Contracts](contracts/catalog.md): fifteen typed, versioned boundaries and explicit missing behavior.
 - [Executed lessons](../notebooks/README.md): four progressive questions, each fully developed in English and Spanish.
 
 Observation acceptance, model inference and physical diagnosis are different statements. The public reference contains no site historian or as-built survey. Its retained negative comparisons prevent a visually convincing scene from being used as evidence of a better industrial detector.
+
+- [Implemented method inventory](methods/01-method-inventory.md): six detector formulations and four separate physical questions, without counting ablations as new methods.

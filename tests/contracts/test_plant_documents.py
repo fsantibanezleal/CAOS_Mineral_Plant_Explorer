@@ -46,6 +46,8 @@ def test_exported_plant_documents_and_provider_swap(relative):
     for name, file in [
         ("engine-evidence", "engine-evidence.json"),
         ("state-model", "state-model.json"),
+        ("state-model", "state-model-ridge.json"),
+        ("learned-comparison", "learned-comparison.json"),
         ("readiness", "readiness.json"),
     ]:
         check(name, read(root / file))

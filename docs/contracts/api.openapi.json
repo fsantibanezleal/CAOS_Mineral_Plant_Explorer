@@ -233,6 +233,12 @@
             }
           }
         }
+      },
+      "LearnedComparison": {
+        "$ref": "schemas/learned-comparison.schema.json"
+      },
+      "ModelRegistry": {
+        "$ref": "schemas/model-registry.schema.json"
       }
     }
   }

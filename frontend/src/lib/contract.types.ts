@@ -21,3 +21,4 @@ export const SCHEMAS = { trace: 'orebridge.trace/v1', manifest: 'orebridge.manif
 export type Downstream = Schemas['Downstream'];
 export type BenchmarkData = Schemas['Benchmark'];
 export type BenchmarkAnalysis = Schemas['BenchmarkAnalysis'];
+export type LearnedComparison = Schemas['LearnedComparison'];
