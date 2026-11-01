@@ -11,65 +11,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
-CHANNELS = [
-    ("ROM.feed", "ROM", "Fresh ore feed", "Alimentación fresca", "t/h", 720.0, 0),
-    ("CR1.product", "CR1", "Crusher product", "Producto del chancador", "t/h", 720.0, 1),
-    ("SAG.feed", "SAG", "Combined grinding-circuit feed", "Alimentación total de molienda", "t/h", 2520.0, 3),
-    ("CY1.feed", "CY1", "Cyclone feed", "Alimentación a ciclones", "t/h", 2520.0, 4),
-    ("CY1.recycle", "CY1", "Cyclone underflow", "Descarga de ciclones", "t/h", 1800.0, 7),
-    ("FL1.feed", "FL1", "Flotation dry solids", "Sólidos secos a flotación", "t/h", 720.0, 8),
-    (
-        "FL1.concentrate",
-        "FL1",
-        "Concentrate dry solids",
-        "Sólidos secos de concentrado",
-        "t/h",
-        18.5991410176,
-        10,
-    ),
-    ("FL1.tailings", "FL1", "Tailings dry solids", "Sólidos secos de relaves", "t/h", 701.4008589824, 12),
-    (
-        "CTH.feed",
-        "CTH",
-        "Concentrate thickener feed",
-        "Alimentación al espesador de concentrado",
-        "t/h",
-        18.5991410176,
-        13,
-    ),
-    (
-        "CTH.underflow",
-        "CTH",
-        "Concentrate solids out",
-        "Salida de sólidos del concentrado",
-        "t/h",
-        18.5991410176,
-        14,
-    ),
-    (
-        "TTH.feed",
-        "TTH",
-        "Tailings thickener feed",
-        "Alimentación al espesador de relaves",
-        "t/h",
-        701.4008589824,
-        13,
-    ),
-    (
-        "TTH.underflow",
-        "TTH",
-        "Tailings solids out",
-        "Salida de sólidos del relave",
-        "t/h",
-        701.4008589824,
-        14,
-    ),
-    ("MWT.flow", "MWT", "Make-up water", "Agua de reposición", "m3/h", 150.0, 0),
-    ("PU2.flow", "PU2", "Return water", "Agua recuperada", "m3/h", 265.0, 4),
-    ("PWT.in", "PWT", "Water tank inflow", "Entrada de agua al estanque", "m3/h", 415.0, 5),
-    ("PWT.out", "PWT", "Water tank outflow", "Salida de agua del estanque", "m3/h", 415.0, 5),
-]
 from ..cases.definitions import FAMILIES
+from .tags import CHANNELS
 
 
 def channel_specs():
@@ -123,7 +66,13 @@ class Scenario:
 
 
 def generate(family="healthy", seed=7, severity=1.0, steps=160, noise=1.0) -> Scenario:
-    if family not in {f[0] for f in FAMILIES} or steps < 100 or severity <= 0 or noise < 0:
+    if (
+        family not in {f[0] for f in FAMILIES}
+        or steps < 100
+        or not np.isfinite([severity, noise]).all()
+        or severity <= 0
+        or noise < 0
+    ):
         raise ValueError("unsupported scenario domain")
     rng = np.random.default_rng(seed)
     t = np.arange(steps)
@@ -179,9 +128,11 @@ def generate(family="healthy", seed=7, severity=1.0, steps=160, noise=1.0) -> Sc
         # not a sensor fault. Labels retain this distinct category.
         change = truth[mask, 6] * 0.2 * severity
         for j in [6, 8, 9]:
+            truth[mask, j] += change
             y[mask, j] += change
             fault[mask, j] = True
         for j in [7, 10, 11]:
+            truth[mask, j] -= change
             y[mask, j] -= change
             fault[mask, j] = True
     elif family == "water":
@@ -189,8 +140,10 @@ def generate(family="healthy", seed=7, severity=1.0, steps=160, noise=1.0) -> Sc
         fault[mask, 13] = True
     elif family == "delay":
         # This is a negative control for misspecified timing. There is no sensor fault.
+        baseline_truth = truth.copy()
         for j in [6, 7, 8, 9, 10, 11]:
-            y[mask, j] = truth[np.maximum(t[mask] - 8, 0), j] + rng.normal(size=mask.sum()) * sigma[j] * noise
+            truth[mask, j] = baseline_truth[np.maximum(t[mask] - 8, 0), j]
+            y[mask, j] = truth[mask, j] + rng.normal(size=mask.sum()) * sigma[j] * noise
     return Scenario(family, seed, severity, truth, y, fault, valid, reasons, load[20:])
 
 

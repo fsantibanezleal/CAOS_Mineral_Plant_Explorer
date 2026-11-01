@@ -10,6 +10,8 @@
     "value",
     "unit",
     "source_time",
+    "server_time",
+    "freshness_basis",
     "receipt_time",
     "sequence",
     "quality"
@@ -38,8 +40,32 @@
       "minLength": 1
     },
     "source_time": {
-      "type": "string",
-      "format": "date-time"
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "server_time": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "freshness_basis": {
+      "enum": [
+        "source",
+        "server"
+      ]
     },
     "receipt_time": {
       "type": "string",

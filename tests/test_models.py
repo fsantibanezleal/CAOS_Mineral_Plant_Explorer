@@ -35,3 +35,8 @@ def test_adversarial_impossible_constraints_are_rejected():
         weighted_reconcile([1], [1], [[1], [1]], [0, 1])
     with pytest.raises(ValueError):
         weighted_reconcile([1], [0], [[1]], [0])
+
+
+def test_zero_constraint_limit_returns_observations():
+    result = weighted_reconcile([1, 2], [1, 1], np.empty((0, 2)), [])
+    assert np.array_equal(result["state"], [1, 2]) and result["rank"] == 0

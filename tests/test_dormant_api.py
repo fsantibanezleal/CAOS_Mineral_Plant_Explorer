@@ -1,6 +1,7 @@
 """The dormant app/ serves the committed contract-2 documents as they are, in either manifest form, and nothing
 outside data/derived (it used to read the template example's manifest shape, so it broke in every product
 whose manifests differ). The service layer is stdlib only, so this runs without the API lane installed."""
+
 from __future__ import annotations
 
 import sys
@@ -9,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from app.services import content  # noqa: E402
+from app.services import content  # noqa: E402 (explicit local script import root)
 
 
 def test_serves_the_index_every_manifest_and_every_artifact_it_names():
@@ -26,7 +27,10 @@ def test_serves_the_index_every_manifest_and_every_artifact_it_names():
 
 def test_reads_both_forms_of_a_manifest():
     assert content.artifact_paths({"artifact": {"path": "A/trace.json"}}) == ["A/trace.json"]
-    assert content.artifact_paths({"artifacts": [{"path": "B/v1.json"}, {"path": "B/v2.json"}]}) == ["B/v1.json", "B/v2.json"]
+    assert content.artifact_paths({"artifacts": [{"path": "B/v1.json"}, {"path": "B/v2.json"}]}) == [
+        "B/v1.json",
+        "B/v2.json",
+    ]
     assert content.artifact_paths({}) == []
 
 
@@ -42,7 +46,7 @@ def test_an_absent_index_is_none_not_an_empty_index(tmp_path, monkeypatch):
     monkeypatch.setenv("DATA_DIR", str(tmp_path))
     assert content.load_index() is None
     assert content.load_readiness() is None
-    assert content.load_manifest("EX01_subcritical") is None
+    assert content.load_manifest("PL-01") is None
 
 
 def test_readiness_is_the_committed_document_with_the_api_row_available():

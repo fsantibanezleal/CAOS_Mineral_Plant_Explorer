@@ -38,13 +38,13 @@ def weighted_reconcile(y, sigma, A, b):
     multiplier = np.linalg.lstsq(gram, A @ y - b, rcond=1e-12)[0]
     x = y - R * (A.T @ multiplier)
     residual = A @ x - b
-    if np.linalg.norm(residual, np.inf) > 1e-7:
+    if residual.size and np.linalg.norm(residual, np.inf) > 1e-7:
         raise ValueError("ill-conditioned state reconciliation")
     return {
         "state": x,
         "score": np.abs((y - x) / sigma),
         "balance_residual": residual,
-        "rank": int(np.linalg.matrix_rank(A)),
+        "rank": int(np.linalg.matrix_rank(A)) if A.size else 0,
     }
 
 

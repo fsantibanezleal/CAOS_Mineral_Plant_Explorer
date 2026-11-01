@@ -24,7 +24,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Unavailable"
+                  "$ref": "#/components/schemas/UnavailableBody"
                 }
               }
             }
@@ -50,7 +50,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Unavailable"
+                  "$ref": "#/components/schemas/UnavailableBody"
                 }
               }
             }
@@ -76,7 +76,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Unavailable"
+                  "$ref": "#/components/schemas/UnavailableBody"
                 }
               }
             }
@@ -102,7 +102,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Unavailable"
+                  "$ref": "#/components/schemas/UnavailableBody"
                 }
               }
             }
@@ -194,7 +194,7 @@
       "Readiness": {
         "$ref": "schemas/readiness.schema.json"
       },
-      "Unavailable": {
+      "UnavailableBody": {
         "type": "object",
         "additionalProperties": false,
         "required": [

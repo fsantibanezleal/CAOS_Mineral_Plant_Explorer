@@ -29,7 +29,10 @@ def canonical(value: float, unit: str, target: str) -> float:
         raise ValueError(f"incompatible units: {unit} -> {target}")
     if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
         raise ValueError("non-finite observation")
-    return value * UNITS[unit][1] / UNITS[target][1]
+    result = value * UNITS[unit][1] / UNITS[target][1]
+    if not math.isfinite(result):
+        raise ValueError("unit conversion overflow")
+    return result
 
 
 def utc_time(value: str) -> datetime:
@@ -60,25 +63,36 @@ def validate_observation(
         current = utc_time(now)
         source = utc_time(record["source_time"])
         receipt = utc_time(record["receipt_time"])
-        age = (current - source).total_seconds()
+        basis = binding.get("freshness_basis", "source")
+        if basis not in ("source", "server"):
+            raise ValueError("unknown freshness policy")
+        server = utc_time(record["server_time"]) if record.get("server_time") else None
+        fresh_time = server if basis == "server" else source
+        if fresh_time is None:
+            raise ValueError("missing server confirmation time")
+        age = (current - fresh_time).total_seconds()
         if (
             isinstance(record.get("sequence"), bool)
             or not isinstance(record.get("sequence"), int)
             or record["sequence"] < 0
         ):
             return ObservationVerdict(False, "invalid", None, ("invalid_source_sequence",), age)
-        if (receipt - current).total_seconds() > future_tolerance_s:
+        if (receipt - current).total_seconds() > future_tolerance_s or (
+            current - receipt
+        ).total_seconds() > max_age_s:
             return ObservationVerdict(False, "invalid", None, ("future_receipt_time",), age)
         if record["tag_id"] != binding["tag_id"] or record["asset_id"] != binding["asset_id"]:
             return ObservationVerdict(False, "unmapped", None, ("asset_identity_mismatch",), age)
-        if source > receipt and (source - receipt).total_seconds() > future_tolerance_s:
+        if any((t - receipt).total_seconds() > future_tolerance_s for t in (source, fresh_time)):
             return ObservationVerdict(False, "invalid", None, ("source_after_receipt",), age)
         if age < -future_tolerance_s:
             return ObservationVerdict(False, "invalid", None, ("future_source_time",), age)
         if record.get("quality") != "good":
             return ObservationVerdict(False, "uncertain", None, ("source_quality_not_good",), age)
         if previous and (
-            record["sequence"] <= previous["sequence"] or source < utc_time(previous["source_time"])
+            record["sequence"] <= previous["sequence"]
+            or source < utc_time(previous["source_time"])
+            or (server and previous.get("server_time") and server < utc_time(previous["server_time"]))
         ):
             return ObservationVerdict(False, "out_of_order", None, ("older_sequence_or_time",), age)
         if age > max_age_s:

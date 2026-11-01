@@ -18,6 +18,7 @@
     "fault",
     "quality_reasons",
     "scores",
+    "evidence_lag_s",
     "estimate",
     "metrics",
     "threshold"
@@ -190,6 +191,18 @@
               }
             ]
           }
+        }
+      }
+    },
+    "evidence_lag_s": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 16,
+        "maxItems": 16,
+        "items": {
+          "type": "integer",
+          "minimum": 0
         }
       }
     },

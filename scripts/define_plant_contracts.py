@@ -91,6 +91,7 @@ def main():
             "coordinate_unit": {"const": "m"},
             "assets": arr(asset, 35),
             "streams": arr(stream, 40),
+            "tags": arr(obj({"tag_id": S, "asset_id": S, "label": T, "unit": S, "minimum": N}), 16),
         }
     )
     params = obj(
@@ -169,6 +170,15 @@ def main():
             "fault": arr(arr(B, 16), 100),
             "quality_reasons": {"type": "object", "additionalProperties": S},
             "scores": {"type": "object", "additionalProperties": matrix},
+            "evidence_lag_s": {
+                "type": "object",
+                "additionalProperties": {
+                    "type": "array",
+                    "minItems": 16,
+                    "maxItems": 16,
+                    "items": {"type": "integer", "minimum": 0},
+                },
+            },
             "estimate": matrix,
             "metrics": arr(metric, 8),
             "threshold": {"type": "object", "additionalProperties": arr(N, 16)},
@@ -219,7 +229,9 @@ def main():
             "asset_id": S,
             "value": nullable(N),
             "unit": S,
-            "source_time": {"type": "string", "format": "date-time"},
+            "source_time": nullable({"type": "string", "format": "date-time"}),
+            "server_time": nullable({"type": "string", "format": "date-time"}),
+            "freshness_basis": {"enum": ["source", "server"]},
             "receipt_time": {"type": "string", "format": "date-time"},
             "sequence": {"type": "integer", "minimum": 0},
             "quality": {"enum": ["good", "uncertain", "bad"]},
@@ -250,6 +262,7 @@ def main():
             "point_adjustment": {"const": False},
             "channels": {"const": 16},
             "steps": {"const": 160},
+            "noise_scale": {"const": 1.0},
             "numerical_quality_separation": {"const": True},
             "threshold_quantile": N,
         }
@@ -348,7 +361,7 @@ def main():
         )
     components = {name: {"$ref": f"schemas/{file}.schema.json"} for file, (name, _) in schemas.items()}
     components["Readiness"] = {"$ref": "schemas/readiness.schema.json"}
-    components["Unavailable"] = obj({"detail": obj({"state": {"const": "missing"}, "reason": T})})
+    components["UnavailableBody"] = obj({"detail": obj({"state": {"const": "missing"}, "reason": T})})
 
     def get(name):
         return {
@@ -361,7 +374,7 @@ def main():
                     "503": {
                         "description": "Explicit unavailable state",
                         "content": {
-                            "application/json": {"schema": {"$ref": "#/components/schemas/Unavailable"}}
+                            "application/json": {"schema": {"$ref": "#/components/schemas/UnavailableBody"}}
                         },
                     },
                 }
@@ -421,6 +434,8 @@ def main():
             "value": 720.0,
             "unit": "t/h",
             "source_time": "2026-10-31T12:00:00Z",
+            "server_time": "2026-10-31T12:00:01Z",
+            "freshness_basis": "server",
             "receipt_time": "2026-10-31T12:00:01Z",
             "sequence": 1,
             "quality": "good",
@@ -486,7 +501,7 @@ def main():
         ],
         [
             "trace",
-            "2.0.0",
+            "3.0.0",
             "data-pipeline/pipeline/stages/bake_plant.py",
             "docs/contracts/schemas/trace.schema.json",
             "data/derived/PL-01/trace.json",
@@ -501,7 +516,7 @@ def main():
         ],
         [
             "plant-graph",
-            "1.0.0",
+            "2.0.0",
             "data-pipeline/pipeline/model/plant.py",
             "docs/contracts/schemas/plant-graph.schema.json",
             "data/derived/plant.json",
@@ -546,7 +561,7 @@ def main():
         ],
         [
             "observation",
-            "1.0.0",
+            "2.0.0",
             "app/gateway.py",
             "docs/contracts/schemas/observation.schema.json",
             "docs/contracts/examples/observation.json",
@@ -576,11 +591,11 @@ def main():
         ],
         [
             "api",
-            "2.0.0",
+            "3.0.0",
             "app/",
             "docs/contracts/api.openapi.json",
             "docs/contracts/examples/api-unavailable.json",
-            "docs/contracts/examples/api-unavailable.json#Unavailable",
+            "docs/contracts/examples/api-unavailable.json#UnavailableBody",
             "tests/test_gateway.py",
             "frontend/src/lib/api.contract.test.ts",
             "missing: gateway returns 503 without a configured source; unauthorized readers receive 401",
@@ -594,7 +609,7 @@ def main():
         rows.append(
             [
                 ident,
-                "1.0.0",
+                "2.0.0" if ident == "benchmark" else "1.0.0",
                 "data-pipeline/pipeline/stages/",
                 f"docs/contracts/schemas/{ident}.schema.json",
                 f"data/derived/{ident}.json",
@@ -636,7 +651,9 @@ def main():
     }
     for row in rows:
         name, version = row[:2]
-        if name in old:
+        if name in ("plant-graph", "observation", "benchmark"):
+            catalog += f"| {name} | 1.0.0 | 2026-10-31 | first plant boundary | initial |\n| {name} | {version} | 2026-10-31 | semantic bindings and explicit timestamp policy | major |\n"
+        elif name in old:
             catalog += f"| {name} | {old[name]} | 2026-10-30 | inherited template boundary | initial |\n| {name} | {version} | 2026-10-31 | replace domain schema with connected plant contract | major |\n"
         else:
             catalog += f"| {name} | {version} | 2026-10-31 | first plant boundary | initial |\n"

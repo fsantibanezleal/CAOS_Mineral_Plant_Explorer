@@ -11,7 +11,8 @@
     "provenance",
     "coordinate_unit",
     "assets",
-    "streams"
+    "streams",
+    "tags"
   ],
   "properties": {
     "schema": {
@@ -162,6 +163,56 @@
           "water_m3_h": {
             "type": "number",
             "minimum": 0
+          }
+        }
+      }
+    },
+    "tags": {
+      "type": "array",
+      "minItems": 16,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "tag_id",
+          "asset_id",
+          "label",
+          "unit",
+          "minimum"
+        ],
+        "properties": {
+          "tag_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "asset_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "label": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "en",
+              "es"
+            ],
+            "properties": {
+              "en": {
+                "type": "string",
+                "minLength": 1
+              },
+              "es": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "unit": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minimum": {
+            "type": "number"
           }
         }
       }

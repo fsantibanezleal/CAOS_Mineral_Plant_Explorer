@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+import math
 import os
 import sys
 from dataclasses import dataclass
@@ -15,7 +16,7 @@ from urllib.parse import urlparse
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT / "data-pipeline") not in sys.path:
     sys.path.insert(0, str(ROOT / "data-pipeline"))
-from pipeline.model.observations import validate_observation
+from pipeline.model.observations import canonical, validate_observation  # noqa: E402 (explicit local script import root)
 
 
 @dataclass(frozen=True)
@@ -68,6 +69,8 @@ class GatewayConfig:
             raise ValueError("signed_encrypted_source_required")
         if len(self.bindings) > 2000:
             raise ValueError("tag_budget_exceeded")
+        if not math.isfinite(self.max_age_s) or not 0 < self.max_age_s <= 15:
+            raise ValueError("invalid_freshness_window")
         ids = [r["tag_id"] for r in self.bindings]
         if len(set(ids)) != len(ids):
             raise ValueError("duplicate_tag_binding")
@@ -75,19 +78,21 @@ class GatewayConfig:
             raise ValueError("wildcard_gateway_origin_forbidden")
         if not (ROOT / "data/derived/plant.json").is_file():
             raise ValueError("plant_graph_not_available")
-        assets = (
-            {
-                a["id"]
-                for a in json.loads((ROOT / "data/derived/plant.json").read_text(encoding="utf-8"))["assets"]
-            }
-            if (ROOT / "data/derived/plant.json").exists()
-            else set()
-        )
+        graph = json.loads((ROOT / "data/derived/plant.json").read_text(encoding="utf-8"))
+        tags = {t["tag_id"]: t for t in graph["tags"]}
         for r in self.bindings:
             if not r.get("node_id") or not r.get("unit") or not r.get("asset_id"):
                 raise ValueError("incomplete_tag_binding")
-            if assets and r["asset_id"] not in assets:
-                raise ValueError("unknown_plant_asset")
+            tag = tags.get(r["tag_id"])
+            if not tag or any(r[k] != tag[k] for k in ("asset_id", "unit")):
+                raise ValueError("unknown_semantic_tag_binding")
+            canonical(1, r.get("source_unit", r["unit"]), tag["unit"])
+            if any(not math.isfinite(r[k]) for k in ("minimum", "maximum") if k in r):
+                raise ValueError("nonfinite_engineering_bound")
+            if r.get("minimum", tag["minimum"]) < tag["minimum"]:
+                raise ValueError("bound_outside_plant_domain")
+            if r.get("freshness_basis") not in ("source", "server"):
+                raise ValueError("explicit_freshness_policy_required")
 
 
 class OPCReader:
@@ -106,32 +111,36 @@ class OPCReader:
         self.sequence += 1
         records = []
         async with client:
-            for binding in self.config.bindings:
-                # The node is created only from the local allow-list, never a browser argument.
-                dv = await client.get_node(binding["node_id"]).read_data_value()
+            # One read transaction preserves individual status codes and source times.
+            nodes = [client.get_node(binding["node_id"]) for binding in self.config.bindings]
+            values = await client.read_attributes(nodes)
+            for binding, dv in zip(self.config.bindings, values, strict=True):
                 now = datetime.now(UTC).isoformat()
                 source = dv.SourceTimestamp
                 record = {
                     "tag_id": binding["tag_id"],
                     "asset_id": binding["asset_id"],
-                    "value": dv.Value.Value,
-                    "unit": binding["unit"],
-                    "source_time": source.isoformat() if source else now,
+                    "value": dv.Value.Value if dv.Value is not None else None,
+                    "unit": binding.get("source_unit", binding["unit"]),
+                    "source_time": source.isoformat() if source else None,
+                    "server_time": dv.ServerTimestamp.isoformat() if dv.ServerTimestamp else None,
+                    "freshness_basis": binding["freshness_basis"],
                     "receipt_time": now,
                     "sequence": self.sequence,
                     "quality": "good" if dv.StatusCode.is_good() and source else "uncertain",
                 }
                 verdict = validate_observation(
                     record,
-                    binding,
+                    {"minimum": 0, **binding},
                     now,
                     self.previous.get(binding["tag_id"]),
                     max_age_s=self.config.max_age_s,
                 )
                 if verdict.accepted:
+                    record = {**record, "value": verdict.value, "unit": binding["unit"]}
                     self.previous[binding["tag_id"]] = record
                 else:
-                    record = {**record, "value": None, "quality": "bad"}
+                    record = {**record, "value": None, "unit": binding["unit"], "quality": "bad"}
                 records.append(record)
         return records
 

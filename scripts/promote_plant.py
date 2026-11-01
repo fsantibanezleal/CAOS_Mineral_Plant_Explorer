@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "data-pipeline"))
-from pipeline.stages.bake_plant import validate
+from pipeline.stages.bake_plant import validate  # noqa: E402 (explicit local script import root)
 
 
 def main():

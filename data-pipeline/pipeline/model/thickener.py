@@ -20,7 +20,7 @@ def simulate_thickener(
     settling_m_h=0.8,
     hindrance=4.65,
     hours=2.0,
-    cells=40,
+    cells=640,
     initial_fraction=0.06,
 ):
     if (
@@ -63,8 +63,11 @@ def simulate_thickener(
     initial = float(phi.sum() * dz * area_m2)
     out_u = out_o = 0.0
     samples = []
+
+    def settling(q):
+        return settling_m_h * q * np.maximum(1 - q, 0) ** hindrance
+
     for k in range(steps):
-        settling = lambda q: settling_m_h * q * np.maximum(1 - q, 0) ** hindrance
         left, right = phi[:-1], phi[1:]
         flux = 0.5 * (bulk * (left + right) + settling(left) + settling(right)) - 0.5 * speed * (right - left)
         faces = np.empty(cells + 1)
@@ -94,6 +97,8 @@ def simulate_thickener(
         "final_solids_m3": final,
         "solids_residual_m3": initial + feed_solids - out_u - out_o - final,
         "steps": steps,
+        "cells": cells,
+        "grid_note": "Default 640-cell outlet fraction differs by less than 1 percent from the 2000-cell default-input reference; other inputs require refinement.",
         "timeline": samples,
         "model": "one-dimensional hindered-settling finite volume",
     }

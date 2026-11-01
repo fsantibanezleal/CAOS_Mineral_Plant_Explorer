@@ -34,11 +34,15 @@ def test_sx_phase_mass_balance_and_faraday_oracle():
 
 
 def test_thickener_conserves_solids_and_refines():
-    a = simulate_thickener(cells=40)
-    b = simulate_thickener(cells=80)
-    assert abs(a["solids_residual_m3"]) < 1e-9 and abs(b["solids_residual_m3"]) < 1e-9
+    a = simulate_thickener(cells=320)
+    b = simulate_thickener()
+    reference = simulate_thickener(cells=2000)
+    assert all(abs(r["solids_residual_m3"]) < 1e-9 for r in (a, b, reference))
     assert max(a["fraction_profile"]) < 0.6 and min(a["fraction_profile"]) >= 0
-    assert abs(a["underflow_fraction"] - b["underflow_fraction"]) < 0.03
+    assert abs(b["underflow_fraction"] / reference["underflow_fraction"] - 1) < 0.01
+    assert abs(b["underflow_fraction"] - reference["underflow_fraction"]) < abs(
+        a["underflow_fraction"] - reference["underflow_fraction"]
+    )
 
 
 @pytest.mark.parametrize(

@@ -72,7 +72,7 @@ def _trace(case, bundle, thresholds, seed=1000, severity=1):
     if report.rejected:
         raise ValueError(report.rejected)
     params = report.accepted[0]
-    scenario = generate(params.family, params.seed, params.severity, params.steps)
+    scenario = generate(params.family, params.seed, params.severity, params.steps, params.noise)
     rows, result, _ = evaluate_one(scenario, bundle, thresholds)
     methods = {}
     for name, r in result.items():
@@ -97,6 +97,12 @@ def _trace(case, bundle, thresholds, seed=1000, severity=1):
             "fault": scenario.fault,
             "quality_reasons": scenario.reasons,
             "scores": methods,
+            "evidence_lag_s": {
+                name: [14 - c["delay_s"] for c in channel_specs()]
+                if name in ("robust-aligned", "tasc", "tasc-no-engine", "tasc-no-topology")
+                else [0] * 16
+                for name in methods
+            },
             "estimate": estimate,
             "metrics": rows,
             "threshold": thresholds,

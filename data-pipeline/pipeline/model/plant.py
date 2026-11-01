@@ -10,6 +10,8 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from math import isfinite
 
+from .tags import CHANNELS
+
 
 @dataclass(frozen=True)
 class Asset:
@@ -563,11 +565,15 @@ def reference_plant() -> dict:
     graph = {
         "schema": "orebridge.plant/v1",
         "id": "copper-complex",
-        "revision": "1.0.0",
+        "revision": "2.0.0",
         "provenance": "authored_synthetic",
         "coordinate_unit": "m",
         "assets": assets,
         "streams": streams,
+        "tags": [
+            {"tag_id": i, "asset_id": a, "label": {"en": en, "es": es}, "unit": u, "minimum": 0}
+            for i, a, en, es, u, _, _ in CHANNELS
+        ],
     }
     validate_graph(graph)
     return graph
@@ -596,8 +602,27 @@ def validate_graph(graph: dict) -> None:
     for s in streams:
         if s["source"] not in ids or s["target"] not in ids:
             raise ValueError("dangling process stream")
-        if s["source"] == s["target"] or not isfinite(s["nominal"]) or s["nominal"] < 0 or s["delay_s"] < 0:
+        if s["source"] == s["target"] or any(
+            not isfinite(s[k]) or s[k] < 0 for k in ("nominal", "delay_s", "water_m3_h")
+        ):
             raise ValueError("invalid process stream")
+        expected_unit = (
+            "kg/h"
+            if s["material"] == "acid"
+            else "m3/h"
+            if s["material"] in ("water", "solution", "organic", "electrolyte")
+            else "t/h"
+        )
+        if s["unit"] != expected_unit:
+            raise ValueError("incompatible stream unit")
+    from .observations import UNITS
+
+    tags = graph["tags"]
+    if len({t["tag_id"] for t in tags}) != len(tags):
+        raise ValueError("duplicate tag identity")
+    for tag in tags:
+        if tag["asset_id"] not in ids or tag["unit"] not in UNITS or not isfinite(tag["minimum"]):
+            raise ValueError("invalid semantic tag binding")
 
 
 def neighbors(graph: dict, asset_id: str, *, upstream: bool = False) -> list[str]:
