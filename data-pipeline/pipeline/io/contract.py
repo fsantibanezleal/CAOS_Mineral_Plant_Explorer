@@ -1,84 +1,58 @@
-"""CONTRACT 1, ingestion (raw -> pipeline). The *bring-your-own-data* gate.
-
-Declares the required schema (columns, units, ranges) of an input parameter table and an EXPLICIT outlier policy.
-A dataset is ACCEPTED iff it passes; bad rows are REJECTED with a reason (never silently coerced); plausible-but-
-suspicious rows are FLAGGED (accepted, but the manifest records the flag). This is what lets the product be applied
-to NEW data instead of only replaying baked cases. Documented in data/README.md.
-
-EXAMPLE schema = an SIR parameterization. Replace the columns/ranges/policy with your product's real data contract
-(e.g. a vibration record: fs, channel, load, window length, dropouts; or a PSD CSV: sieve apertures, %-passing).
-"""
-from __future__ import annotations
+"""Contract 1: reject malformed scenario inputs before any model executes."""
 
 import math
+import re
 from dataclasses import dataclass
-from typing import Any
 
-from .schema import SIRParams
-
-REQUIRED_COLUMNS: tuple[str, ...] = ("case_id", "beta", "gamma", "N", "I0")
-
-# name -> (min, max, unit). Physically/operationally plausible ranges; outside => REJECT.
-RANGES: dict[str, tuple[float, float, str]] = {
-    "beta": (1e-6, 5.0, "1/day (effective contact rate)"),
-    "gamma": (1e-6, 2.0, "1/day (recovery rate)"),
-    "N": (1.0, 1e9, "individuals (population)"),
-    "I0": (0.0, 1e9, "individuals (initial infected)"),
-}
-R0_FLAG_MAX = 20.0  # R0 above this is implausible for the example domain => FLAG (not reject)
-DEFAULT_DAYS = 160
+from ..cases.definitions import FAMILIES
+from .schema import PlantParams
 
 
 @dataclass
-class ContractReport:
-    accepted: list[SIRParams]
-    rejected: list[dict[str, Any]]
-    flagged: list[dict[str, Any]]
-
-    @property
-    def ok(self) -> bool:
-        return len(self.accepted) > 0
-
-    def summary(self) -> str:
-        return f"{len(self.accepted)} accepted, {len(self.rejected)} rejected, {len(self.flagged)} flagged"
+class ValidationReport:
+    accepted: list
+    rejected: list
+    flagged: list
 
 
-def validate_rows(raw_rows: list[dict[str, Any]]) -> ContractReport:
-    """Apply CONTRACT 1 to raw rows (e.g. from a CSV). Pure; deterministic; no I/O."""
-    accepted: list[SIRParams] = []
-    rejected: list[dict[str, Any]] = []
-    flagged: list[dict[str, Any]] = []
-
-    for i, row in enumerate(raw_rows):
-        cid = str(row.get("case_id", f"row{i}"))
-        missing = [c for c in REQUIRED_COLUMNS if c not in row or row[c] in (None, "")]
-        if missing:
-            rejected.append({"row": i, "case_id": cid, "reason": f"missing/empty columns: {missing}"})
-            continue
+def validate_rows(rows):
+    good = []
+    bad = []
+    flags = []
+    for i, row in enumerate(rows):
+        identity = row.get("case_id", str(i)) if isinstance(row, dict) else str(i)
         try:
-            vals = {k: float(row[k]) for k in ("beta", "gamma", "N", "I0")}
-        except (TypeError, ValueError):
-            rejected.append({"row": i, "case_id": cid, "reason": "non-numeric value in beta/gamma/N/I0"})
-            continue
-        if any(math.isnan(v) or math.isinf(v) for v in vals.values()):
-            rejected.append({"row": i, "case_id": cid, "reason": "NaN/Inf value"})
-            continue
-        bad: list[str] = []
-        for name, (lo, hi, _unit) in RANGES.items():
-            if not (lo <= vals[name] <= hi):
-                bad.append(f"{name}={vals[name]:g} out of [{lo:g},{hi:g}]")
-        if vals["I0"] > vals["N"]:
-            bad.append(f"I0={vals['I0']:g} > N={vals['N']:g}")
-        if bad:
-            rejected.append({"row": i, "case_id": cid, "reason": "; ".join(bad)})
-            continue
-        r0 = vals["beta"] / vals["gamma"] if vals["gamma"] > 0 else math.inf
-        if r0 > R0_FLAG_MAX:
-            flagged.append({"case_id": cid, "flag": f"R0={r0:.1f} > {R0_FLAG_MAX:g} (implausibly high)"})
-        try:
-            days = int(float(row.get("days") or DEFAULT_DAYS))
-        except (TypeError, ValueError):
-            days = DEFAULT_DAYS
-        accepted.append(SIRParams(case_id=cid, beta=vals["beta"], gamma=vals["gamma"],
-                                  N=vals["N"], I0=vals["I0"], days=max(1, days)))
-    return ContractReport(accepted=accepted, rejected=rejected, flagged=flagged)
+            row = dict(row)
+            for key in ("seed", "steps"):
+                if key in row and isinstance(row[key], str):
+                    if not row[key].isdigit():
+                        raise ValueError("invalid integer field")
+                    row[key] = int(row[key])
+            for key in ("severity", "noise"):
+                if key in row and isinstance(row[key], str):
+                    row[key] = float(row[key])
+            p = PlantParams(**row)
+            if p.family not in {f[0] for f in FAMILIES}:
+                raise ValueError("unknown plant scenario")
+            if isinstance(p.seed, bool) or not isinstance(p.seed, int) or not 0 <= p.seed < 2**32:
+                raise ValueError("invalid seed")
+            if not isinstance(p.case_id, str) or not re.fullmatch(r"[A-Za-z][A-Za-z0-9_-]{0,63}", p.case_id):
+                raise ValueError("invalid case identity")
+            if not all(
+                isinstance(v, (float, int)) and not isinstance(v, bool) and math.isfinite(v)
+                for v in (p.severity, p.noise)
+            ):
+                raise ValueError("non-finite intensity")
+            if (
+                not 0.1 <= p.severity <= 5
+                or not 0 <= p.noise <= 5
+                or not isinstance(p.steps, int)
+                or not 100 <= p.steps <= 2000
+            ):
+                raise ValueError("scenario outside declared envelope")
+            good.append(p)
+            if p.severity > 2:
+                flags.append({"row": i, "reason": "high synthetic disturbance intensity"})
+        except (TypeError, ValueError) as exc:
+            bad.append({"row": i, "case_id": identity, "reason": str(exc)})
+    return ValidationReport(good, bad, flags)

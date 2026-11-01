@@ -9,6 +9,7 @@ printed, so a guard that never ran cannot pass."""
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -41,7 +42,7 @@ def test_tech_the_slim_tree_passes(tech_repo: Path) -> None:
 
 def test_tech_t1b_a_pin_added_only_in_requirements_api(tech_repo: Path) -> None:
     api = tech_repo / "requirements-api.txt"
-    api.write_text(api.read_text(encoding="utf-8") + "uvicorn[standard]==0.54.0\nfastapi==0.144.0\n", encoding="utf-8")
+    api.write_text(api.read_text(encoding="utf-8") + "uvicorn[standard]==0.0.0\nfastapi==0.0.0\n", encoding="utf-8")
     r = _tech(tech_repo)
     assert r.returncode == 1 and "uvicorn" in r.stdout and "fastapi" in r.stdout, r.stdout
 
@@ -105,8 +106,10 @@ def test_tech_t6_an_editable_unpinned_requirement(tech_repo: Path) -> None:
 
 
 def test_tech_t7_a_wildcard_pin(tech_repo: Path) -> None:
-    edit(tech_repo, "data-pipeline/requirements.txt", "numpy==2.4.6", "numpy==2.*")
-    edit(tech_repo, SDD, "| numpy | 2.4.6 |", "| numpy | 2.* |")
+    pin = re.search(r"numpy==[^\s]+", (tech_repo / "data-pipeline/requirements.txt").read_text(encoding="utf-8"))[0]
+    edit(tech_repo, "data-pipeline/requirements.txt", pin, "numpy==2.*")
+    version = pin.split("==")[1]
+    edit(tech_repo, SDD, f"| numpy | {version} |", "| numpy | 2.* |")
     r = _tech(tech_repo)
     assert r.returncode == 1 and "numpy" in r.stdout, r.stdout
 

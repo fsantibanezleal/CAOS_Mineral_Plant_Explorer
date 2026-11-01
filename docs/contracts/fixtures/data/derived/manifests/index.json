@@ -1,1 +1,31 @@
-{"schema":"example.index/v2","engine_version":"0.00.000","n_cases":1,"default_case":"FX01_fixture","cases":[{"case_id":"FX01_fixture","title":{"en":"Fixture case","es":"Caso de prueba"},"category":{"en":"Fixtures","es":"Datos de prueba"},"manifest_path":"manifests/FX01_fixture.json"}]}
+{
+  "schema": "orebridge.index/v1",
+  "engine_version": "0.01.001",
+  "n_cases": 1,
+  "default_case": "PL-01",
+  "cases": [
+    {
+      "case_id": "PL-01",
+      "title": {
+        "en": "Operating load change",
+        "es": "Cambio de carga operativa"
+      },
+      "category": {
+        "en": "Controls",
+        "es": "Controles"
+      },
+      "manifest_path": "manifests/PL-01.json"
+    }
+  ],
+  "files": [
+    "benchmark-analysis.json",
+    "plant.json",
+    "engine-evidence.json",
+    "downstream.json",
+    "benchmark.json",
+    "state-model.json",
+    "state-model-ridge.json",
+    "learned-comparison.json",
+    "readiness.json"
+  ]
+}

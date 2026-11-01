@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "benchmark-analysis.schema.json",
+  "title": "BenchmarkAnalysis",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "protocol",
+    "paired_differences",
+    "by_family",
+    "matched_source_valid",
+    "conclusion"
+  ],
+  "properties": {
+    "schema": {
+      "const": "orebridge.benchmark-analysis/v1"
+    },
+    "protocol": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [],
+      "properties": {}
+    },
+    "paired_differences": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "method",
+          "reference",
+          "metric",
+          "difference",
+          "ci95"
+        ],
+        "properties": {
+          "method": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reference": {
+            "type": "string",
+            "minLength": 1
+          },
+          "metric": {
+            "type": "string",
+            "minLength": 1
+          },
+          "difference": {
+            "type": "number"
+          },
+          "ci95": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2
+          }
+        }
+      }
+    },
+    "by_family": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [],
+        "properties": {}
+      }
+    },
+    "matched_source_valid": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "method",
+          "tp",
+          "fp",
+          "fn",
+          "tn",
+          "precision",
+          "recall",
+          "false_positive_rate",
+          "cases"
+        ],
+        "properties": {
+          "method": {
+            "type": "string",
+            "minLength": 1
+          },
+          "tp": {
+            "type": "integer"
+          },
+          "fp": {
+            "type": "integer"
+          },
+          "fn": {
+            "type": "integer"
+          },
+          "tn": {
+            "type": "integer"
+          },
+          "precision": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "recall": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "false_positive_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cases": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "conclusion": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

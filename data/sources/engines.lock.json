@@ -1,0 +1,271 @@
+{
+  "schema": "orebridge.engine-lock/v1",
+  "as_of": "2026-10-31",
+  "sources": [
+    {
+      "id": "CAOS_ChancaDEM",
+      "commit": "f767a1434cbfcf1599374787faf5ef986a802d5b",
+      "version": "0.11.000",
+      "asset_id": "CR1",
+      "file": "data/derived/G01/trace.json",
+      "sha256": "63418c158cdfc7d8ebd32ffcb751d3fb8e5d12c1a4d5629f4a31e3ec021cebc2",
+      "bytes": 4049,
+      "schema": "chancadem.trace/v1",
+      "url": "https://raw.githubusercontent.com/fsantibanezleal/CAOS_ChancaDEM/f767a1434cbfcf1599374787faf5ef986a802d5b/data/derived/G01/trace.json",
+      "source_url": "https://github.com/fsantibanezleal/CAOS_ChancaDEM/blob/f767a1434cbfcf1599374787faf5ef986a802d5b/data/derived/G01/trace.json",
+      "license": "MIT",
+      "provenance": "upstream synthetic or analytic reference case; not the current plant",
+      "metrics": [
+        {
+          "path": "summary.p80_mm",
+          "label": "Product P80",
+          "unit": "mm"
+        },
+        {
+          "path": "summary.power_kw",
+          "label": "Model power",
+          "unit": "kW"
+        }
+      ]
+    },
+    {
+      "id": "CAOS_OreFlow",
+      "commit": "f5cc0ed6c0545f28df6ff1a110fc79285989bc5d",
+      "version": "0.10.007",
+      "asset_id": "FL1",
+      "file": "data/derived/cases/copper_porphyry_soft.json",
+      "sha256": "30276390310ac5b75bc505a8a7d47a936bbc16ee4389679e97af12673f958f4e",
+      "bytes": 611886,
+      "schema": "oreflow.case/v2",
+      "url": "https://raw.githubusercontent.com/fsantibanezleal/CAOS_OreFlow/f5cc0ed6c0545f28df6ff1a110fc79285989bc5d/data/derived/cases/copper_porphyry_soft.json",
+      "source_url": "https://github.com/fsantibanezleal/CAOS_OreFlow/blob/f5cc0ed6c0545f28df6ff1a110fc79285989bc5d/data/derived/cases/copper_porphyry_soft.json",
+      "license": "MIT",
+      "provenance": "upstream synthetic or analytic reference case; not the current plant",
+      "metrics": [
+        {
+          "path": "variants.0.trace.metrics.recovery_pct",
+          "label": "Copper recovery",
+          "unit": "%"
+        },
+        {
+          "path": "variants.0.trace.metrics.mill_power_kw",
+          "label": "Mill power",
+          "unit": "kW"
+        },
+        {
+          "path": "variants.0.trace.metrics.throughput_tph",
+          "label": "Ore throughput",
+          "unit": "t/h"
+        },
+        {
+          "path": "variants.0.trace.metrics.concentrate_tph",
+          "label": "Concentrate flow",
+          "unit": "t/h"
+        }
+      ]
+    },
+    {
+      "id": "CAOS_PitForge",
+      "commit": "96b0dc427bdb4dedeb1e4aabcb6bec76f0e839a0",
+      "version": "0.14.000",
+      "asset_id": "PIT",
+      "file": "data/derived/CTRL/trace.json",
+      "sha256": "91f00e2921114535ff080adf0b05c40fb49fe44f288ff774badd5a02dfd8b9c5",
+      "bytes": 2282,
+      "schema": "pitforge.trace/v1",
+      "url": "https://raw.githubusercontent.com/fsantibanezleal/CAOS_PitForge/96b0dc427bdb4dedeb1e4aabcb6bec76f0e839a0/data/derived/CTRL/trace.json",
+      "source_url": "https://github.com/fsantibanezleal/CAOS_PitForge/blob/96b0dc427bdb4dedeb1e4aabcb6bec76f0e839a0/data/derived/CTRL/trace.json",
+      "license": "MIT",
+      "provenance": "upstream synthetic or analytic reference case; not the current plant",
+      "metrics": [
+        {
+          "path": "ultimate.nBlocks",
+          "label": "Oracle pit blocks",
+          "unit": "count"
+        },
+        {
+          "path": "ultimate.stripRatio",
+          "label": "Stripping ratio",
+          "unit": "ratio"
+        }
+      ]
+    },
+    {
+      "id": "CAOS_CutoffGrade",
+      "commit": "e762e1dcfbeecfda0355603ef9c320c036768fd9",
+      "version": "0.09.001",
+      "asset_id": "PIT",
+      "file": "data/derived/C-UNIFORM/trace.json",
+      "sha256": "c97021dfe33ba334fb9a0956e2eb000175f4c1b91e289d3595f3f5be5cb8ddcf",
+      "bytes": 5817,
+      "schema": "cutoffgrade.trace/v1",
+      "url": "https://raw.githubusercontent.com/fsantibanezleal/CAOS_CutoffGrade/e762e1dcfbeecfda0355603ef9c320c036768fd9/data/derived/C-UNIFORM/trace.json",
+      "source_url": "https://github.com/fsantibanezleal/CAOS_CutoffGrade/blob/e762e1dcfbeecfda0355603ef9c320c036768fd9/data/derived/C-UNIFORM/trace.json",
+      "license": "MIT",
+      "provenance": "upstream synthetic or analytic reference case; not the current plant",
+      "metrics": [
+        {
+          "path": "break_even",
+          "label": "Break-even copper grade",
+          "unit": "fraction"
+        }
+      ]
+    },
+    {
+      "id": "CAOS_FragmentIQ",
+      "commit": "26b576008727d3630c4815b8ec811776a06a124b",
+      "version": "0.10.001",
+      "asset_id": "ROM",
+      "file": "data/derived/C-KNOWN/trace.json",
+      "sha256": "97db51365c2d28f6e46e06febe5399b5f617c6c72646bcb54991f6238d830981",
+      "bytes": 2620,
+      "schema": "fragmentiq.trace/v1",
+      "url": "https://raw.githubusercontent.com/fsantibanezleal/CAOS_FragmentIQ/26b576008727d3630c4815b8ec811776a06a124b/data/derived/C-KNOWN/trace.json",
+      "source_url": "https://github.com/fsantibanezleal/CAOS_FragmentIQ/blob/26b576008727d3630c4815b8ec811776a06a124b/data/derived/C-KNOWN/trace.json",
+      "license": "MIT",
+      "provenance": "upstream synthetic or analytic reference case; not the current plant",
+      "metrics": [
+        {
+          "path": "baseline.p80",
+          "label": "Image-derived P80",
+          "unit": "mm"
+        },
+        {
+          "path": "truth.p80",
+          "label": "Synthetic truth P80",
+          "unit": "mm"
+        }
+      ]
+    },
+    {
+      "id": "CAOS_FrothSeg",
+      "commit": "b5af2cbe27e1cb165db28c6d77d2fd05288f28b9",
+      "version": "0.06.006",
+      "asset_id": "FL1",
+      "file": "data/derived/manifests/poly-normal.json",
+      "sha256": "19ee22b3ef7152008579e114aba1338540fb61c3731b16f8dc51f832ddee8444",
+      "bytes": 2294,
+      "schema": "frothseg.manifest/v1",
+      "url": "https://raw.githubusercontent.com/fsantibanezleal/CAOS_FrothSeg/b5af2cbe27e1cb165db28c6d77d2fd05288f28b9/data/derived/manifests/poly-normal.json",
+      "source_url": "https://github.com/fsantibanezleal/CAOS_FrothSeg/blob/b5af2cbe27e1cb165db28c6d77d2fd05288f28b9/data/derived/manifests/poly-normal.json",
+      "license": "MIT",
+      "provenance": "upstream synthetic or analytic reference case; not the current plant",
+      "metrics": [
+        {
+          "path": "bsd.d32",
+          "label": "Bubble D32",
+          "unit": "px"
+        },
+        {
+          "path": "bsd.count",
+          "label": "Bubble count",
+          "unit": "count"
+        }
+      ]
+    },
+    {
+      "id": "CAOS_TailWatch",
+      "commit": "f7e03bfb503ff63997fb81afcad1b3f5c774360f",
+      "version": "0.14.001",
+      "asset_id": "MON",
+      "file": "data/derived/stable/trace.json",
+      "sha256": "5421d658bd22cc37550d6bcdfe9f4393570e87b455f985ed739888aefceebf46",
+      "bytes": 15062,
+      "schema": "tailwatch.trace/v1",
+      "url": "https://raw.githubusercontent.com/fsantibanezleal/CAOS_TailWatch/f7e03bfb503ff63997fb81afcad1b3f5c774360f/data/derived/stable/trace.json",
+      "source_url": "https://github.com/fsantibanezleal/CAOS_TailWatch/blob/f7e03bfb503ff63997fb81afcad1b3f5c774360f/data/derived/stable/trace.json",
+      "license": "MIT",
+      "provenance": "upstream synthetic or analytic reference case; not the current plant",
+      "metrics": [
+        {
+          "path": "forecast.falseAlarmRate",
+          "label": "Reference false alarm rate",
+          "unit": "fraction"
+        }
+      ]
+    },
+    {
+      "id": "CAOS_RotorVitals",
+      "commit": "771fd809716120c1fb9169070b9534e5c88dc173",
+      "version": "0.48.001",
+      "asset_id": "MOT",
+      "file": "data/derived/synth-healthy/trace.json",
+      "sha256": "318670d4522c7a671e87c56f4aa086a5fa8f47f4eed1c1c2e28c8a6d0a88b816",
+      "bytes": 336,
+      "schema": "rotorvitals.trace/v1",
+      "url": "https://raw.githubusercontent.com/fsantibanezleal/CAOS_RotorVitals/771fd809716120c1fb9169070b9534e5c88dc173/data/derived/synth-healthy/trace.json",
+      "source_url": "https://github.com/fsantibanezleal/CAOS_RotorVitals/blob/771fd809716120c1fb9169070b9534e5c88dc173/data/derived/synth-healthy/trace.json",
+      "license": "MIT",
+      "provenance": "upstream synthetic or analytic reference case; not the current plant",
+      "metrics": [
+        {
+          "path": "payload.fr_hz",
+          "label": "Shaft frequency",
+          "unit": "Hz"
+        }
+      ]
+    },
+    {
+      "id": "CAOS_StockTwin",
+      "commit": "de4fb24ec5f11ca7bff736994d8fede2d2995322",
+      "version": "0.07.000",
+      "asset_id": "ROM",
+      "file": "data/derived/concurrent/manifest.json",
+      "sha256": "39a362092f77fe163956dc7a3cd79a9b3d29530b664f443757fa27803a1be995",
+      "bytes": 4134,
+      "schema": null,
+      "url": "https://raw.githubusercontent.com/fsantibanezleal/CAOS_StockTwin/de4fb24ec5f11ca7bff736994d8fede2d2995322/data/derived/concurrent/manifest.json",
+      "source_url": "https://github.com/fsantibanezleal/CAOS_StockTwin/blob/de4fb24ec5f11ca7bff736994d8fede2d2995322/data/derived/concurrent/manifest.json",
+      "license": "MIT",
+      "provenance": "upstream synthetic or analytic reference case; not the current plant",
+      "metrics": [
+        {
+          "path": "build.volume_m3",
+          "label": "Built stockpile volume",
+          "unit": "m3"
+        },
+        {
+          "path": "build.loads_placed",
+          "label": "Accepted truck loads",
+          "unit": "count"
+        }
+      ]
+    },
+    {
+      "id": "CAOS_DispatchLab",
+      "commit": "5c794c91dcc4a933cdc4145576d9a70b991caeda",
+      "version": "0.23.004",
+      "asset_id": "TRK",
+      "file": "data/derived/C01/trace.json",
+      "sha256": "8dd9286545326ca5e222f22da4ff338a5c8d3d3e7e2f34d53e2b00cc76170e8b",
+      "bytes": 1819,
+      "schema": "dispatchlab.trace/v1",
+      "url": "https://raw.githubusercontent.com/fsantibanezleal/CAOS_DispatchLab/5c794c91dcc4a933cdc4145576d9a70b991caeda/data/derived/C01/trace.json",
+      "source_url": "https://github.com/fsantibanezleal/CAOS_DispatchLab/blob/5c794c91dcc4a933cdc4145576d9a70b991caeda/data/derived/C01/trace.json",
+      "license": "MIT",
+      "provenance": "upstream synthetic or analytic reference case; not the current plant",
+      "metrics": [
+        {
+          "path": "policies.0.medTonnes",
+          "label": "Reference shift tonnes",
+          "unit": "t"
+        },
+        {
+          "path": "policies.0.medWaitH",
+          "label": "Reference waiting hours",
+          "unit": "h"
+        }
+      ]
+    }
+  ],
+  "unavailable": [
+    {
+      "id": "CAOS_CrushDEM",
+      "reason": "No released distributable package or public artifact contract at audit."
+    },
+    {
+      "id": "CAOS_GeoTypes",
+      "reason": "Private/unreleased distribution; not a public dependency."
+    }
+  ]
+}

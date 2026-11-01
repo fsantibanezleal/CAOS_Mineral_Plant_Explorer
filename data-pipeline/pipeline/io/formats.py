@@ -1,5 +1,6 @@
 """Standard-format readers and writers: CSV in, compact JSON out (the committed artifacts). A format a case demands
 is added here (parquet, npz, .vtk, .vtu, .h5, GeoTIFF), never a bespoke ad-hoc one."""
+
 from __future__ import annotations
 
 import csv

@@ -8,6 +8,7 @@ Nothing here knows a product's manifest shape beyond contract 2's two forms: one
 manifest's top level) or several (`artifacts: [{path, ...}]`, one per variant). The documents are served unchanged;
 their shapes are checked by scripts/check_artifacts.py and the web's contract test, never re-declared here.
 """
+
 from __future__ import annotations
 
 import json

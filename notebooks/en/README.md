@@ -1,36 +1,19 @@
-# Notebooks, English
+# Learning connected plant state inference
 
-The index of the English tree. Topics run from simple to complex; inside a topic the reading order is the notebook
-number and the level never goes down. The Spanish counterpart of every notebook is at the same path under
-[`../es/`](../es/README.md). How to run them is in [`../README.md`](../README.md).
+Work through this single topic in order. Every notebook executes the implemented methods on actual OreBridge synthetic
+inputs. The sequence moves from one conservation equation to the limitations of an entire inference experiment.
+The [Spanish tree](../es/README.md) has matching paths and computations with its own Spanish prose, comments and figures.
 
-Levels: 1 fundamentals, 2 the method in practice, 3 comparison with published methods, 4 proposed methods.
+| Topic | Level | Notebook | What the worked lesson teaches |
+|---|---|---|---|
+| 01 Plant state | 1 · Fundamentals | [Reconcile a flotation parcel](01-plant-state/01-reconcile-a-flotation-parcel.ipynb) | Distribute a measured closure correction with WLS and test sensitivity to feed-meter confidence. |
+| 01 Plant state | 2 · Method in practice | [Time, storage and robustness](01-plant-state/02-time-storage-and-robustness.ipynb) | Separate a healthy transport transient and modeled solids accumulation from an injected feed bias, then compare WLS and Huber. |
+| 01 Plant state | 3 · Comparison with published methods | [Causal prediction and robust estimation](01-plant-state/03-causal-prediction-and-robust-estimation.ipynb) | Fit histogram gradient boosting, inspect causal lags and disjoint calibration, and compare it with Huber on identical observations. |
+| 01 Plant state | 4 · Proposed methods | [TASC evidence and refusal](01-plant-state/04-tasc-evidence-and-refusal.ipynb) | Run fusion and quality boundaries, expose ambiguous localization, evaluate timing/engine/topology ablations, and recompute paired uncertainty without concealing negative results. |
 
-Each notebook is a worked lesson on one question: it states the question in its first cell, runs the engine step by step on
-the example's cases, shows what it finds in figures, and answers the question in its Results with numbers it computed
-([`docs/guides/08_notebooks.md`](../../docs/guides/08_notebooks.md)).
+The fitting example uses scikit-learn's actual maintained estimator. GDN is cited as sensor-relationship prior work and is
+not represented as an implemented comparator. The complete matrix is a committed synthetic benchmark; lesson 04 executes
+fresh selected scenarios and recomputes analysis from all of its counts. No lesson claims field accuracy or operator benefit.
 
-## Topics
-
-A topic without a level 3 notebook says why on its row.
-
-| Topic | Needs | Level 3 |
-|---|---|---|
-| [01-getting-started](01-getting-started/) | none, this is the entry topic | [03-a-higher-order-solver](01-getting-started/03-a-higher-order-solver.ipynb) |
-| [02-threshold-and-final-size](02-threshold-and-final-size/) | topic 01-getting-started | No level 3: the research basis names no newer method for the threshold or the final size, and the example's one comparison with a published method, the higher-order solver, is in topic 01 |
-
-## Notebooks
-
-| Notebook | Level | The question it answers |
-|---|---|---|
-| [01-getting-started/01-the-problem-and-the-data.ipynb](01-getting-started/01-the-problem-and-the-data.ipynb) | 1 | how a town of 100000 people runs through an epidemic day by day: the peak, its day and the final toll, and how they move when the first cases or the infectious period change |
-| [01-getting-started/02-the-method-step-by-step.ipynb](01-getting-started/02-the-method-step-by-step.ipynb) | 2 | how wrong the engine's Forward Euler step is, against the exact final size and peak, for which cases it matters, and what extrapolation recovers |
-| [01-getting-started/03-a-higher-order-solver.ipynb](01-getting-started/03-a-higher-order-solver.ipynb) | 3 | how SciPy's RK45 compares with the engine on the same cases, by error against the step and against the cost |
-| [02-threshold-and-final-size/01-the-threshold.ipynb](02-threshold-and-final-size/01-the-threshold.ipynb) | 1 | for which contact and recovery rates an outbreak takes off, how it looks just above the threshold, and what immune share stops it |
-| [02-threshold-and-final-size/02-the-final-size.ipynb](02-threshold-and-final-size/02-the-final-size.ipynb) | 2 | what share an outbreak infects in the end, why it ignores the speed of the course, and where the engine's run does not reach it |
-
-## Proposed methods
-
-None: the example is a teaching model, so it proposes no method of its own and has no level 4 notebook. A product
-lists each method it proposes in its SDD and covers it with a level 4 notebook in each language
-([`docs/guides/08_notebooks.md`](../../docs/guides/08_notebooks.md)).
+For setup and execution, start at [the bilingual entry](../README.md). Source definitions and scope live in
+`docs/design/SDD.md` and `docs/problem-types/02_state-coherence-experiment.md`.

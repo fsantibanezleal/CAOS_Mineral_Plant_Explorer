@@ -1,12 +1,5 @@
-# Guide, the GPU lane (optional)
+# CPU and GPU boundaries
 
-Only for products whose offline engine/sweep/training genuinely needs CUDA (large DEM, big Monte-Carlo, heavy
-model training). Never required for the live/replay path.
+The scientific reproduction runs on CPU with numerical thread counts bounded to one. Its HGB predictor, WLS/Huber projection, finite-volume column and small released-engine reference configurations do not require CUDA. The browser uses WebGL for geometry, with the process diagram and keyboard equipment selector available when WebGL cannot initialize.
 
-1. Pin the CUDA build in `requirements-gpu.txt` (e.g. `cupy-cuda12x`, `torch==…+cu12x`, `numba`, `taichi`).
-2. On a CUDA box: `.venv-pipeline/bin/python -m pip install -r requirements-gpu.txt`.
-3. Document the engine in `docs/frameworks/<tool>/`.
-
-The committed artifacts are produced offline regardless of lane, so a GPU-only product still deploys as a static
-replay (the browser never needs the GPU). The template's EXAMPLE has no GPU step, `requirements-gpu.txt` is a
-commented placeholder.
+The current 36-asset scene is not a large-facility scaling result. Its overlays report triangles and render duration on the current browser. Pause stops continuous rendering. A larger site should measure geometry, label count, memory, frame duration and source-projection latency on its target device before changing resource budgets. No CUDA deployment or unmeasured industrial performance is claimed.

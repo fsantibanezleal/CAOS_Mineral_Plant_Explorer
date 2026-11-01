@@ -1,0 +1,23 @@
+{
+  "schema": "orebridge.model-registry/v1",
+  "models": [
+    {
+      "id": "forecast",
+      "family": "histogram gradient boosting",
+      "trained": true,
+      "manifest": "data/derived/state-model.json",
+      "fit": "pipeline.model.learning.fit_normal",
+      "checkpoint": "forecast-model.joblib",
+      "evaluation": "data/derived/benchmark.json"
+    },
+    {
+      "id": "ridge",
+      "family": "regularized linear causal autoregression",
+      "trained": true,
+      "manifest": "data/derived/state-model-ridge.json",
+      "fit": "pipeline.model.learning.fit_ridge",
+      "checkpoint": "ridge-model.joblib",
+      "evaluation": "data/derived/learned-comparison.json"
+    }
+  ]
+}

@@ -1,10 +1,7 @@
-# Frameworks
+# Implemented frameworks and engine consumers
 
-One card per research-chosen engine/library, **the deep research, made binding**. Every engine the pipeline uses
-gets a card here AND an exact pin in the matching `requirements-*.txt`. No hand-rolled toy substitute for a SOTA
-engine the research prescribed.
+[Engine consumers](frameworks/01_engine-consumers.md) records the public integration strategy: four actual released Python APIs and ten exact public artifacts. It separates source case identity from the authored plant. Private/unpublished capabilities remain unavailable.
 
-- [00, card TEMPLATE](frameworks/00_TEMPLATE.md), copy per engine to `frameworks/<NN>_<tool>/<tool>.md`
+Numerical estimation uses NumPy/SciPy and the maintained scikit-learn HistGradientBoostingRegressor. WLS and Huber have independent constrained-objective checks; the causal predictor is actually trained on disjoint normal sequences. Three.js supplies spatial geometry, glTF import/export and equipment picking. asyncua supplies real read-only OPC reads. FastAPI is an optional local source boundary; the public client uses compact static evidence.
 
-*(The template's EXAMPLE engine is numpy-only SIR, so it ships no SOTA card. A real product adds e.g.
-`01_yade/`, `02_ortools/`, `03_mintpy/`, `04_torch/`.)*
+The [SDD technology table](design/SDD.md) lists every direct exact version and alternatives. The [method reference](../frontend/src/content/methodology.json) describes real constants and explicit exclusions. No renamed mock engine stands in for an unavailable model, and no citation is treated as an executed comparison.

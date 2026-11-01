@@ -1,0 +1,516 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "learned-comparison.schema.json",
+  "title": "LearnedComparison",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "provenance",
+    "protocol",
+    "aggregate",
+    "rows",
+    "elapsed_s",
+    "validation_design",
+    "channels",
+    "examples",
+    "paired_recall"
+  ],
+  "properties": {
+    "schema": {
+      "const": "orebridge.learned-comparison/v1"
+    },
+    "provenance": {
+      "type": "string",
+      "minLength": 1
+    },
+    "protocol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "test_seeds",
+        "severity",
+        "train_seeds",
+        "forecast_calibration_seeds",
+        "state_calibration_seeds",
+        "point_adjustment",
+        "channels",
+        "steps",
+        "noise_scale",
+        "numerical_quality_separation",
+        "threshold_quantile"
+      ],
+      "properties": {
+        "test_seeds": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "integer"
+          }
+        },
+        "severity": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "number"
+          }
+        },
+        "train_seeds": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "integer"
+          }
+        },
+        "forecast_calibration_seeds": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "integer"
+          }
+        },
+        "state_calibration_seeds": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "integer"
+          }
+        },
+        "point_adjustment": {
+          "const": false
+        },
+        "channels": {
+          "const": 16
+        },
+        "steps": {
+          "const": 160
+        },
+        "noise_scale": {
+          "const": 1.0
+        },
+        "numerical_quality_separation": {
+          "const": true
+        },
+        "threshold_quantile": {
+          "type": "number"
+        }
+      }
+    },
+    "aggregate": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "method",
+          "tp",
+          "fp",
+          "fn",
+          "tn",
+          "precision",
+          "recall",
+          "false_positive_rate",
+          "cases",
+          "scored_points",
+          "unscorable_points"
+        ],
+        "properties": {
+          "method": {
+            "type": "string",
+            "minLength": 1
+          },
+          "tp": {
+            "type": "integer"
+          },
+          "fp": {
+            "type": "integer"
+          },
+          "fn": {
+            "type": "integer"
+          },
+          "tn": {
+            "type": "integer"
+          },
+          "precision": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "recall": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "false_positive_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cases": {
+            "type": "integer"
+          },
+          "scored_points": {
+            "type": "integer"
+          },
+          "unscorable_points": {
+            "type": "integer"
+          }
+        }
+      },
+      "maxItems": 2
+    },
+    "rows": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "method",
+          "family",
+          "seed",
+          "severity",
+          "numeric",
+          "source_quality",
+          "event",
+          "detection_delay_s",
+          "scored_points",
+          "unscorable_points",
+          "timing_alignment_s"
+        ],
+        "properties": {
+          "method": {
+            "type": "string",
+            "minLength": 1
+          },
+          "family": {
+            "type": "string",
+            "minLength": 1
+          },
+          "seed": {
+            "type": "integer"
+          },
+          "severity": {
+            "type": "number"
+          },
+          "numeric": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "tp",
+              "fp",
+              "fn",
+              "tn",
+              "precision",
+              "recall",
+              "false_positive_rate"
+            ],
+            "properties": {
+              "tp": {
+                "type": "integer"
+              },
+              "fp": {
+                "type": "integer"
+              },
+              "fn": {
+                "type": "integer"
+              },
+              "tn": {
+                "type": "integer"
+              },
+              "precision": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "recall": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "false_positive_rate": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          },
+          "source_quality": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "tp",
+              "fp",
+              "fn",
+              "tn",
+              "precision",
+              "recall",
+              "false_positive_rate"
+            ],
+            "properties": {
+              "tp": {
+                "type": "integer"
+              },
+              "fp": {
+                "type": "integer"
+              },
+              "fn": {
+                "type": "integer"
+              },
+              "tn": {
+                "type": "integer"
+              },
+              "precision": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "recall": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "false_positive_rate": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          },
+          "event": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "tp",
+              "fp",
+              "fn",
+              "tn",
+              "precision",
+              "recall",
+              "false_positive_rate"
+            ],
+            "properties": {
+              "tp": {
+                "type": "integer"
+              },
+              "fp": {
+                "type": "integer"
+              },
+              "fn": {
+                "type": "integer"
+              },
+              "tn": {
+                "type": "integer"
+              },
+              "precision": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "recall": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "false_positive_rate": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          },
+          "detection_delay_s": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "scored_points": {
+            "type": "integer"
+          },
+          "unscorable_points": {
+            "type": "integer"
+          },
+          "timing_alignment_s": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "elapsed_s": {
+      "type": "number"
+    },
+    "validation_design": {
+      "type": "string",
+      "minLength": 50
+    },
+    "channels": {
+      "type": "array",
+      "minItems": 16,
+      "maxItems": 16,
+      "items": {
+        "type": "object"
+      }
+    },
+    "examples": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "family",
+          "seed",
+          "severity",
+          "time_s",
+          "scores"
+        ],
+        "properties": {
+          "family": {
+            "type": "string"
+          },
+          "seed": {
+            "type": "integer"
+          },
+          "severity": {
+            "type": "number"
+          },
+          "time_s": {
+            "type": "array",
+            "minItems": 160,
+            "maxItems": 160,
+            "items": {
+              "type": "number"
+            }
+          },
+          "scores": {
+            "type": "array",
+            "minItems": 160,
+            "maxItems": 160,
+            "items": {
+              "type": "array",
+              "minItems": 16,
+              "maxItems": 16,
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "paired_recall": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method",
+        "reference",
+        "seed_blocks",
+        "resamples",
+        "seed",
+        "difference",
+        "ci95"
+      ],
+      "properties": {
+        "method": {
+          "const": "ridge"
+        },
+        "reference": {
+          "const": "forecast"
+        },
+        "seed_blocks": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "resamples": {
+          "const": 5000
+        },
+        "seed": {
+          "const": 414
+        },
+        "difference": {
+          "type": "number"
+        },
+        "ci95": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "number"
+          }
+        }
+      }
+    }
+  }
+}

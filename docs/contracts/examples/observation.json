@@ -1,0 +1,12 @@
+{
+  "tag_id": "ROM.feed",
+  "asset_id": "ROM",
+  "value": 720.0,
+  "unit": "t/h",
+  "source_time": "2026-10-31T12:00:00Z",
+  "server_time": "2026-10-31T12:00:01Z",
+  "freshness_basis": "server",
+  "receipt_time": "2026-10-31T12:00:01Z",
+  "sequence": 1,
+  "quality": "good"
+}

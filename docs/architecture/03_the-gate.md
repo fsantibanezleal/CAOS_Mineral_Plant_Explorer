@@ -1,19 +1,7 @@
-# The lane gate
+# Independent forms of verification
 
-`data-pipeline/pipeline/core/gate.py :: classify_lane()` decides, per case and by measurement, whether the case is
-light enough to be re-run live in the browser:
+Numerical checks compare WLS with an independent constrained solution, Huber objectives with independent optimization, reaction-controlled conversion with its closed form, SX copper closure and EW with Faraday charge accounting. The settling grid study distinguishes exact conservation from numerical resolution:640 cells has less than1% default-input outlet discrepancy from 2000;40 cells was too diffusive.
 
-- the engine is light (pure Python, with its wheels within a small allowed set: a proxy for an engine small enough to
-  port or to run client side), and
-- one run finishes within `RUN_MS_GATE` (1500 ms), and
-- the committed trace is within `TRACE_BYTES_GATE` (256 KiB).
+Source checks independently execute all four released packages and verify all ten immutable public artifacts. Contract checks validate generated schemas, dimensions, hashes and provider replacement. Real local OPC UA tests exercise authentication, origin denial, missing nodes, unit and timestamp policies. The browser uses an additional mocked transport test to exercise its source-connection UI; that is separate from the real OPC round-trip.
 
-Otherwise the case is `precompute`: the pipeline bakes it and the web only replays it. Either way a committed
-artifact exists, so the site shows every case on first load.
-
-The verdict and the measured numbers are written into the manifest (`gate`), and `scripts/check_artifacts.py`
-fails when a manifest's `lane` disagrees with its gate, so a heavy case cannot be labelled live. The Benchmark page
-measures the live engine again in the reader's browser against the same run budget.
-
-This is the pipeline's gate. The web has its own, measured on the built site: `npm run gate` (`caos-shell-gate`,
-see [07, deploy](07_deploy.md)).
+The full shared-shell browser matrix covers routes, tabs, cases, viewports, EN/ES, themes, Focus, idle work and drawn-stage use. Product interactions add keyboard selection, numerical route controls, GLB exchange/refusal and source ordering. The official notebook runner executes every lesson in a fresh kernel, then checks that committed outputs match a new execution. Local checks, exact-commit CI, deployment and site acceptance are distinct outcomes.

@@ -6,6 +6,7 @@ order (first match wins) and their reasons are the catalog's ``## Missing-data s
 test_readiness.py parses that table and holds every reason here to it. Stdlib only, so scripts/check_readiness.py runs
 in CI without installing the pipeline's dependencies.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -17,34 +18,53 @@ from ..io.contract import validate_rows
 from ..io.formats import read_csv_rows, write_json
 from ..model.baseline import is_valid_bundle
 
-SCHEMA = "example.readiness/v1"
+SCHEMA = "orebridge.readiness/v1"
 CATALOG_REL = "docs/contracts/catalog.md"
 INDEX_REL = "manifests/index.json"
 PARAMS_REL = "data/examples/params.csv"
-MARKER_REL = "training/surrogate-model"
+MARKER_REL = "training/state-model"
 STATUSES = ("real", "active")  # the catalog's status vocabulary (its Contracts section), exactly, lower case
-MODEL_SLOT = "surrogate-model"
+MODEL_SLOT = "state-model"
 
 # the catalog's reasons as (en, es) templates, in the order of its Missing-data table
-T_PROVIDER = ("Served by its provider ({provider}); the real producer is not built yet.",
-              "Lo sirve su proveedor ({provider}); el productor real aún no está construido.")
+T_PROVIDER = (
+    "Served by its provider ({provider}); the real producer is not built yet.",
+    "Lo sirve su proveedor ({provider}); el productor real aún no está construido.",
+)
 T_NOT_BAKED = ("The pipeline has not baked this build.", "El pipeline no ha generado esta versión.")
 T_MANIFESTS = ("{n} of {total} manifests are absent.", "Faltan {n} de {total} manifiestos.")
 T_ARTIFACTS = ("{n} of {total} artifacts are absent.", "Faltan {n} de {total} artefactos.")
-T_STALE = ("Baked by {engine_version}; the product is {version}.",
-           "Generado por {engine_version}; el producto es {version}.")
-T_NO_PARAMS = ("No source table; the bake uses the registry's cases.",
-               "No hay tabla de origen; la generación usa los casos del registro.")
-T_REJECTED = ("{n} of {total} rows rejected by contract 1.", "{n} de {total} filas rechazadas por el contrato 1.")
-T_NO_BUNDLE = ("No released surrogate; the analytic baseline answers.",
-               "No hay un sustituto publicado; responde la línea base analítica.")
-T_BASELINE_BAKE = ("The bake's metrics come from the analytic baseline; bake again to use the released surrogate.",
-                   "Las métricas de la generación vienen de la línea base analítica; genere de nuevo para usar el "
-                   "sustituto publicado.")
-T_TRAINING = ("The released surrogate answers; a newer one is training.",
-              "Responde el sustituto publicado; uno más nuevo está en entrenamiento.")
-T_API = ("The API lane is dormant; the site reads the committed documents.",
-         "La API está inactiva; el sitio lee los documentos versionados.")
+T_STALE = (
+    "Baked by {engine_version}; the product is {version}.",
+    "Generado por {engine_version}; el producto es {version}.",
+)
+T_NO_PARAMS = (
+    "No source table; the bake uses the registry's cases.",
+    "No hay tabla de origen; la generación usa los casos del registro.",
+)
+T_REJECTED = (
+    "{n} of {total} rows rejected by contract 1.",
+    "{n} de {total} filas rechazadas por el contrato 1.",
+)
+T_NO_BUNDLE = (
+    "No released surrogate; the analytic baseline answers.",
+    "No hay un sustituto publicado; responde la línea base analítica.",
+)
+T_BASELINE_BAKE = (
+    "The bake's metrics come from the analytic baseline; bake again to use the released surrogate.",
+    (
+        "Las métricas de la generación vienen de la línea base analítica; genere de nuevo para usar el "
+        "sustituto publicado."
+    ),
+)
+T_TRAINING = (
+    "The released surrogate answers; a newer one is training.",
+    "Responde el sustituto publicado; uno más nuevo está en entrenamiento.",
+)
+T_API = (
+    "No site source is included in the public build; configure the read-only gateway locally.",
+    "La publicación no incluye una fuente de terreno; configure el gateway local de solo lectura.",
+)
 
 
 def parse_catalog(text: str) -> list[dict[str, str]]:
@@ -52,7 +72,7 @@ def parse_catalog(text: str) -> list[dict[str, str]]:
     lines = text.replace("\r\n", "\n").split("\n")
     start = next(i for i, ln in enumerate(lines) if ln.strip() == "## Contracts")
     table: list[list[str]] = []
-    for ln in lines[start + 1:]:
+    for ln in lines[start + 1 :]:
         if ln.startswith("## "):
             break
         if ln.startswith("|"):
@@ -89,6 +109,8 @@ class _Facts:
     """What the repository says, read once: the index, the absent manifests and artifacts, the rejected rows."""
 
     def __init__(self, repo_root: Path, derived_root: Path, models_dir: Path, version: str) -> None:
+        self.repo_root = repo_root
+        self.derived_root = derived_root
         self.version = version
         index = _json(derived_root / INDEX_REL)
         self.index: dict | None = index if isinstance(index, dict) else None
@@ -124,14 +146,26 @@ class _Facts:
             self.params_total = len(rows)
             self.params_rejected_rows = len(report.rejected)
             self.params_rejected = sorted({r["case_id"] for r in report.rejected})
-        self.bundle_ok = is_valid_bundle(_json(models_dir / "surrogate.json"))
+        self.bundle_ok = is_valid_bundle(_json(derived_root / "state-model.json"))
         self.marker = (models_dir / MARKER_REL).is_file()
 
 
-def _entry(row: dict[str, str], state: str, provenance: str | None, reason: dict | None,
-           missing: list[str] | None = None) -> dict:
-    return {"id": row["id"], "version": row["version"], "status": row["status"], "provenance": provenance,
-            "state": state, "reason": reason, "missing": sorted(missing or [])}
+def _entry(
+    row: dict[str, str],
+    state: str,
+    provenance: str | None,
+    reason: dict | None,
+    missing: list[str] | None = None,
+) -> dict:
+    return {
+        "id": row["id"],
+        "version": row["version"],
+        "status": row["status"],
+        "provenance": provenance,
+        "state": state,
+        "reason": reason,
+        "missing": sorted(missing or []),
+    }
 
 
 def _rule(row: dict[str, str], f: _Facts) -> dict:
@@ -139,39 +173,89 @@ def _rule(row: dict[str, str], f: _Facts) -> dict:
     rid = row["id"]
     provider = row.get("provider", "").replace("`", "")
     if row["status"] not in STATUSES:
-        raise ValueError(f"catalog row {rid!r}: status {row['status']!r} is not one of "
-                         f"{' or '.join(repr(s) for s in STATUSES)} (lower case, no other value)")
+        raise ValueError(
+            f"catalog row {rid!r}: status {row['status']!r} is not one of "
+            f"{' or '.join(repr(s) for s in STATUSES)} (lower case, no other value)"
+        )
     if row["status"] == "active":
-        return _entry(row, "provider", provider.split(":", 1)[0] or "stub", _fill(T_PROVIDER, provider=provider))
+        return _entry(
+            row, "provider", provider.split(":", 1)[0] or "stub", _fill(T_PROVIDER, provider=provider)
+        )
     derived = rid in ("case-index", "case-manifest", "trace")
     if derived and f.index is None:
         return _entry(row, "missing", None, _fill(T_NOT_BAKED))
     if rid == "case-manifest" and f.manifests_missing:
-        return _entry(row, "partial", "real", _fill(T_MANIFESTS, n=len(f.manifests_missing), total=f.manifests_total),
-                      f.manifests_missing)
+        return _entry(
+            row,
+            "partial",
+            "real",
+            _fill(T_MANIFESTS, n=len(f.manifests_missing), total=f.manifests_total),
+            f.manifests_missing,
+        )
     if rid == "trace" and f.artifacts_missing:
-        return _entry(row, "partial", "real", _fill(T_ARTIFACTS, n=len(f.artifacts_missing), total=f.artifacts_total),
-                      f.artifacts_missing)
+        return _entry(
+            row,
+            "partial",
+            "real",
+            _fill(T_ARTIFACTS, n=len(f.artifacts_missing), total=f.artifacts_total),
+            f.artifacts_missing,
+        )
     if derived and f.engine_version != f.version:
-        return _entry(row, "stale", "real", _fill(T_STALE, engine_version=f.engine_version, version=f.version))
+        return _entry(
+            row, "stale", "real", _fill(T_STALE, engine_version=f.engine_version, version=f.version)
+        )
     if rid == "params-record" and not f.params_present:
         return _entry(row, "missing", None, _fill(T_NO_PARAMS))
     if rid == "params-record" and f.params_rejected_rows:
-        return _entry(row, "partial", "real", _fill(T_REJECTED, n=f.params_rejected_rows, total=f.params_total),
-                      f.params_rejected)
-    if rid == "surrogate-model" and not f.bundle_ok:
+        return _entry(
+            row,
+            "partial",
+            "real",
+            _fill(T_REJECTED, n=f.params_rejected_rows, total=f.params_total),
+            f.params_rejected,
+        )
+    if rid == MODEL_SLOT and not f.bundle_ok:
         return _entry(row, "training", "baseline", _fill(T_NO_BUNDLE))
     if rid == MODEL_SLOT and f.baseline_bake:
         return _entry(row, "training", "baseline", _fill(T_BASELINE_BAKE))
-    if rid == "surrogate-model" and f.marker:
+    if rid == MODEL_SLOT and f.marker:
         return _entry(row, "training", "real", _fill(T_TRAINING))
     if rid == "api":
         return _entry(row, "missing", None, _fill(T_API))
+    if rid not in ("readiness", "case-index", "case-manifest", "trace"):
+        missing = []
+        for declared in row.get("documents", "").split():
+            if any(c in declared for c in "*!#") or declared == "-":
+                continue
+            path = (
+                f.derived_root / declared.removeprefix("data/derived/")
+                if declared.startswith("data/derived/")
+                else f.repo_root / declared
+            )
+            if not path.is_file():
+                missing.append(declared.removeprefix("data/derived/"))
+        if missing:
+            return _entry(
+                row,
+                "missing",
+                None,
+                {
+                    "en": "Declared scientific artifact is unavailable.",
+                    "es": "El artefacto científico declarado no está disponible.",
+                },
+                missing,
+            )
     return _entry(row, "available", "real", None)
 
 
-def compute(*, repo_root: str | Path, derived_root: str | Path, models_dir: str | Path,
-            catalog_path: str | Path | None = None, version: str | None = None) -> dict:
+def compute(
+    *,
+    repo_root: str | Path,
+    derived_root: str | Path,
+    models_dir: str | Path,
+    catalog_path: str | Path | None = None,
+    version: str | None = None,
+) -> dict:
     """The readiness document of the repository at ``repo_root``, whose baked documents are under ``derived_root``
     and whose released model is in ``models_dir``. ``catalog_path`` and ``version`` default to the repository's."""
     root = Path(repo_root)
@@ -180,8 +264,12 @@ def compute(*, repo_root: str | Path, derived_root: str | Path, models_dir: str 
     ver = version if version is not None else (root / "VERSION").read_text(encoding="utf-8").strip()
     facts = _Facts(root, Path(derived_root), Path(models_dir), ver)
     rows = [r for r in parse_catalog(raw.decode("utf-8")) if r["id"] != "readiness"]
-    return {"schema": SCHEMA, "product_version": ver, "catalog_sha256": hashlib.sha256(raw).hexdigest(),
-            "contracts": [_rule(r, facts) for r in rows]}
+    return {
+        "schema": SCHEMA,
+        "product_version": ver,
+        "catalog_sha256": hashlib.sha256(raw).hexdigest(),
+        "contracts": [_rule(r, facts) for r in rows],
+    }
 
 
 def write(derived_root: str | Path, doc: dict) -> int:

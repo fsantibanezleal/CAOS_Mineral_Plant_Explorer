@@ -1,19 +1,9 @@
-# The staged precompute pipeline
+# Offline scientific pipeline
 
-`data-pipeline/pipeline/pipeline.py` orchestrates the **named stages** (frozen names/signatures, rework bodies):
+The source stage executes minehaulsim0.12.1, bedblend0.7.3, milldem0.3.1 and oreblocks0.6.6, then verifies ten public source artifacts. Exact configuration and result digests remain attached. Unsupported private or unpublished engines remain unavailable rather than being replaced with invented output.
 
-| Stage | Module | Does |
-|---|---|---|
-| preprocess | `stages/preprocess.py` | read raw → apply **CONTRACT 1** (validate + outlier policy) |
-| feature_extraction | `stages/feature_extraction.py` | validated params → feature rows |
-| train | `stages/train.py` | fit the model → `models/` (OFFLINE; skippable; EXAMPLE = numpy lstsq surrogate) |
-| infer | `stages/infer.py` | run the engine → trace (EXAMPLE = SIR) |
-| evaluate | `stages/evaluate.py` | held-out, leakage-safe metrics (R²/RMSE) |
-| export | `stages/export.py` | **CONTRACT 2**, compact artifact + manifest |
+Preprocessing constructs graph, tag definitions and authored transport cases. Training fits one HGB estimator per next-step channel from four prior multichannel lags. Disjoint normal sequences determine feature scales and error thresholds. The external trusted checkpoint is recorded by digest; inference without it refuses to pretend a model is trained.
 
-Run: `python data-pipeline/run.py [all|<case_id>] [--seed N]` (or `scripts/precompute.{sh,ps1}`). It writes
-`data/derived/<case>/trace.json` + `data/derived/manifests/<case>.json` + `index.json`.
+Evaluation compares engineering thresholds, WLS, aligned Huber, causal prediction and four TASC variants. The proposed method uses a fixed dry-solids ratio prior anchored to one OreFlow reference, not runtime fusion of every visual engine. Invalid data are masked before carry-forward feature preparation. Complete constrained frames are refused when a required source is invalid.
 
-To instantiate a real product: keep the stage names, replace the bodies, `infer`/`train` call the
-research-chosen SOTA engine (pinned in `data-pipeline/requirements.txt`, documented in
-[../frameworks/](../frameworks/)). No hand-rolled toy substitute for an engine the research prescribed.
+Export writes 32 compact JSON files with index, manifest and schema validation. Raw downloads, checkpoint, temporary notebook copies and browser screenshots stay external. Full source execution/training/benchmark is a local reproduction activity; CI validates the committed compact scientific object without training it.

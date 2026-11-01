@@ -1,22 +1,9 @@
-# The live lane
+# Runtime lanes
 
-The live lane re-runs a case in the reader's browser with the reader's values: the parameters in the rail and the
-chosen variant. It is a TypeScript port of the pipeline's engine, `frontend/src/engine/sir.ts`, written step for
-step (the same scheme, the same step, the same order of operations, the same clamps).
+The default public view is paused authored synthetic replay. Play animates source time and flow particles; pause removes continuous animation. Rendering is demand-driven after state, camera, geometry, resize or theme changes. Published engine references are a separate information layer with original case identities.
 
-## What holds it to the pipeline
+The browser recomputes a bounded connected leach/SX/EW route from residence, acid and current controls. Its TypeScript implementation is checked against Python at common inputs. Settling is a replayed640-cell reference, not a live plant-capacity solver. Predictor training, robust batch inference and the full benchmark run offline.
 
-`frontend/src/engine/sir.parity.test.ts` runs the live engine on the parameters of every baked case and compares it
-with the committed trace at the trace's 200 points, to the trace's rounding (0.005 people), summary included (peak,
-peak day, attack rate). A change to either engine that is not made to the other fails the web's tests. The same
-file checks that the engine converges to the final-size relation at first order in the step, which is the scheme's
-claim on the Methodology page.
+An optional local gateway reads only configured OPC UA nodes. Remote transport must be signed/encrypted with a pinned server certificate; browser calls require a bearer token and explicit origins. No control/write route exists. The graph's semantic tag catalog fixes tag/asset/canonical-unit identity. Unit conversion happens before acceptance; source/server/receipt times and monotone sequence remain explicit.
 
-## What runs where
-
-- The live engine computes only what the reader changes: a case's trajectory with other rates, a variant (a share
-  immunised at the start), a sweep over R0 for the final-size view. Everything baked stays baked.
-- Every view shows its lane: live (computed in the browser) or replay (read from an artifact). A view still showing
-  an earlier selection is overlaid as recomputing, through the selection key.
-- A product whose engine cannot be ported keeps only the replay lane and declares its workbench `replayOnly`; the
-  gate then does not expect controls to change the views.
+Each binding chooses source-change or server-confirmation freshness. A constant source can remain current under fresh server confirmation, without proving sensor health. The browser refuses incompatible mappings, naive timestamps and regressing snapshots. Rejected values remain unavailable; bounded connection history has gaps. Replay-trained detectors do not run on site data. There is no default site endpoint, credential or live connection.

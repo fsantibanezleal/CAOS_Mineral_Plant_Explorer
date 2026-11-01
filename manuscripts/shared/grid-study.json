@@ -1,0 +1,37 @@
+[
+  {
+    "cells": 40,
+    "outlet_fraction": 0.1489020245325858,
+    "solids_residual_m3": 3.552713678800501e-15
+  },
+  {
+    "cells": 80,
+    "outlet_fraction": 0.17769888950917567,
+    "solids_residual_m3": 5.329070518200751e-15
+  },
+  {
+    "cells": 160,
+    "outlet_fraction": 0.2064005357701244,
+    "solids_residual_m3": -3.552713678800501e-15
+  },
+  {
+    "cells": 320,
+    "outlet_fraction": 0.22812182887380236,
+    "solids_residual_m3": -1.7763568394002505e-15
+  },
+  {
+    "cells": 640,
+    "outlet_fraction": 0.23817737563943356,
+    "solids_residual_m3": 1.2434497875801753e-14
+  },
+  {
+    "cells": 1280,
+    "outlet_fraction": 0.23994528072747415,
+    "solids_residual_m3": 3.552713678800501e-14
+  },
+  {
+    "cells": 2000,
+    "outlet_fraction": 0.2399922521741322,
+    "solids_residual_m3": 4.973799150320701e-14
+  }
+]

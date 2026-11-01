@@ -1,1 +1,9 @@
-{"detail":{"state":"missing","reason":{"en":"The pipeline has not baked this build.","es":"El pipeline no ha generado esta versión."}}}
+{
+  "detail": {
+    "state": "missing",
+    "reason": {
+      "en": "No authorized site source configured.",
+      "es": "No hay fuente autorizada configurada."
+    }
+  }
+}

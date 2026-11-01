@@ -1,0 +1,15 @@
+import { chromium } from 'playwright';
+import { mkdir, writeFile } from 'node:fs/promises';
+const out=process.env.OREBRIDGE_QA_ROOT;
+if(!out)throw Error('Set OREBRIDGE_QA_ROOT to an external temporary directory');
+await mkdir(out,{recursive:true});
+const browser=await chromium.launch({headless:true,args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+const page=await browser.newPage({viewport:{width:1440,height:1000}});
+const errors=[];page.on('pageerror',e=>errors.push(String(e)));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+await page.goto('http://127.0.0.1:4178/app');
+await page.getByTestId('plant-scene').waitFor();
+await page.waitForTimeout(1800);
+await page.screenshot({path:out+'/plant-desktop.png',fullPage:true});
+await writeFile(out+'/initial.json',JSON.stringify({text:await page.locator('body').innerText(),errors},null,2));
+console.log(JSON.stringify({errors,buttons:await page.getByRole('button').allTextContents(),selects:await page.locator('select').evaluateAll(es=>es.map(e=>({label:e.getAttribute('aria-label'),value:e.value})))},null,2));
+await browser.close();

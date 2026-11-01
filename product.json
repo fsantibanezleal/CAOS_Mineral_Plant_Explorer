@@ -1,20 +1,55 @@
 {
-  "name": "CAOS Product",
-  "slug": "caos-product",
+  "name": "OreBridge",
+  "slug": "orebridge",
   "tagline": {
-    "en": "A CAOS product built from the archetype template: an example epidemic model, replayed and re-run live.",
-    "es": "Un producto CAOS construido desde la plantilla arquetipo: un modelo epidémico de ejemplo, reproducido y recalculado en vivo."
+    "en": "One connected plant: spatial context, process streams and traceable operating evidence.",
+    "es": "Una planta conectada: contexto espacial, corrientes y evidencia operativa trazable."
   },
-  "repo": "https://github.com/fsantibanezleal/CAOS_PRODUCT_TEMPLATE",
+  "repo": "https://github.com/fsantibanezleal/CAOS_OreBridge",
   "visibility": "public",
   "license": "MIT",
   "holder": "Felipe Santibáñez-Leal",
   "year": 2026,
-  "method_packages": [],
   "method_entrypoints": [
-    "pipeline.model.sir.simulate",
-    "pipeline.model.sir.derivatives",
-    "pipeline.oracles.final_size",
-    "pipeline.model.baseline.peak_frac"
+    "pipeline.model.reconciliation.weighted_reconcile",
+    "pipeline.model.reconciliation.robust_reconcile",
+    "pipeline.model.reconciliation.tasc",
+    "pipeline.model.learning.fit_normal",
+    "pipeline.stages.plant_evaluate.evaluate_one",
+    "pipeline.model.scenarios.generate",
+    "pipeline.model.scenarios.align",
+    "pipeline.model.scenarios.conservation_matrix",
+    "pipeline.model.scenarios.engine_prior",
+    "pipeline.model.learning.lagged",
+    "pipeline.model.learning.forecast_scores",
+    "pipeline.model.thickener.simulate_thickener",
+    "pipeline.stages.plant_evaluate.batch_projection",
+    "pipeline.stages.plant_evaluate.calibrate",
+    "pipeline.stages.plant_evaluate.raw_scores",
+    "pipeline.stages.plant_evaluate.confusion",
+    "pipeline.stages.analysis.analyze",
+    "pipeline.model.learning.fit_ridge",
+    "pipeline.stages.learned_compare.evaluate_ridge",
+    "pipeline.stages.learned_compare.compare"
+  ],
+  "manuscripts": [
+    {
+      "kind": "technical-report",
+      "concept_doi": "10.5281/zenodo.23851364",
+      "title": "Connected plant visualization with timestamped observations and versioned process-engine evidence",
+      "version": "0.01.001",
+      "covers": [
+        "BS-1"
+      ]
+    },
+    {
+      "kind": "manuscript",
+      "concept_doi": "10.5281/zenodo.23851368",
+      "title": "Transport-aligned robust reconciliation can degrade discrepancy localization: a controlled plant-network study",
+      "version": "1.0",
+      "covers": [
+        "BS-1"
+      ]
+    }
   ]
 }

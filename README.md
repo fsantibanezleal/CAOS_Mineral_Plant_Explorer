@@ -1,80 +1,57 @@
-# CAOS product template
+# OreBridge
 
-[![CI](https://img.shields.io/github/actions/workflow/status/fsantibanezleal/CAOS_PRODUCT_TEMPLATE/ci.yml?branch=main&label=CI)](https://github.com/fsantibanezleal/CAOS_PRODUCT_TEMPLATE/actions)
-[![License](https://img.shields.io/github/license/fsantibanezleal/CAOS_PRODUCT_TEMPLATE)](LICENSE)
-[![Version](https://img.shields.io/github/v/tag/fsantibanezleal/CAOS_PRODUCT_TEMPLATE?label=version&sort=semver)](https://github.com/fsantibanezleal/CAOS_PRODUCT_TEMPLATE/tags)
+[![CI](https://img.shields.io/github/actions/workflow/status/fsantibanezleal/CAOS_OreBridge/ci.yml?branch=main&label=CI)](https://github.com/fsantibanezleal/CAOS_OreBridge/actions) · [MIT](LICENSE) · [Public app](https://orebridge.fasl-work.com)
 
-The repository every CAOS product starts from (ADR-0057). It is a working product on the first day: an offline
-pipeline that bakes cases and checks them, committed artifacts that a web workbench replays, a live engine that
-re-runs a case in the browser, five documentation pages, and the guards and the measured gate that keep all of it
-honest. The domain is a placeholder (the SIR epidemic model) so that every part has something real to carry.
+One connected mineral-processing plant: 3D equipment, directed diagrams, timestamped observations and traceable CAOS engine evidence. Selection, source quality and evidence time remain synchronized across views. The initial scene is paused synthetic replay.
 
-A product is made from it with one command, and from then on the guards list what of the example remains until it
-is replaced.
+*Una planta conectada: equipos 3D, diagramas dirigidos, observaciones con tiempo y evidencia trazable de motores CAOS. Selección, calidad y tiempos permanecen sincronizados. La escena inicial reproduce datos sintéticos y comienza en pausa.*
+
+The authored copper complex contains 36 assets and 47 streams. Sixteen benchmark channels describe a bounded solids/water network; equipment without a channel remains reference context. The engine layer consumes four actual released Python packages and ten immutable public CAOS artifacts. Original cases retain their identity, units, hashes and limitations.
 
 ## Areas
 
-The repository by area. Each row names its folder, says whether the area is active or dormant, and points to where the
-area is documented. `scripts/check_readme_areas.py` fails a README without this section, an area without its row and a
-link to a folder that does not exist.
-
 | Area | Folder | Status | What it holds |
 |---|---|---|---|
-| Web | [`frontend/`](frontend/) | active | The workbench (with Focus mode for every case) and five documentation routes on the shared shell (`@fasl-work/caos-app-shell`), an executive view with flip cards, a card carousel and an animated illustration, and the live engine, a TypeScript port of the Python one (`frontend/src/engine/`). Build and test: `cd frontend && npm ci && npm run build && npm test`; the measured gate is `npm run gate` (`caos-shell-gate` with `--require-focus`: every route, tab and case, five sizes, both themes, both languages). Held by `frontend/src/engine/sir.parity.test.ts`, `scripts/check_web_baseline.py` and `scripts/check_svg_animation.py`. |
-| API | [`app/`](app/) | dormant: this solution does not require it at the moment | The API ships dormant (GET only, 503 with a declared state when a document is absent) and is run only by its contract tests (`tests/contracts/test_api.py`). Activation: [guide 04](docs/guides/04_run-the-api.md). |
-| Core pipelines | [`data-pipeline/`](data-pipeline/) | active | The pipeline: named stages, seeded, each case checked against its expected ranges; the SIR engine in `data-pipeline/pipeline/model/sir.py`. Bake: `./scripts/precompute.sh` (a release operation, never CI). Tests run in a sandbox that fails if a test writes a committed artifact. See [data-pipeline/README.md](data-pipeline/README.md). |
-| Packages | (PyPI) [numpy 2.4.6](https://pypi.org/project/numpy/2.4.6/), [source](https://github.com/numpy/numpy) | active: the example publishes no package and consumes numpy | The engine is numpy only, so the template installs with no native build; a product publishes the packages of its methods as separate PyPI projects and lists each here with its version and its PyPI and repository links (no internal packages). |
-| Notebooks | [`notebooks/`](notebooks/) | active | The didactic layer: notebooks in English and Spanish, by topic and from simple to complex, on the example's own data (`notebooks/en/`, `notebooks/es/`). Run: `./scripts/setup.sh --notebooks`, then `python scripts/run_notebooks.py`; held by `scripts/check_notebooks.py` and `scripts/run_notebooks.py --check`. Guide: [guide 08](docs/guides/08_notebooks.md). |
-| Data | [`data/`](data/) | active | The committed derived artifacts (index, manifests and traces, bilingual, versioned, contract 2) and the readiness document (`data/derived/readiness.json`: what is real in this build, shown on every view). The data is synthetic (the model's own cases), so no third-party dataset licence applies. Held by `scripts/check_artifacts.py`, `scripts/check_readiness.py` and `frontend/src/lib/contract.test.ts` (both directions, types generated from the schemas). |
-| Contracts | [`docs/contracts/`](docs/contracts/) | active | The contract catalog: every boundary and the model slot, one schema file each, a provider and a swap test (ADR-0080); contract 1, ingestion (bad values rejected with a reason, unusual ones flagged: `data-pipeline/pipeline/io/contract.py`). Held by `scripts/check_contracts.py`, `scripts/check_skeleton.py` and `tests/contracts/`. |
-| Documentation | [`docs/`](docs/) | active | The design, every requirement with the gate that fails it ([`docs/design/SDD.md`](docs/design/SDD.md), `scripts/check_sdd.py`), the [guides](docs/guides.md), the case pages and the framework cards. |
-| Tests and gates | [`tests/`](tests/), [`scripts/`](scripts/) | active | The pipeline, contract, guard and adversarial tests (`python -m pytest`) and the checks CI runs (`scripts/check_*.py`, each also run locally). One version, one deploy place, no example left behind: `scripts/check_version_coherence.py`, `scripts/check_deploy_place.py`, `scripts/check_template_residue.py`. See [scripts/README.md](scripts/README.md). |
-| Deploy | [`deploy/`](deploy/) | active: one deploy place, named in `deploy/TARGET` | Where the product is deployed and how, never credentials (GitHub Pages by default, see [deploy/pages.md](deploy/pages.md)). |
+| Web | [frontend/](frontend/) | active | Connected Three.js scene, process diagram, trends, engine map, method comparison and five bilingual reference routes. |
+| API | [app/](app/) | active | Optional authenticated read-only OPC UA gateway and local artifact API; the static public site hosts no gateway. |
+| Core pipelines | [data-pipeline/](data-pipeline/) | active | Source execution, causal scenarios, fitted predictor, comparison and typed replay exports. |
+| Packages | [minehaulsim](https://pypi.org/project/minehaulsim/), [bedblend](https://pypi.org/project/bedblend/), [milldem](https://pypi.org/project/milldem/), [oreblocks](https://pypi.org/project/oreblocks/) | active | Consumes [minehaulsim 0.12.1](https://pypi.org/project/minehaulsim/0.12.1/), [bedblend 0.7.3](https://pypi.org/project/bedblend/0.7.3/), [milldem 0.3.1](https://pypi.org/project/milldem/0.3.1/) and [oreblocks 0.6.6](https://pypi.org/project/oreblocks/0.6.6/). No OreBridge PyPI package is claimed. |
+| Notebooks | [notebooks/](notebooks/) | active | Four executed bilingual lesson pairs, eight EN/ES files and four progressive levels, importing the actual implementations. |
+| Data | [data/](data/) | active | Compact authored synthetic replay, measured comparisons and exact upstream evidence with license classes. |
+| Contracts | [docs/contracts/](docs/contracts/) | active | Fifteen versioned boundaries, JSON schemas, OpenAPI, examples and an independent fixture provider. |
+| Documentation | [docs/](docs/) | active | Design, primary research, methods, assumptions, case matrix and applied guides. |
+| Tests and gates | [tests/](tests/), [scripts/](scripts/) | active | Numerical oracles, source/contract checks, adversarial interactions, full browser matrix and notebook execution. |
+| Deploy | [deploy/](deploy/) | active | Single public Pages target and served-commit verification; site commissioning is separate. |
 
-## Run it
+## Run and reproduce
+
+Create the pinned environments with `scripts/setup.ps1` (Windows) or `scripts/setup.sh`. Keep numerical environments, raw source cache, joblib checkpoint and temporary output outside the repository; a local junction may expose an environment at `.venv-pipeline` or `.venv-notebooks`.
+
+Set `OREBRIDGE_MODELS_ROOT` to an external model directory and `OREBRIDGE_CACHE_ROOT` to an external source cache. Bound `OMP_NUM_THREADS`, `OPENBLAS_NUM_THREADS` and `MKL_NUM_THREADS` to `1` before starting Python. On Windows set `PYTHONUTF8=1`.
 
 ```bash
-./scripts/setup.sh                       # .venv-pipeline with the pinned pipeline requirements (setup.ps1 on Windows)
-./scripts/precompute.sh                  # the canonical bake into data/derived (a release operation, never CI)
-.venv-pipeline/bin/python -m pytest      # the pipeline tests, sandboxed (.venv-pipeline/Scripts/python.exe on Windows)
-./scripts/setup.sh --notebooks           # .venv-notebooks from notebooks/requirements.txt (setup.ps1 -Notebooks on Windows)
-python scripts/run_notebooks.py --check --tmp <temp root>  # every notebook runs top to bottom in copies under the temp root (or CAOS_TEMP_ROOT); a local release gate, never CI
+python data-pipeline/run.py sources --cache-root "$OREBRIDGE_CACHE_ROOT"
+python data-pipeline/run.py all --benchmark --models-root "$OREBRIDGE_MODELS_ROOT"
+python -m pytest
+python scripts/run_notebooks.py
+python scripts/run_notebooks.py --check --tmp "$CAOS_TEMP_ROOT"
 cd frontend
 npm ci
-npm run build                            # copies the declared artifacts, type-checks, bundles, materialises the routes
-npm test                                 # contract both ways, engine parity, the artifact layer
-npm run preview                          # serves dist/ the way GitHub Pages does
-npm run gate                             # the measured gate on the build
+npm run build
+npm test
+npm run gate
 ```
 
-## Make a product from it
+`all` genuinely trains and evaluates. `infer --no-train` requires the existing trusted checkpoint; it never substitutes a pretend trained model. Source ingestion runs actual package APIs and verifies public artifact bytes. See [reproduction](docs/guides/01_precompute-pipeline.md), [site source](docs/guides/04_run-the-api.md), [geometry/data](docs/guides/02_bring-your-own-data.md) and [lessons](notebooks/README.md).
 
-Create the product repository from this template on GitHub, clone it, and run:
+## Evidence and limits
 
-```bash
-python scripts/instantiate.py --slug <slug> --name "<Name>" --repo <Repository> \
-  --deploy pages --domain <slug>.fasl-work.com --visibility public \
-  --tagline-en "<one line>" --tagline-es "<una línea>"
-```
+The full experiment has 768 held-out scenarios and 6144 method/scenario cells, with fixed noise scale one. TASC recall is 0.3419063; the causal predictor reaches 0.8399375 and the no-topology ablation 0.5190938. The negative result is retained with coverage, false alerts and paired seed-block intervals. Its fixed ratio prior does not dynamically fuse all fourteen visual sources or estimate inventory derivatives.
 
-It writes the product's identity, licence, version and deploy place, removes the template's sentinel and blueprint
-files, bakes, tests and builds once, and prints what of the example remains. The full procedure, and what the
-product replaces next, is [docs/guides/00_instantiate.md](docs/guides/00_instantiate.md).
+No site historian, survey, instrument credentials or operator acceptance has been supplied. The graph is authored, engine references are separate cases, and process models are bounded teaching references. Connecting a source requires an explicit graph/tag/unit map and source/server freshness policy. Neither a coherent state nor a colored equipment model establishes a fault cause or facility safety.
 
-## The rules it carries
+Code and authored repository artifacts use MIT. Manuscripts identify their own CC BY 4.0 terms. Upstream rights remain attached to each exact source record.
 
-- Write the SDD before the code; every requirement names its gate (ADR-0075).
-- The research is binding: every engine the research selected is pinned, documented in `docs/frameworks/` and run
-  by the pipeline.
-- Canonical science is offline. CI runs cheap checks; the bake and the pipeline tests run on a workstation; a deploy
-  publishes the committed artifacts and never recomputes them (ADR-0069, ADR-0074).
-- The web is built on the shared shell and measured before it ships; the base carries the rules, so a product does
-  not re-implement them (ADR-0078). Three rules of use come with shell 0.14.0, each in
-  [guide 06](docs/guides/06_executive-brief.md): the executive view's small cards flip (a title on the face, the content
-  on the back, 8 words and 40 at most in English), a group of five or more becomes a carousel, and an illustration that
-  explains a change, a flow or a sequence is animated, with a `prefers-reduced-motion` block that shows its final frame.
-  The App opens Focus mode for every case, and the gate runs with `--require-focus`, so a product built from the
-  template cannot ship an App without it.
-- English in the repository; every reader-facing string in English and Spanish (ADR-0011, ADR-0066).
+Read the [technical report](https://doi.org/10.5281/zenodo.23851639) and [controlled-study preprint](https://doi.org/10.5281/zenodo.23851369). Their [sources](manuscripts/README.md) are reproducible; the [software release](https://github.com/fsantibanezleal/CAOS_OreBridge/releases/tag/v0.01.001) carries the fitted checkpoint separately.
 
-Licensed under the MIT License (see [LICENSE](LICENSE)).
+Two causal model families are actually fitted: histogram gradient boosting and Ridge. Their [registry](models/registry.json) names separate checkpoints and exact evaluations. The additional paired comparison contains 768 new Ridge evaluations and 768 reused HGB rows on the original known test slots. Ridge improves recall while increasing false alerts and reducing precision; this is a post-publication extension, without a claim of prospective or field validation.

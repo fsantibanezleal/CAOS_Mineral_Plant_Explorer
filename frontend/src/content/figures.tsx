@@ -2,14 +2,14 @@
 // shell's theme tokens, so it follows the light and dark themes. Each figure is placed in a `Figure` that carries its
 // caption; the labels are written in the displayed language by the caller (`useT`).
 
-/** Splits a label into at most two lines of about `width` characters, at a space. */
+/** Splits a label into lines of about `width` characters, at a space. */
 function wrap(label: string, width: number): string[] {
   if (label.length <= width) return [label];
   const words = label.split(' ');
   const lines: string[] = [''];
   for (const w of words) {
     const cur = lines[lines.length - 1];
-    if (cur && (cur + ' ' + w).length > width && lines.length < 2) lines.push(w);
+    if (cur && (cur + ' ' + w).length > width) lines.push(w);
     else lines[lines.length - 1] = cur ? `${cur} ${w}` : w;
   }
   return lines;
@@ -20,18 +20,20 @@ export function FlowFigure({ stages, edges, label, tone }: { stages: string[]; e
   const gap = edges ? 64 : 36;
   const w = (620 - (n - 1) * gap) / n;
   const chars = Math.max(9, Math.floor(w / 8.6));
+  const labels = stages.map(s=>wrap(s,chars));
+  const height = Math.max(64, Math.max(...labels.map(l=>l.length))*18+24);
   const fill = tone === 'good' ? 'var(--color-good)' : tone === 'warn' ? 'var(--color-warn)' : 'var(--color-accent)';
   return (
-    <svg className="fig-svg wide" viewBox="0 0 640 130" role="img" aria-label={label}>
-      {stages.map((s, i) => {
+    <svg className="fig-svg wide" viewBox={`0 0 640 ${Math.max(130,52+height)}`} role="img" aria-label={label}>
+      {stages.map((_, i) => {
         const x = 10 + i * (w + gap);
-        const lines = wrap(s, chars);
+        const lines = labels[i];
         return (
           <g key={i}>
-            <rect x={x} y="36" width={w} height="64" rx="8" fill="var(--color-surface-2)" stroke="var(--color-border)" strokeWidth="1.5" />
-            <rect x={x} y="36" width="6" height="64" rx="3" fill={fill} />
+            <rect x={x} y="36" width={w} height={height} rx="8" fill="var(--color-surface-2)" stroke="var(--color-border)" strokeWidth="1.5" />
+            <rect x={x} y="36" width="6" height={height} rx="3" fill={fill} />
             {lines.map((line, k) => (
-              <text key={k} x={x + w / 2 + 3} y={lines.length === 1 ? 73 : 62 + k * 18} textAnchor="middle" fontSize="13" fontWeight="600" fill="var(--color-fg)">
+              <text key={k} x={x + w / 2 + 3} y={36+height/2-(lines.length-1)*9+5+k*18} textAnchor="middle" fontSize="13" fontWeight="600" fill="var(--color-fg)">
                 {line}
               </text>
             ))}

@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "checks": {
+    "root_inference": true,
+    "inside_repository_cli_refused_without_write": true,
+    "output_argument_required": true,
+    "current_matrix_accepted": true,
+    "coverage_negative_control_refused": true,
+    "missed_event_latency_negative_control_refused": true,
+    "aggregate_negative_control_refused": true,
+    "boolean_ratio_negative_control_refused": true,
+    "duplicate_axis_negative_control_refused": true,
+    "script_digest_matches_executed_output": true,
+    "no_machine_paths_in_script_or_output": true
+  }
+}

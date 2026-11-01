@@ -1,6 +1,8 @@
-# PRECOMPUTE lane, the heavy, research-chosen SOTA engines, in the .venv-pipeline (local-only, never deployed).
-# THIS is where the deep research becomes binding: every engine pinned here is documented in docs/frameworks/<tool>/
-# and actually used by data-pipeline/pipeline/stages/. The EXAMPLE engine (SIR) is numpy-only on purpose so the
-# template installs instantly with no native build; a real product adds e.g. yade / pychrono / ortools / mintpy /
-# torch here, each PINNED to the version it installs+verifies.
-numpy==2.4.6
+numpy==2.2.6
+scipy==1.18.1
+scikit-learn==1.9.1
+joblib==1.6.0
+minehaulsim==0.12.1
+bedblend==0.7.3
+milldem==0.3.1
+oreblocks==0.6.6
