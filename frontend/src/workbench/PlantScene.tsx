@@ -7,6 +7,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { Plant, Trace, Observation, EngineEvidence } from '../lib/contract.types';
 import { assetState, liveValue, snapshotValue } from './model';
 import { buildPlant, COLORS, validateGLTF } from './scene';
+import { sceneValueLabel } from './scene-label';
 import { areaForAsset, buildAreaModel, PLANT_AREAS } from './areas';
 import type { PlantScope } from './areas';
 export function PlantScene({plant,trace,step,method,selected,onSelect,highlight,playing,live,now,engines,overlay,onOverlay,scope,onScopeChange}:{engines:EngineEvidence;overlay:'observations'|'engines';onOverlay:(v:'observations'|'engines')=>void;plant:Plant;trace:Trace|null;step:number;method:string;selected:string;onSelect:(id:string)=>void;highlight:Set<string>;playing:boolean;live:Observation[]|null;now:number;scope:PlantScope;onScopeChange:(scope:PlantScope)=>void}) {
@@ -62,9 +63,9 @@ export function PlantScene({plant,trace,step,method,selected,onSelect,highlight,
         if(!visible)continue;
         const r=s.live?.find(r=>r.asset_id===label.asset.id);const value=s.overlay==='engines'?(metric?.value??null):s.live?(r?liveValue(r,s.now,plant):null):(i>=0&&s.trace?snapshotValue(s.trace,s.step,s.method,i):null);
         const unit=s.overlay==='engines'?metric?.unit:s.live?r?.unit:i>=0?s.trace?.channels[i].unit:'';
-        const text=label.asset.id+' · '+(typeof value==='number'?value.toLocaleString(s.lang,{maximumFractionDigits:value<100?1:0})+' '+unit:'?');
-        const status=s.overlay==='engines'?'context':assetState(label.asset,s.trace,s.step,s.method,s.live,s.now,plant);const signature=text+status+(label.asset.id===s.selected?'selected':'');if(signature===label.last)continue;label.last=signature;
-        const ctx=label.canvas.getContext('2d')!;ctx.clearRect(0,0,256,72);ctx.fillStyle=status==='alarm'?'#792c38ed':status==='unavailable'?'#654d1eed':status==='normal'?'#174f47ed':'#253d4eed';ctx.fillRect(0,0,256,72);ctx.strokeStyle=label.asset.id===s.selected?'#72bdff':'#dae9ef';ctx.lineWidth=label.asset.id===s.selected?6:1;ctx.strokeRect(3,3,250,66);ctx.fillStyle='#ecf5fa';ctx.textAlign='center';ctx.font='600 24px monospace';ctx.fillText(text,128,44,246);label.texture.needsUpdate=true;
+        const valueLabel=sceneValueLabel(value,unit,s.lang,s.overlay,!!s.live);
+        const status=s.overlay==='engines'?'context':assetState(label.asset,s.trace,s.step,s.method,s.live,s.now,plant);const signature=`${label.asset.id}|${valueLabel}|${s.overlay}|${status}|${label.asset.id===s.selected}`;if(signature===label.last)continue;label.last=signature;
+        const ctx=label.canvas.getContext('2d')!;ctx.clearRect(0,0,256,72);ctx.fillStyle=status==='alarm'?'#792c38ed':status==='unavailable'?'#654d1eed':status==='normal'?'#174f47ed':'#253d4eed';ctx.fillRect(0,0,256,72);ctx.strokeStyle=label.asset.id===s.selected?'#72bdff':'#dae9ef';ctx.lineWidth=label.asset.id===s.selected?6:1;ctx.strokeRect(3,3,250,66);ctx.fillStyle='#ecf5fa';ctx.textAlign='center';ctx.font='700 20px monospace';ctx.fillText(label.asset.id,128,29,238);ctx.font='600 17px monospace';ctx.fillText(valueLabel,128,54,238);label.texture.needsUpdate=true;
       }
       particles.forEach((dot,i)=>{dot.visible=s.playing&&dot.userData.available!==false;dot.position.copy((dot.userData.curve as T.QuadraticBezierCurve3).getPoint((t*.00012+i*.13)%1));});
       renderer.render(scene,camera);if(!statsCaptured.current){statsCaptured.current=true;setStats({triangles:renderer.info.render.triangles,ms:performance.now()-started});}
