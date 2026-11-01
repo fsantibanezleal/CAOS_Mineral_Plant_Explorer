@@ -1,0 +1,38 @@
+{
+  "title": "fsantibanezleal/CAOS_OreBridge: 0.01.001",
+  "version": "0.01.001",
+  "upload_type": "software",
+  "access_right": "open",
+  "license": "mit",
+  "language": "eng",
+  "creators": [
+    {
+      "name": "Santibáñez-Leal, Felipe",
+      "orcid": "0000-0002-0150-3246",
+      "affiliation": "CAOS open-research programme, Santiago, Chile"
+    }
+  ],
+  "description": "<p>OreBridge connects an authored 3D mineral-processing plant, process diagrams, observation histories and versioned process-engine evidence through shared asset identities. It includes a configurable read-only OPC UA gateway, transport-aligned reconciliation, two fitted causal prediction families, controlled synthetic experiments and executed English and Spanish notebooks.</p><p>The reference has 36 assets and 47 streams. Four released packages are executed and ten immutable public artifacts retain their upstream case identities. These references are not measurements of an operating plant. The original 6144-cell study preserves the negative TASC comparisons; a separately documented extension adds 768 Ridge evaluations and reuses 768 HGB rows on already-known test slots. No field efficacy, industrial capacity, site commissioning or owner acceptance is established.</p><p>Software is MIT licensed. Scientific reports have their own CC BY 4.0 records and are related below. Upstream sources retain their stated licenses and provenance.</p>",
+  "keywords": [
+    "mineral processing",
+    "3D plant visualization",
+    "OPC UA",
+    "data reconciliation",
+    "causal forecasting",
+    "reproducible research"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "10.5281/zenodo.23851639",
+      "scheme": "doi",
+      "relation": "isSupplementTo",
+      "resource_type": "publication-report"
+    },
+    {
+      "identifier": "10.5281/zenodo.23851369",
+      "scheme": "doi",
+      "relation": "isSupplementTo",
+      "resource_type": "publication-preprint"
+    }
+  ]
+}

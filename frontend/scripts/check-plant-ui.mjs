@@ -97,6 +97,32 @@ try{
   await tab('Inspect').click();await tab('3D plant').click();await page.getByTestId('plant-scene').waitFor();
   await page.unroute('**/qa-gateway/api/observations');
  });
+ await checked('predictor curves render after warm-up gaps with finite axes and keyboard values',async()=>{
+  await page.goto(base+'/benchmark');
+  const plot=page.getByRole('group',{name:'PL-02: causal predictors',exact:true});
+  await plot.waitFor();await plot.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(250);
+  const drawing=await plot.evaluate(el=>{
+   const host=el.closest('.caos-chart'),canvas=el.querySelector('canvas');
+   if(!canvas)return {ticks:0,greenColumns:0};
+   const ctx=canvas.getContext('2d'),{width,height}=canvas,pixels=ctx.getImageData(0,0,width,height).data;
+   const cols=new Set();
+   for(let y=10;y<height-60;y++)for(let x=80;x<width-20;x++){
+    const i=(y*width+x)*4,[r,g,b,a]=pixels.slice(i,i+4);
+    if(a>100&&g>r*1.25&&g>b*1.05)cols.add(x);
+   }
+   return {ticks:Number(host?.getAttribute('data-ticks-y')),greenColumns:cols.size};
+  });
+  assert.ok(drawing.ticks>=2,`finite score axis required: ${JSON.stringify(drawing)}`);
+  assert.ok(drawing.greenColumns>25,`Ridge must draw a curve rather than only a cursor dot: ${JSON.stringify(drawing)}`);
+  await plot.focus();await plot.press('Home');
+  assert.match(await page.locator('.caos-chart').filter({has:plot}).locator('.caos-chart-readout').innerText(),/not available/);
+  for(let i=0;i<30;i++)await plot.press('ArrowRight');
+  const readout=await page.locator('.caos-chart').filter({has:plot}).locator('.caos-chart-readout').innerText();
+  assert.match(readout,/HGB/);assert.match(readout,/Ridge/);assert.doesNotMatch(readout,/not available|NaN/);
+  await page.screenshot({path:out+'/predictor-curves.png',fullPage:true});
+  await page.goto(base+'/app');await page.getByTestId('plant-scene').waitFor();
+ });
  await checked('phone Focus returns to the same equipment and language',async()=>{
   await page.setViewportSize({width:390,height:844});await page.getByLabel('Equipment',{exact:true}).selectOption('TTH');
   await page.getByRole('button',{name:'Open this case in focus mode',exact:true}).click();
