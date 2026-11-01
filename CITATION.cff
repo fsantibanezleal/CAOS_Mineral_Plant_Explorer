@@ -1,24 +1,26 @@
 cff-version: 1.2.0
 message: "Please cite this software and the scientific report relevant to the result you use."
 type: software
-title: "OreBridge: Connected plant visualization and traceable process-engine evidence"
-version: 0.01.001
+title: "CAOS Mineral Plant Explorer: Global and area-level process visualization"
+version: 0.02.000
 authors:
   - family-names: Santibáñez-Leal
     given-names: Felipe
     orcid: https://orcid.org/0000-0002-0150-3246
     affiliation: "CAOS open-research programme, Santiago, Chile"
-repository-code: https://github.com/fsantibanezleal/CAOS_OreBridge
-url: https://github.com/fsantibanezleal/CAOS_OreBridge
+repository-code: https://github.com/fsantibanezleal/CAOS_Mineral_Plant_Explorer
+url: https://github.com/fsantibanezleal/CAOS_Mineral_Plant_Explorer
 license: MIT
 abstract: >-
-  A connected 3D mineral-processing plant with synchronized process diagrams,
-  observation histories, versioned upstream engine evidence, a configurable
+  A global and area-level mine-to-plant explorer with distinct 2D site plans,
+  process schematics and 3D spatial views, observation histories, versioned
+  upstream engine evidence, and a configurable
   read-only OPC UA gateway, and reproducible synthetic model comparisons.
   Two causal prediction families are actually fitted and calibrated. The
   reference does not establish performance at an operating plant.
 keywords:
   - mineral processing
+  - area process diagrams
   - 3D plant visualization
   - OPC UA
   - data reconciliation

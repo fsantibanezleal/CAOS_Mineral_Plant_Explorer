@@ -1,11 +1,11 @@
 {
-  "name": "OreBridge",
-  "slug": "orebridge",
+  "name": "CAOS Mineral Plant Explorer",
+  "slug": "mineral-plant-explorer",
   "tagline": {
-    "en": "One connected plant: spatial context, process streams and traceable operating evidence.",
-    "es": "Una planta conectada: contexto espacial, corrientes y evidencia operativa trazable."
+    "en": "Explore a mine-to-plant operation globally and by area, in spatial plans, process schematics and 3D.",
+    "es": "Explore una operación minera completa y por área, con planos espaciales, esquemas de proceso y vistas 3D."
   },
-  "repo": "https://github.com/fsantibanezleal/CAOS_OreBridge",
+  "repo": "https://github.com/fsantibanezleal/CAOS_Mineral_Plant_Explorer",
   "visibility": "public",
   "license": "MIT",
   "holder": "Felipe Santibáñez-Leal",
