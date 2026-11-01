@@ -1,36 +1,19 @@
-# Notebooks, español
+# Aprender a inferir el estado de una planta conectada
 
-El índice del árbol en español. Los temas van de lo simple a lo complejo; dentro de un tema el orden de lectura es el
-número del notebook y el nivel nunca baja. El equivalente en inglés de cada notebook está en la misma ruta bajo
-[`../en/`](../en/README.md). Cómo correrlos está en [`../README.md`](../README.md).
+Recorre este tema único en orden. Cada notebook ejecuta los métodos implementados con entradas sintéticas efectivas de
+OreBridge. La secuencia pasa de una ecuación de conservación a los límites de un experimento completo de inferencia.
+El [árbol en inglés](../en/README.md) conserva las mismas rutas y cálculos; este árbol tiene prosa, comentarios y figuras en español.
 
-Niveles: 1 fundamentos, 2 el método en la práctica, 3 comparación con métodos publicados, 4 métodos propuestos.
+| Tema | Nivel | Notebook | Qué enseña la lección desarrollada |
+|---|---|---|---|
+| 01 Estado de planta | 1 · Fundamentos | [Conciliar una parcela de flotación](01-plant-state/01-reconcile-a-flotation-parcel.ipynb) | Distribuir una corrección observada de cierre con WLS y examinar su sensibilidad a la confianza del medidor de alimentación. |
+| 01 Estado de planta | 2 · El método en la práctica | [Tiempo, almacenamiento y robustez](01-plant-state/02-time-storage-and-robustness.ipynb) | Separar una transición sana de transporte y acumulación modelada de un sesgo inyectado, y comparar WLS con Huber. |
+| 01 Estado de planta | 3 · Comparación con métodos publicados | [Predicción causal y estimación robusta](01-plant-state/03-causal-prediction-and-robust-estimation.ipynb) | Ajustar árboles potenciados por histogramas, inspeccionar retardos y calibración separada, y compararlos con Huber usando observaciones idénticas. |
+| 01 Estado de planta | 4 · Métodos propuestos | [Evidencia y rechazo de TASC](01-plant-state/04-tasc-evidence-and-refusal.ipynb) | Ejecutar fusión y fronteras de calidad, exponer localización ambigua, evaluar ablaciones de tiempo/motor/topología y recalcular incertidumbre pareada conservando resultados negativos. |
 
-Cada notebook es una lección trabajada sobre una pregunta: la plantea en su primera celda, corre el motor paso a paso sobre
-los casos del ejemplo, muestra lo que encuentra en figuras, y responde la pregunta en sus Resultados con números que él mismo
-calculó ([`docs/guides/08_notebooks.md`](../../docs/guides/08_notebooks.md)).
+El ajuste usa el estimador mantenido efectivo de scikit-learn. GDN se cita como antecedente de relaciones entre sensores;
+no se presenta como comparador implementado. La matriz completa es un benchmark sintético registrado: la lección 04 ejecuta
+casos seleccionados nuevos y recalcula el análisis de todos sus conteos. Ningún notebook afirma exactitud de campo o beneficio operativo.
 
-## Temas
-
-Un tema sin notebook de nivel 3 explica por qué en su fila.
-
-| Tema | Requiere | Nivel 3 |
-|---|---|---|
-| [01-getting-started](01-getting-started/) | ninguno, es el tema de entrada | [03-a-higher-order-solver](01-getting-started/03-a-higher-order-solver.ipynb) |
-| [02-threshold-and-final-size](02-threshold-and-final-size/) | tema 01-getting-started | Sin nivel 3: la base de investigación no nombra un método más nuevo para el umbral ni para el tamaño final, y la única comparación del ejemplo con un método publicado, el resolvedor de orden mayor, está en el tema 01 |
-
-## Notebooks
-
-| Notebook | Nivel | La pregunta que responde |
-|---|---|---|
-| [01-getting-started/01-the-problem-and-the-data.ipynb](01-getting-started/01-the-problem-and-the-data.ipynb) | 1 | cómo recorre una epidemia un pueblo de 100000 personas día a día: el pico, su día y el saldo final, y cómo se mueven cuando cambian los primeros casos o el periodo infeccioso |
-| [01-getting-started/02-the-method-step-by-step.ipynb](01-getting-started/02-the-method-step-by-step.ipynb) | 2 | cuánto se equivoca el paso de Euler hacia adelante del motor, frente al tamaño final y al pico exactos, para qué casos importa, y qué recupera la extrapolación |
-| [01-getting-started/03-a-higher-order-solver.ipynb](01-getting-started/03-a-higher-order-solver.ipynb) | 3 | cómo se compara el RK45 de SciPy con el motor en los mismos casos, por el error según el paso y según el costo |
-| [02-threshold-and-final-size/01-the-threshold.ipynb](02-threshold-and-final-size/01-the-threshold.ipynb) | 1 | con qué tasas de contacto y de recuperación despega un brote, cómo se ve justo sobre el umbral, y qué parte inmune lo detiene |
-| [02-threshold-and-final-size/02-the-final-size.ipynb](02-threshold-and-final-size/02-the-final-size.ipynb) | 2 | qué parte infecta un brote al final, por qué ignora la velocidad del curso, y dónde la corrida del motor no la alcanza |
-
-## Métodos propuestos
-
-Ninguno: el ejemplo es un modelo didáctico, así que no propone un método propio y no tiene notebook de nivel 4. Un
-producto lista cada método que propone en su SDD y lo cubre con un notebook de nivel 4 en cada idioma
-([`docs/guides/08_notebooks.md`](../../docs/guides/08_notebooks.md)).
+La [entrada bilingüe](../README.md) explica preparación y ejecución. Las definiciones y alcance están en
+`docs/design/SDD.md` y `docs/problem-types/02_state-coherence-experiment.md`.
