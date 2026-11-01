@@ -1,12 +1,12 @@
-# Software design document: OreBridge
+# Software design document: CAOS Mineral Plant Explorer
 
-Status: design reviewed before core implementation, 2026-10-31. The product was created from the current template; domain implementation follows this reviewed design. Review findings and their resolutions are in this document's final section.
+Status: revised product design, 2026-11-01. The global-plus-area visual architecture and acceptance criteria are specified in [plant-workbench-sdd.md](plant-workbench-sdd.md) and [plant-workbench-tdd.md](plant-workbench-tdd.md). The previous single-global-diagram behavior does not satisfy this design. The visual and reference review is recorded in [visual-reference-review.md](visual-reference-review.md).
 
 ## Problem and non-goals
 
-Provide one connected 3D mineral-processing plant with synchronized process diagrams, current observation context and actual CAOS engine evidence. Stable asset and stream IDs join geometry, instrument tags, model capabilities and source manifests. Users trace upstream/downstream, select equipment, inspect time series and source quality, and distinguish actual instrument observations from model outputs and deterministic replay.
+Provide one connected mine-to-plant workspace with a global overview and distinct, detailed area views in 2D process schematic and 3D. Shared asset/stream identity connects geometry, diagrams, live/replay observations, trends and CAOS engine evidence. The global view must lead to each area's own process composition; selecting an area must not leave the same full-plant diagram on screen.
 
-The public reference plant is an authored copper sulfide/oxide complex with physically distinct concentrator and leach routes, shared ore arrival and water services. It is not an as-built representation of any mine. No actual site data has been supplied. The gateway is read-only; no write, setpoint, PLC method, dispatch or control route is implemented. Displayed tailings observations never establish geotechnical safety.
+The public reference plant is an authored copper sulfide/oxide complex with physically distinct concentrator and leach routes, shared ore arrival and water services. It is not an as-built representation of any mine. No actual site data has been supplied. The gateway is read-only; no write, setpoint, PLC method, dispatch or control route is implemented. Displayed tailings observations never establish geotechnical safety. Synthetic replay, CAOS engine artifacts and actual site observations remain separately identified.
 
 ## Executive brief
 
