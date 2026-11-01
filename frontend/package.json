@@ -1,7 +1,7 @@
 {
   "name": "caos-mineral-plant-explorer-frontend",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.2.1",
   "license": "MIT",
   "type": "module",
   "scripts": {
@@ -13,6 +13,7 @@
     "build": "node scripts/gen-contract-types.mjs --check && tsc --noEmit && vite build && node scripts/materialize-routes.mjs",
     "preview": "node scripts/serve.mjs",
     "test": "vitest run",
+    "check:diagram-geometry": "node scripts/check_diagram_geometry.mjs",
     "gate": "node scripts/gate.mjs"
   },
   "dependencies": {

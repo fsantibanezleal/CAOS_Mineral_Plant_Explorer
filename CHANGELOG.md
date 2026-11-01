@@ -3,6 +3,16 @@
 All notable changes to this product. Versions are X.XX.XXX (VERSION is the single source); every release is
 tagged.
 
+## [0.02.001] - 2026-11-01
+
+### Fixed
+
+- Route area-schematic labels around equipment, boundary cards and other stream labels; make inter-area stream identity explicit.
+- Keep diagrams readable on narrow screens with a keyboard-accessible horizontal canvas and a visible scroll hint, without page-level horizontal overflow.
+- Replace unexplained missing-value marks in the 3D scene with localized observation states and separate asset labels from values.
+- Localize stream material names in Spanish area schematics and flow lists; increase boundary-port label sizes.
+- Add English/Spanish geometry and 2D-area-to-detail browser checks for all nine areas.
+
 ## [0.02.000] - 2026-11-01
 
 ### Added
