@@ -135,29 +135,140 @@
 /* Match the workbench canvas to the viewport while preserving the authored schematic ratio. */
 .ob-area-inline-schematic .ob-process-schematic { width: 100%; height: auto; min-width: 0; max-width: 100%; min-height: 0; max-height: none; aspect-ratio: 1480 / 640; margin-inline: auto; }
 @media (max-width: 720px) { .ob-area-inline-schematic .ob-process-schematic { width: 1100px; height: auto; min-width: 1100px; max-width: none; margin-inline: 0; } }
-.caos-focus-shell .ob-area-inline-schematic > .ob-section-title,
-.caos-focus-shell .ob-area-inline-schematic > .ob-diagram-scroll-hint { display: none; }
-.caos-focus-shell .ob-area-inline-schematic .ob-process-schematic { width: auto; height: auto; max-width: 100%; max-height: 82vh; aspect-ratio: 1480 / 640; margin-inline: auto; }
+.ob-view-layout.ob-focus-layout .ob-area-inline-schematic .ob-process-schematic { width: auto; height: auto; max-width: 100%; max-height: 82vh; aspect-ratio: 1480 / 640; margin-inline: auto; }
 @media (min-width: 1200px) { .ob-overview-body { grid-template-columns: minmax(0, 1fr) minmax(280px, 320px); align-items: stretch; } }
 @media (max-width: 1199px) { .ob-overview-body { grid-template-columns: minmax(0, 1fr); } }
 .ob-overview-map { min-height: 0; max-height: none; aspect-ratio: 1480 / 470; }
 .ob-overview-body > .ob-overview-side { align-self: stretch; }
-.caos-focus-shell .ob-overview-body { flex: 1 1 auto; min-height: 0; }
-.caos-focus-shell .ob-overview-card { display: flex; flex-direction: column; min-height: 0; }
-.caos-focus-shell .ob-overview-card .ob-diagram-scroll { display: flex; flex: 1 1 auto; align-items: center; justify-content: center; min-height: 0; }
-.caos-focus-shell .ob-diagram-scroll :is(.ob-overview-map,.ob-site-plan,.ob-global-schematic,.ob-water-schematic) { width: auto; height: 100%; min-height: 0; max-width: 100%; max-height: 100%; margin-inline: auto; }
-.caos-focus-shell .ob-water-metrics,.caos-focus-shell .ob-water-note { display: none; }
-.caos-focus-shell .ob-atlas-view[data-scope="global"] > .ob-overview-summary { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.caos-focus-shell .ob-atlas-view { display: flex; flex-direction: column; min-height: 0; }
-.caos-focus-shell .ob-atlas-view > .ob-diagram-scroll { flex: 1 1 auto; height: calc(100dvh - 175px); max-height: calc(100dvh - 175px); min-height: 0; }
-.caos-focus-shell .ob-atlas-view > .ob-diagram-scroll-hint,
-.caos-focus-shell .ob-atlas-view > .ob-plan-legend,
-.caos-focus-shell .ob-diagram-scroll-hint { display: none; }
-.caos-focus-shell .ob-overview-card .ob-diagram-scroll { height: 100%; max-height: calc(100dvh - 330px); }
-.caos-focus-shell .ob-area-inline-schematic > .ob-diagram-scroll { height: auto; max-height: none; }
-.caos-focus-shell .ob-water-balance > .ob-diagram-scroll { flex: 1 1 auto; height: min(74vh, calc(100dvh - 155px)); max-height: calc(100dvh - 155px); }
-.caos-focus-shell .ob-water-schematic { height: 100%; min-height: 0; max-height: 100%; }
+.ob-view-layout.ob-focus-layout .ob-overview-body { flex: 1 1 auto; min-height: 0; }
+.ob-view-layout.ob-focus-layout .ob-overview-card { display: flex; flex-direction: column; min-height: 0; }
+.ob-view-layout.ob-focus-layout .ob-overview-card .ob-diagram-scroll { display: flex; flex: 1 1 auto; align-items: center; justify-content: center; min-height: 0; }
+.ob-view-layout.ob-focus-layout .ob-diagram-scroll :is(.ob-overview-map,.ob-site-plan,.ob-global-schematic,.ob-water-schematic) { width: auto; height: 100%; min-height: 0; max-width: 100%; max-height: 100%; margin-inline: auto; }
+.ob-view-layout.ob-focus-layout .ob-atlas-view[data-scope="global"] > .ob-overview-summary { display:none }
+.ob-view-layout.ob-focus-layout .ob-atlas-view { display: flex; flex-direction: column; min-height: 0; }
+.ob-view-layout.ob-focus-layout .ob-atlas-view>.ob-process-kpis,.ob-view-layout.ob-focus-layout .ob-water-balance>.ob-water-metrics{display:none}
+.ob-view-layout.ob-focus-layout .ob-atlas-view > .ob-diagram-scroll { flex: 1 1 auto; height: calc(100dvh - 175px); max-height: calc(100dvh - 175px); min-height: 0; }
+.ob-view-layout.ob-focus-layout .ob-overview-card .ob-diagram-scroll { height: 100%; max-height: calc(100dvh - 330px); }
+.ob-view-layout.ob-focus-layout .ob-area-inline-schematic > .ob-diagram-scroll { height: auto; max-height: none; }
+.ob-view-layout.ob-focus-layout .ob-water-balance > .ob-diagram-scroll { flex: 1 1 auto; height: min(74vh, calc(100dvh - 155px)); max-height: calc(100dvh - 155px); }
+.ob-view-layout.ob-focus-layout .ob-water-schematic { height: 100%; min-height: 0; max-height: 100%; }
 @media (max-width: 720px) {
-  .caos-focus-shell .ob-atlas-view > .ob-diagram-scroll,.caos-focus-shell .ob-area-inline-schematic > .ob-diagram-scroll,.caos-focus-shell .ob-water-balance > .ob-diagram-scroll { height: auto; max-height: none; }
-  .caos-focus-shell .ob-diagram-scroll :is(.ob-overview-map,.ob-site-plan,.ob-global-schematic,.ob-process-schematic,.ob-water-schematic) { width: 1100px; height: auto; max-width: none; max-height: none; margin-inline: 0; }
+  .ob-view-layout.ob-focus-layout .ob-atlas-view > .ob-diagram-scroll,.ob-view-layout.ob-focus-layout .ob-area-inline-schematic > .ob-diagram-scroll,.ob-view-layout.ob-focus-layout .ob-water-balance > .ob-diagram-scroll { height: auto; max-height: none; }
+  .ob-view-layout.ob-focus-layout .ob-diagram-scroll :is(.ob-overview-map,.ob-site-plan,.ob-global-schematic,.ob-process-schematic,.ob-water-schematic) { width: 1100px; height: auto; max-width: none; max-height: none; margin-inline: 0; }
 }
+
+/* Information stays beside and around the drawings instead of being hidden in Focus. */
+.ob-process-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.55rem;margin:.1rem 0 .35rem}
+.ob-process-kpis{display:flex;align-items:stretch;gap:0;border-block:1px solid var(--color-border);background:transparent}
+.ob-process-kpis .ob-area-metric{flex:1 1 0;min-width:0;min-height:0;justify-content:center;padding:.35rem .8rem;background:transparent;border:0;border-right:1px solid var(--color-border);border-radius:0}
+.ob-process-kpis .ob-area-metric:last-child{border-right:0}
+.ob-process-kpis .ob-area-metric>span{font-size:.62rem}
+.ob-process-kpis .ob-area-metric strong{font-size:.92rem}
+.ob-process-kpis .ob-area-metric em{font-size:.59rem;line-height:1.2}
+.ob-water-metrics{display:flex;align-items:stretch;gap:0;border-block:1px solid var(--color-border);background:transparent}
+.ob-water-metrics .ob-area-metric{flex:1 1 0;min-width:0;min-height:0;justify-content:center;padding:.35rem .8rem;background:transparent;border:0;border-right:1px solid var(--color-border);border-radius:0}
+.ob-water-metrics .ob-area-metric:last-child{border-right:0}
+.ob-water-metrics .ob-area-metric>span{font-size:.62rem}
+.ob-water-metrics .ob-area-metric strong{font-size:.92rem}
+.ob-water-metrics .ob-area-metric em{font-size:.59rem;line-height:1.2}
+.ob-trend-availability{gap:1rem;padding:.25rem .15rem}
+.ob-trend-availability-head{max-width:1000px;padding:clamp(1rem,2vw,1.8rem);background:linear-gradient(120deg,color-mix(in srgb,var(--color-accent) 10%,var(--color-surface)),var(--color-surface));border:1px solid var(--color-border);border-left:4px solid var(--color-accent);border-radius:10px}
+.ob-trend-availability-head h2{margin:.35rem 0 .55rem;font-size:clamp(1.2rem,2vw,1.7rem);line-height:1.2}
+.ob-trend-availability-head p{margin:.35rem 0;color:var(--color-fg-subtle);line-height:1.5}
+.ob-trend-evidence-note{margin-top:.8rem;padding:.7rem .85rem;background:var(--color-surface);border:1px solid var(--color-border);border-radius:7px;line-height:1.5}
+.ob-trend-availability-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);gap:.85rem;min-height:0}
+.ob-trend-channel-panel,.ob-trend-boundary-panel{min-width:0;padding:1rem;background:var(--color-surface);border:1px solid var(--color-border);border-radius:10px}
+.ob-trend-channel-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:.5rem;margin-top:.65rem}
+.ob-trend-channel-list button{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:.65rem;padding:.75rem;text-align:left;color:var(--color-fg);background:var(--color-surface-2);border:1px solid var(--color-border);border-radius:7px;cursor:pointer}
+.ob-trend-channel-list button:hover,.ob-trend-channel-list button:focus-visible,.ob-trend-channel-list button.ob-selected{border-color:var(--color-accent);outline:none}
+.ob-trend-channel-list button span{display:grid;gap:.22rem;min-width:0}
+.ob-trend-channel-list button small{overflow:hidden;color:var(--color-fg-subtle);text-overflow:ellipsis;white-space:nowrap}
+.ob-trend-channel-list button strong{font-size:.86rem}
+.ob-trend-channel-list button b{font:650 .8rem var(--font-mono,monospace)}
+.ob-trend-channel-list button i{font-style:normal;color:var(--color-accent)}
+.ob-trend-boundary-panel>p{font-size:.82rem;line-height:1.5;color:var(--color-fg-subtle)}
+.ob-stream-name{font-size:16px;font-weight:700}
+.ob-stream-value{font-size:13px;font-weight:600}
+.ob-node-id{font-size:16px}
+.ob-node-name{font-size:16px}
+.ob-node-context{font-size:12px}
+.ob-boundary-kicker{font-size:11px}
+.ob-boundary-route{font-size:14px}
+.ob-boundary-material{font-size:14px}
+.ob-boundary-flow{font-size:13px}
+.ob-schematic-key{font-size:14px}
+.ob-global-unit-name{font-size:18px}
+.ob-global-unit-count{font-size:15px}
+.ob-process-stream rect{display:none}
+.ob-process-stream text{paint-order:stroke;stroke:var(--color-surface);stroke-width:6px;stroke-linejoin:round}
+.ob-plan-area-zone{fill:color-mix(in srgb,var(--color-surface) 92%,var(--area-color));stroke:var(--area-color);stroke-width:2;stroke-dasharray:4 4}
+.ob-site-building{fill:color-mix(in srgb,var(--color-surface-2) 80%,transparent);stroke:var(--color-fg-faint);stroke-width:2}
+.ob-site-building-label{fill:var(--color-fg-subtle);font:700 14px var(--font-mono,monospace);letter-spacing:.08em}
+.ob-site-lane{fill:none;stroke:var(--color-border);stroke-width:2;stroke-dasharray:8 8}
+.ob-plan-asset-dot .ob-site-footprint{stroke-width:2.5}
+.ob-plan-asset-dot .ob-site-asset-id{font-size:16px}
+.ob-plan-asset-dot .ob-site-asset-name{font-size:13px}
+.ob-plan-glyph{filter:drop-shadow(0 2px 2px #0002)}
+@media(max-width:850px){.ob-process-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.ob-trend-availability-grid{grid-template-columns:1fr}}
+@media(max-width:540px){.ob-process-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.ob-process-kpis .ob-area-metric:nth-child(2){border-right:0}.ob-process-kpis .ob-area-metric:nth-child(-n+2){border-bottom:1px solid var(--color-border)}.ob-water-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.ob-process-kpis .ob-area-metric,.ob-water-metrics .ob-area-metric{padding:.35rem .4rem}.ob-process-kpis .ob-area-metric>span,.ob-water-metrics .ob-area-metric>span{font-size:.55rem}.ob-process-kpis .ob-area-metric strong,.ob-water-metrics .ob-area-metric strong{font-size:.75rem}.ob-process-kpis .ob-area-metric em,.ob-water-metrics .ob-area-metric em{font-size:.52rem}.ob-trend-channel-list{grid-template-columns:1fr}}
+
+/* Focus re-composition belongs to the product view, while the shell owns its frame, HUD and rail. */
+.ob-view-layout.ob-focus-layout{height:100%;min-height:0}
+.ob-focus-rail{display:grid;align-content:start;gap:.3rem;min-width:0;padding:.35rem}
+.ob-focus-selection{display:grid;gap:.15rem;padding:.35rem 0;border-bottom:1px solid var(--color-border);font-size:.72rem}
+.ob-focus-selection strong{line-height:1.3}
+.ob-focus-selection span{color:var(--color-fg-subtle);font-variant-numeric:tabular-nums}
+.ob-focus-rail .ob-control{display:grid;gap:.18rem;margin:.12rem 0;font-size:.72rem;line-height:1.25}
+.ob-focus-rail .ob-control select{width:100%;min-width:0;padding:.28rem .35rem;font-size:.66rem}
+.ob-focus-rail .ob-control input[type=range]{width:100%;min-width:0}
+.ob-focus-rail .ob-toolbar{display:flex;flex-wrap:wrap;gap:.35rem;margin:.1rem 0}
+.ob-focus-rail details{min-width:0;padding:.3rem 0;border-top:1px solid var(--color-border)}
+.ob-focus-rail details>summary{cursor:pointer;font-size:.75rem;font-weight:650}
+.ob-focus-rail details .ob-control{font-size:.68rem}
+.ob-view-layout.ob-focus-layout .ob-atlas-view:has(>.ob-diagram-scroll>.ob-site-plan)>.ob-view-caption{display:none}
+.ob-view-layout.ob-focus-layout .ob-explorer-stage{min-height:0;overscroll-behavior:contain}
+.ob-view-layout.ob-focus-layout .ob-area-inline-schematic .ob-process-schematic{height:min(78vh,940px);min-height:520px}
+.ob-boundary-port rect{display:none}
+.ob-boundary-port text{paint-order:stroke;stroke:var(--color-surface);stroke-width:5px;stroke-linejoin:round}
+.ob-boundary-terminal{fill:none;stroke:var(--color-fg-subtle);stroke-width:2}
+.ob-node-hit-area{fill:transparent;stroke:transparent}
+.ob-schematic-node:hover .ob-node-hit-area,.ob-schematic-node:focus .ob-node-hit-area{fill:color-mix(in srgb,var(--color-accent) 5%,transparent);stroke:var(--color-accent);stroke-dasharray:4 5}
+.ob-schematic-node .ob-node-id{font-size:17px;font-weight:750}
+.ob-schematic-node.selected .ob-node-name{font-weight:750}
+.ob-global-flowsheet-svg{display:block;width:100%;height:auto;min-height:560px;max-height:74vh;border:1px solid var(--color-border);border-radius:10px;background:var(--color-surface)}
+.ob-flowsheet-band{fill:color-mix(in srgb,var(--color-surface-2) 65%,transparent);stroke:var(--color-border);stroke-width:1.5;stroke-dasharray:5 7}
+.ob-flowsheet-band.sulfide{stroke:#bd9967}.ob-flowsheet-band.oxide{stroke:#9d7b6d}
+.ob-flowsheet-lane-title{font:700 14px var(--font-mono,monospace);letter-spacing:.07em;fill:var(--color-fg-subtle)}
+.ob-flowsheet-lane-title.water{fill:var(--color-fg)}
+.ob-global-area-boundary{fill:color-mix(in srgb,var(--color-surface) 70%,transparent);stroke:var(--area-color);stroke-width:1.5;stroke-dasharray:3 5}
+.ob-global-area-accent{stroke:var(--area-color);stroke-width:4}
+.ob-global-area-kicker{font:600 10px var(--font-mono,monospace);fill:var(--color-fg-subtle);letter-spacing:.06em}
+.ob-global-area-name{font:700 15px system-ui,sans-serif;fill:var(--color-fg)}
+.ob-global-area-assets{color:var(--area-color)}.ob-global-area-assets text{font:10px var(--font-mono,monospace);fill:var(--color-fg-subtle)}
+.ob-global-process-area{cursor:pointer}.ob-global-process-area:hover .ob-global-area-boundary,.ob-global-process-area:focus .ob-global-area-boundary{stroke-width:3;fill:color-mix(in srgb,var(--area-color) 9%,var(--color-surface))}.ob-global-process-area:focus{outline:none}
+.ob-global-route path{stroke-linecap:round;stroke-linejoin:round;opacity:.82}.ob-global-route-label{font:600 11px var(--font-mono,monospace);fill:var(--color-fg);paint-order:stroke;stroke:var(--color-surface);stroke-width:5px;stroke-linejoin:round}.ob-global-route-value{font:11px var(--font-mono,monospace);fill:var(--color-fg-subtle);paint-order:stroke;stroke:var(--color-surface);stroke-width:5px}
+@media(max-width:540px){.ob-view-layout.ob-focus-layout .ob-area-inline-schematic .ob-process-schematic{min-height:460px}}
+
+/* Preserve diagram label scale on desktop when the inspector rail narrows the plotting stage. */
+.ob-global-flowsheet-svg{min-width:1680px;max-height:none;min-height:0;aspect-ratio:1700/600}
+.ob-area-inline-schematic .ob-process-schematic{min-width:1240px;max-height:none;min-height:0;height:auto;aspect-ratio:1480/640}
+.ob-area-inline-schematic>.ob-diagram-scroll-hint,.ob-global-flowsheet>.ob-diagram-scroll-hint{display:block}
+@media(min-width:721px){.ob-view-layout.ob-focus-layout .ob-area-inline-schematic .ob-process-schematic{width:100%;min-width:0;min-height:0;height:auto;max-width:100%;max-height:none}.ob-view-layout.ob-focus-layout .ob-atlas-view>.ob-diagram-scroll>.ob-site-plan{width:100%;height:auto;max-width:100%;max-height:none;aspect-ratio:1480/760}.ob-view-layout.ob-focus-layout .ob-global-flowsheet-svg{min-width:1440px}}
+@media(min-width:721px){.ob-view-layout.ob-focus-layout .ob-water-balance>.ob-diagram-scroll{display:flex;align-items:center}.ob-view-layout.ob-focus-layout .ob-water-balance>.ob-diagram-scroll>.ob-water-schematic{width:100%;height:auto;min-height:0;max-height:none;aspect-ratio:1480/660}}
+
+.ob-overview-flowsheet{grid-template-columns:minmax(0,1fr) 260px;align-items:stretch}.ob-overview-flowsheet .ob-overview-card{min-width:0}.ob-overview-flowsheet .ob-global-flowsheet-svg{min-width:1680px}.ob-global-route-label.overview,.ob-global-route-value.overview{display:none}
+@media(max-width:850px){.ob-overview-flowsheet{grid-template-columns:1fr}}
+
+/* Open area groupings keep the global maps spatial and process-led rather than a card-and-connector board. */
+.ob-global-area-boundary,.ob-flowsheet-band{display:none}
+.ob-atlas-view[data-scope=global] .ob-site-plan .ob-area-zone{display:none}
+.ob-global-area-accent{stroke-width:3}
+.ob-overview-flowsheet .ob-global-flowsheet-svg{min-height:0}
+
+.ob-view-layout.ob-focus-layout .ob-trend-availability-head{max-width:none;padding:.8rem 1rem}.ob-view-layout.ob-focus-layout .ob-trend-availability-head h2{font-size:1.2rem;margin:.2rem 0}.ob-view-layout.ob-focus-layout .ob-trend-availability-head>p{margin:.2rem 0;font-size:.84rem}.ob-view-layout.ob-focus-layout .ob-trend-evidence-note{margin-top:.35rem;padding:.45rem .6rem;font-size:.78rem;line-height:1.35}
+
+.ob-process-legend{display:flex;align-items:center;gap:.35rem 1rem;flex-wrap:wrap;padding:.45rem .1rem;color:var(--color-fg-subtle);font:600 .68rem var(--font-mono,monospace)}.ob-process-legend span{display:flex;align-items:center;gap:.35rem}.ob-process-legend i{display:inline-block;width:.55rem;height:.55rem;border-radius:50%;background:#bd9967}.ob-process-legend i.water{background:#39a8c8}.ob-process-legend i.tailings{background:#9a806b}.ob-view-layout.ob-focus-layout .ob-area-inline-schematic .ob-process-legend{position:sticky;left:0;z-index:2;background:var(--color-surface)}
+.ob-process-legend i.ob-solid{background:#bd9967}
+.ob-water-area-rule{fill:none;stroke:var(--area-color);stroke-width:3}
+
+.ob-global-area-hit,.ob-site-area-hit{fill:transparent;stroke:none;pointer-events:all}.ob-global-area-hit{cursor:pointer}.ob-site-area-hit{cursor:pointer}
