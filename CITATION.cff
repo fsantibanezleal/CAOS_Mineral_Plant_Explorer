@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "Please cite this software and the scientific report relevant to the result you use."
 type: software
 title: "CAOS Mineral Plant Explorer: Global and area-level process visualization"
-version: 0.02.003
+version: 0.02.004
 authors:
   - family-names: Santibáñez-Leal
     given-names: Felipe
