@@ -3,6 +3,13 @@
 All notable changes to this product. Versions are X.XX.XXX (VERSION is the single source); every release is
 tagged.
 
+## [0.02.004] - 2026-11-02
+
+### Fixed
+
+- Keep the no-series Trends state distinct from the process schematic; bring available area channels and boundary context forward for normal and Focus layouts.
+- Add an adversarial browser assertion for trend fallback content and schematic separation.
+
 ## [0.02.003] - 2026-11-02
 
 ### Changed
