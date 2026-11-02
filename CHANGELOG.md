@@ -3,6 +3,19 @@
 All notable changes to this product. Versions are X.XX.XXX (VERSION is the single source); every release is
 tagged.
 
+## [0.02.005] - 2026-11-02
+
+### Changed
+
+- Rename the product and repository identity to OreBridge, with release, citation and exported-scene metadata aligned to the mine-to-plant workspace.
+- Open the selected area's detailed process schematic from the global overview while keeping direct area-overview routes available.
+- Show source-bound equipment variables, data quality/time, process boundaries, related CAOS evidence and explicitly unbound critical variables in the equipment inspector.
+
+### Fixed
+
+- Drive the equipment inspector from 2D/3D pointer hover and keyboard focus so the detailed data follows the asset being inspected.
+- Give trend charts the available plotting height instead of collapsing them to the default plot-body height.
+
 ## [0.02.004] - 2026-11-02
 
 ### Fixed

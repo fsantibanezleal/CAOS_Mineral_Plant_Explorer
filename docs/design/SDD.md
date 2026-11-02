@@ -1,4 +1,4 @@
-# Software design document: CAOS Mineral Plant Explorer
+# Software design document: OreBridge
 
 Status: revised product design, 2026-11-01. The global-plus-area visual architecture and acceptance criteria are specified in [plant-workbench-sdd.md](plant-workbench-sdd.md) and [plant-workbench-tdd.md](plant-workbench-tdd.md). The previous single-global-diagram behavior does not satisfy this design. The visual and reference review is recorded in [visual-reference-review.md](visual-reference-review.md).
 

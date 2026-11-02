@@ -93,16 +93,26 @@ try {
     await selectionPage.locator('.ob-area-preview[data-preview-area="crushing-stockpiling"]').waitFor({ state: 'visible', timeout: 5000 }).catch(() => errors.push(`${language}/overview-focus/crushing-stockpiling: keyboard preview did not appear`));
 
     await selectionPage.goto(`${baseUrl}/app?view=overview&asset=ROM&area=crushing-stockpiling`, { waitUntil: 'domcontentloaded' });
-    await selectionPage.waitForURL(/area=crushing-stockpiling.*view=schematic|view=schematic.*area=crushing-stockpiling/);
-    await selectionPage.getByTestId('area-schematic-crushing-stockpiling').waitFor({ state: 'attached', timeout: 15000 });
-    const deepLinkDetail = await selectionPage.getByTestId('area-schematic-crushing-stockpiling').count() > 0;
-    if (!deepLinkDetail) errors.push(`${language}/deep-link/crushing-stockpiling: area overview URL did not open the detailed process page`);
-    console.log(`${language}/deep-link/crushing-stockpiling: ${deepLinkDetail ? 'opens detailed process page' : 'FAILED'}`);
+    await selectionPage.locator('.ob-atlas-view[data-scope="crushing-stockpiling"] .ob-area-overview-grid').waitFor({ state: 'visible', timeout: 15000 });
+    const deepLinkDetail = await selectionPage.locator('.ob-atlas-view[data-scope="crushing-stockpiling"] .ob-area-asset-grid button').count() === 5;
+    if (!deepLinkDetail) errors.push(`${language}/deep-link/crushing-stockpiling: area overview did not render its own assets and boundaries`);
+    console.log(`${language}/deep-link/crushing-stockpiling: ${deepLinkDetail ? 'renders its own area overview' : 'FAILED'}`);
+    const assetCard = selectionPage.locator('.ob-area-asset-grid button').first();
+    const hoveredAssetId = (await assetCard.innerText()).match(/[A-Z0-9]+/)?.[0];
+    await assetCard.hover();
+    const hoverInspector = selectionPage.locator('.ob-explorer-side .ob-asset-inspector');
+    await hoverInspector.waitFor({ state: 'visible', timeout: 5000 });
+    const hoverAssetMatches = await hoverInspector.getAttribute('data-asset-inspector') === hoveredAssetId;
+    const inspectorHasEvidence = await hoverInspector.getByText(/Process connections|Conexiones de proceso/).count() > 0
+      && await hoverInspector.getByText(/Bound variables|Variables vinculadas/).count() > 0;
+    if (!hoverAssetMatches || !inspectorHasEvidence) errors.push(`${language}/asset-hover: inspector did not follow the hovered equipment or show its evidence sections`);
+    console.log(`${language}/asset-hover: ${hoverAssetMatches && inspectorHasEvidence ? 'shows equipment-specific inspector' : 'FAILED'}`);
     await selectionPage.goto(`${baseUrl}/app?area=mine-extraction&asset=PIT`, { waitUntil: 'domcontentloaded' });
-    await selectionPage.waitForURL(/area=mine-extraction.*view=schematic|view=schematic.*area=mine-extraction/);
-    await selectionPage.getByTestId('area-schematic-mine-extraction').waitFor({ state: 'attached', timeout: 15000 });
-    const mineDeepLink = await selectionPage.getByTestId('area-schematic-mine-extraction').count() > 0;
-    if (!mineDeepLink) errors.push(`${language}/deep-link/mine-extraction: asset URL did not open its area schematic`);
+    await selectionPage.locator('.ob-atlas-view[data-scope="mine-extraction"] .ob-area-overview-grid').waitFor({ state: 'visible', timeout: 15000 });
+    const mineDeepLink = await selectionPage.locator('.ob-atlas-view[data-scope="mine-extraction"] .ob-area-asset-grid button').count() === 3;
+    if (!mineDeepLink) errors.push(`${language}/deep-link/mine-extraction: asset URL did not open its own area overview`);
+    await selectionPage.locator('button[data-tab="schematic"]').click();
+    await selectionPage.getByTestId('area-schematic-mine-extraction').waitFor({ state: 'visible', timeout: 15000 });
     const focusButton = selectionPage.getByRole('button', { name: /Open this view in focus mode|Abrir esta vista en modo enfoque/ });
     await focusButton.click();
     await selectionPage.waitForURL(/focus=1/);
@@ -123,8 +133,8 @@ try {
     await selectionPage.locator('.ob-global-process-area[data-area-id="crushing-stockpiling"]').click();
     await selectionPage.waitForURL(/area=crushing-stockpiling.*view=schematic|view=schematic.*area=crushing-stockpiling/);
     const overviewDrillDown = await selectionPage.getByTestId('area-schematic-crushing-stockpiling').count() > 0;
-    if (!overviewDrillDown) errors.push(`${language}/overview/crushing-stockpiling: global area selection did not open its detailed process page`);
-    console.log(`${language}/overview-selection/crushing-stockpiling: ${overviewDrillDown ? 'opens detailed process page' : 'FAILED'}`);
+    if (!overviewDrillDown) errors.push(`${language}/overview/crushing-stockpiling: global area selection did not open its detailed process diagram`);
+    console.log(`${language}/overview-selection/crushing-stockpiling: ${overviewDrillDown ? 'opens its own area diagram' : 'FAILED'}`);
 
     await selectionPage.locator('select').first().selectOption('global');
     await selectionPage.locator('button[data-tab="site-plan"]').click();

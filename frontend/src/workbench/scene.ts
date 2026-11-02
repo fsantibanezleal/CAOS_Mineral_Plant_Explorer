@@ -59,7 +59,7 @@ export function equipment(a: Asset): T.Group {
   group.position.fromArray(a.position); return group;
 }
 export function buildPlant(plant: Plant) {
-  const group = new T.Group(); group.name='CAOS Mineral Plant Explorer'; group.userData={schema:plant.schema, revision:plant.revision, provenance:plant.provenance};
+  const group = new T.Group(); group.name='OreBridge'; group.userData={schema:plant.schema, revision:plant.revision, provenance:plant.provenance};
   for(const a of plant.assets)group.add(equipment(a)); return group;
 }
 export function validateGLTF(json: unknown, plant: Plant) {
