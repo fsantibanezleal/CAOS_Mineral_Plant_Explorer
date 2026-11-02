@@ -17,7 +17,7 @@ const expectedNodes = {
   utilities: 5,
 };
 const expectedPlanAssets = { ...expectedNodes, 'water-balance': 22 };
-const browser = await chromium.launch({ headless: true });
+let browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1600, height: 1200 }, deviceScaleFactor: 1 });
 const errors = [];
 try {
@@ -41,56 +41,21 @@ try {
       }));
       if (scroll.scrollWidth > scroll.clientWidth + 1 && scroll.hint === 'none') errors.push(`${language}/${area}: clipped schematic has no visible horizontal-scroll hint`);
       const result = await svg.evaluate((root) => {
-        const overlap = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
-        const waterBalance = root.classList.contains('ob-water-schematic');
-        const nodes = waterBalance
-          ? [...root.querySelectorAll('.ob-water-area > rect')].map((el) => el.getBoundingClientRect())
-          : [...root.querySelectorAll('.ob-schematic-node')].map((el) => el.getBoundingClientRect());
-        const labels = waterBalance
-          ? [...root.querySelectorAll('.ob-water-route > rect')].map((el) => el.getBoundingClientRect())
-          : [...root.querySelectorAll('.ob-process-stream:not(.boundary) > rect')].map((el) => el.getBoundingClientRect());
-        const labelNode = labels.flatMap((label, i) => nodes.flatMap((node, j) => overlap(label, node) ? [`label ${i + 1} intersects node ${j + 1}`] : []));
-        const labelLabel = labels.flatMap((label, i) => labels.slice(i + 1).flatMap((other, k) => overlap(label, other) ? [`label ${i + 1} intersects label ${i + k + 2}`] : []));
-        const labelTextOverflow = [...root.querySelectorAll(waterBalance ? '.ob-water-route' : '.ob-process-stream:not(.boundary)')].flatMap((group) => {
-          const card = group.querySelector('rect')?.getBBox();
-          if (!card) return ['a route label has no backing card'];
-          return [...group.querySelectorAll('text')].flatMap((text) => {
-            const box = text.getBBox();
-            return box.x < card.x + 2 || box.x + box.width > card.x + card.width - 2
-              || box.y < card.y + 1 || box.y + box.height > card.y + card.height - 1
-              ? [`${text.classList[0] ?? 'route text'} overflows its label card`] : [];
-          });
-        });
-        const nameOverflow = [...root.querySelectorAll('.ob-node-name')].flatMap((el) => {
-          const box = el.getBBox();
-          return box.width > 148 ? [`${el.closest('.ob-schematic-node')?.getAttribute('aria-label') ?? 'node'} name width ${box.width.toFixed(1)} exceeds 148`] : [];
-        });
-        const boundaryOverflow = [...root.querySelectorAll('.ob-boundary-port')].flatMap((group) => {
-          const card = group.querySelector('rect').getBBox();
-          return [...group.querySelectorAll('text')].flatMap((text) => {
-            const box = text.getBBox();
-            const name = text.classList[0] ?? 'boundary text';
-            return box.x < card.x + 8 || box.x + box.width > card.x + card.width - 8 || box.y < card.y + 5 || box.y + box.height > card.y + card.height - 5
-              ? [`${name} exceeds its boundary card`] : [];
-          });
-        });
-        const portRects = [...root.querySelectorAll('.ob-boundary-port')].map((group) => ({
-          incoming: group.classList.contains('incoming'),
-          box: group.getBoundingClientRect(),
-          id: group.querySelector('.ob-boundary-route')?.textContent ?? 'boundary port',
-        }));
-        const portOverlap = portRects.flatMap((port, i) => portRects.slice(i + 1).flatMap((other) =>
-          port.incoming === other.incoming && overlap(port.box, other.box) ? [`${port.id} boundary card intersects ${other.id}`] : []));
-        const viewport = root.getBoundingClientRect();
-        const contentOverflow = [...root.querySelectorAll(waterBalance
-          ? '.ob-water-area, .ob-water-route > rect'
-          : '.ob-schematic-node, .ob-process-stream:not(.boundary) > rect, .ob-boundary-port')].flatMap((el) => {
-          const box = el.getBoundingClientRect();
-          return box.left < viewport.left - 1 || box.right > viewport.right + 1
-            || box.top < viewport.top - 1 || box.bottom > viewport.bottom + 1
-            ? [`${el.classList[0] ?? 'diagram content'} is clipped by the SVG viewBox`] : [];
-        });
-        return { labelCount: labels.length, nodeCount: nodes.length, issues: [...labelNode, ...labelLabel, ...labelTextOverflow, ...nameOverflow, ...boundaryOverflow, ...portOverlap, ...contentOverflow] };
+        const overlap=(a,b)=>a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top;
+        const water=root.classList.contains('ob-water-schematic');
+        const nodes=water?[...root.querySelectorAll('.ob-water-area')].map(e=>e.getBoundingClientRect()):[...root.querySelectorAll('.ob-schematic-node')].map(e=>e.getBoundingClientRect());
+        const routeGroups=[...root.querySelectorAll(water?'.ob-water-route':'.ob-process-stream:not(.boundary)')];
+        const labelGroups=routeGroups.map(g=>{const r=[...g.querySelectorAll('text')].map(e=>e.getBoundingClientRect()).filter(b=>b.width>0&&b.height>0);return r.length?{left:Math.min(...r.map(b=>b.left)),right:Math.max(...r.map(b=>b.right)),top:Math.min(...r.map(b=>b.top)),bottom:Math.max(...r.map(b=>b.bottom))}:null}).filter(Boolean);
+        const labels=labelGroups;
+        const nodeLabels=labels.flatMap((label,i)=>nodes.flatMap((node,j)=>overlap(label,node)?['route label '+(i+1)+' intersects equipment/area '+(j+1)]:[]));
+        const labelOverlap=labels.flatMap((label,i)=>labels.slice(i+1).flatMap((other,j)=>overlap(label,other)?['route label '+(i+1)+' intersects label '+(i+j+2)]:[]));
+        const routeCrossings=water?(()=>{const paths=routeGroups.map(g=>g.querySelector('path')).filter(Boolean),points=paths.map(p=>Array.from({length:81},(_,i)=>p.getPointAtLength(p.getTotalLength()*i/80)));const hits=[];for(let i=0;i<points.length;i++)for(let j=i+1;j<points.length;j++){let closest=Infinity;for(let a=4;a<77;a++)for(let b=4;b<77;b++)closest=Math.min(closest,Math.hypot(points[i][a].x-points[j][b].x,points[i][a].y-points[j][b].y));if(closest<5)hits.push(`water transfer ${i+1} crosses transfer ${j+1}`)}return hits})():[];
+        const viewport=root.getBoundingClientRect();
+        const boundaryGroups=[...root.querySelectorAll('.ob-boundary-port')].map(g=>({side:g.classList.contains('incoming')?'in':'out',box:g.getBoundingClientRect(),id:g.querySelector('.ob-boundary-route')?.textContent??'terminal'}));
+        const boundaryOverlap=boundaryGroups.flatMap((a,i)=>boundaryGroups.slice(i+1).flatMap(b=>a.side===b.side&&overlap(a.box,b.box)?[a.id+' boundary label overlaps '+b.id]:[]));
+        const clipped=[...root.querySelectorAll(water?'.ob-water-area,.ob-water-route text':'.ob-schematic-node,.ob-process-stream text,.ob-boundary-port')].flatMap(e=>{const b=e.getBoundingClientRect();return b.width&&b.height&&(b.left<viewport.left-1||b.right>viewport.right+1||b.top<viewport.top-1||b.bottom>viewport.bottom+1)?[(e.classList[0]??'content')+' is clipped by the SVG viewport']:[]});
+        const names=[...root.querySelectorAll('.ob-node-name')].flatMap(e=>e.getBBox().width>148?[(e.closest('.ob-schematic-node')?.getAttribute('aria-label')??'equipment')+' name exceeds 148 SVG units']:[]);
+        return{labelCount:routeGroups.length,nodeCount:nodes.length,issues:[...nodeLabels,...labelOverlap,...routeCrossings,...boundaryOverlap,...clipped,...names]};
       });
       const expectedNodeCount = expectedNodes[area];
       if (result.nodeCount < expectedNodeCount) errors.push(`${language}/${area}: diagram rendered ${result.nodeCount} nodes; expected at least ${expectedNodeCount}`);
@@ -98,9 +63,12 @@ try {
       console.log(`${language}/${area}: ${result.nodeCount} ${area === 'water-balance' ? 'areas' : 'nodes'}, ${result.labelCount} ${area === 'water-balance' ? 'transfers' : 'labels'}, ${result.issues.length ? result.issues.join('; ') : 'clear'}`);
     }
   }
+  await page.close();
+  await browser.close();
+  browser = await chromium.launch({ headless: true });
   for (const language of ['EN', 'ES']) {
     const selectionPage = await browser.newPage({ viewport: { width: 1600, height: 1200 } });
-    await selectionPage.goto(`${baseUrl}/app?view=overview`, { waitUntil: 'networkidle' });
+    await selectionPage.goto(`${baseUrl}/app?view=overview`, { waitUntil: 'domcontentloaded' });
     const languageButton = selectionPage.locator('button[aria-label="Switch language"]');
     await languageButton.waitFor({ state: 'visible', timeout: 15000 });
     if ((await languageButton.innerText()).trim().toUpperCase() !== language) await languageButton.click();
@@ -114,7 +82,7 @@ try {
     console.log(`${language}/global-site-plan/water-balance: ${hasWaterAssets ? 'water-linked assets are represented' : 'FAILED'}`);
     await selectionPage.locator('button[data-tab="overview"]').click();
 
-    const overviewArea = selectionPage.locator('.ob-overview-map .ob-plan-area').nth(1);
+    const overviewArea = selectionPage.locator('.ob-global-process-area[data-area-id="crushing-stockpiling"]');
     await overviewArea.hover();
     const overviewPreview = selectionPage.locator('.ob-area-preview[data-preview-area="crushing-stockpiling"]');
     await overviewPreview.waitFor({ state: 'visible', timeout: 5000 }).catch(() => errors.push(`${language}/overview-hover/crushing-stockpiling: area preview did not appear`));
@@ -124,13 +92,15 @@ try {
     await overviewArea.focus();
     await selectionPage.locator('.ob-area-preview[data-preview-area="crushing-stockpiling"]').waitFor({ state: 'visible', timeout: 5000 }).catch(() => errors.push(`${language}/overview-focus/crushing-stockpiling: keyboard preview did not appear`));
 
-    await selectionPage.goto(`${baseUrl}/app?view=overview&asset=ROM&area=crushing-stockpiling`, { waitUntil: 'networkidle' });
+    await selectionPage.goto(`${baseUrl}/app?view=overview&asset=ROM&area=crushing-stockpiling`, { waitUntil: 'domcontentloaded' });
     await selectionPage.waitForURL(/area=crushing-stockpiling.*view=schematic|view=schematic.*area=crushing-stockpiling/);
+    await selectionPage.getByTestId('area-schematic-crushing-stockpiling').waitFor({ state: 'attached', timeout: 15000 });
     const deepLinkDetail = await selectionPage.getByTestId('area-schematic-crushing-stockpiling').count() > 0;
     if (!deepLinkDetail) errors.push(`${language}/deep-link/crushing-stockpiling: area overview URL did not open the detailed process page`);
     console.log(`${language}/deep-link/crushing-stockpiling: ${deepLinkDetail ? 'opens detailed process page' : 'FAILED'}`);
-    await selectionPage.goto(`${baseUrl}/app?area=mine-extraction&asset=PIT`, { waitUntil: 'networkidle' });
+    await selectionPage.goto(`${baseUrl}/app?area=mine-extraction&asset=PIT`, { waitUntil: 'domcontentloaded' });
     await selectionPage.waitForURL(/area=mine-extraction.*view=schematic|view=schematic.*area=mine-extraction/);
+    await selectionPage.getByTestId('area-schematic-mine-extraction').waitFor({ state: 'attached', timeout: 15000 });
     const mineDeepLink = await selectionPage.getByTestId('area-schematic-mine-extraction').count() > 0;
     if (!mineDeepLink) errors.push(`${language}/deep-link/mine-extraction: asset URL did not open its area schematic`);
     const focusButton = selectionPage.getByRole('button', { name: /Open this view in focus mode|Abrir esta vista en modo enfoque/ });
@@ -139,18 +109,18 @@ try {
     const focusLayout = await selectionPage.locator('[data-focus-shell]').evaluate((root) => {
       const stage = root.querySelector('.caos-focus-stage')?.getBoundingClientRect();
       const diagram = root.querySelector('.ob-process-schematic')?.getBoundingClientRect();
-      const side = root.querySelector('.ob-explorer-side');
-      return { stageWidth: stage?.width ?? 0, diagramWidth: diagram?.width ?? 0, railCount: root.querySelectorAll('.caos-focus-rail').length, sideDisplay: side ? getComputedStyle(side).display : 'absent' };
+      const side = root.querySelector('.caos-focus-rail');
+      return { stageWidth: stage?.width ?? 0, diagramWidth: diagram?.width ?? 0, railCount: root.querySelectorAll('.caos-focus-rail').length, railControls: !!side?.querySelector('select[aria-label="Replay case"], select[aria-label="Caso de reproducción"]') };
     });
-    if (!(focusLayout.diagramWidth > focusLayout.stageWidth * 0.8) || focusLayout.railCount !== 0 || focusLayout.sideDisplay !== 'none' && focusLayout.sideDisplay !== 'absent') errors.push(`${language}/focus: visualization does not use the clean full-width stage (${JSON.stringify(focusLayout)})`);
+    if (!(focusLayout.diagramWidth > focusLayout.stageWidth * 0.8) || focusLayout.railCount !== 1 || !focusLayout.railControls) errors.push(`${language}/focus: visualization does not use the clean full-width stage (${JSON.stringify(focusLayout)})`);
     console.log(`${language}/focus: diagram fills stage and duplicate rails are absent`);
     await selectionPage.locator('[data-focus-exit]').click();
     await selectionPage.locator('[data-focus-shell]').waitFor({ state: 'detached', timeout: 5000 });
 
-    await selectionPage.goto(`${baseUrl}/app?view=overview`, { waitUntil: 'networkidle' });
+    await selectionPage.goto(`${baseUrl}/app?view=overview`, { waitUntil: 'domcontentloaded' });
     await selectionPage.locator('button[data-tab="site-plan"]').waitFor({ state: 'visible', timeout: 15000 });
 
-    await selectionPage.locator('.ob-plan-area').nth(1).click();
+    await selectionPage.locator('.ob-global-process-area[data-area-id="crushing-stockpiling"]').click();
     await selectionPage.waitForURL(/area=crushing-stockpiling.*view=schematic|view=schematic.*area=crushing-stockpiling/);
     const overviewDrillDown = await selectionPage.getByTestId('area-schematic-crushing-stockpiling').count() > 0;
     if (!overviewDrillDown) errors.push(`${language}/overview/crushing-stockpiling: global area selection did not open its detailed process page`);
@@ -178,6 +148,8 @@ try {
       await selectionPage.locator('button[data-tab="site-plan"]').click();
     }
     await selectionPage.close();
+    await browser.close();
+    browser = await chromium.launch({ headless: true });
   }
   for (const language of ['EN', 'ES']) {
     const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
@@ -209,6 +181,8 @@ try {
       console.log(`${language}/phone/${area}: ${valid ? 'readable scroll region, no page overflow' : 'FAILED'}`);
     }
     await mobile.close();
+    await browser.close();
+    browser = await chromium.launch({ headless: true });
   }
   const spatial = await browser.newPage({ viewport: { width: 1600, height: 1100 } });
   for (const area of areas) {

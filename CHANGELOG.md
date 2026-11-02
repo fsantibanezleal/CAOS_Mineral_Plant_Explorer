@@ -3,6 +3,19 @@
 All notable changes to this product. Versions are X.XX.XXX (VERSION is the single source); every release is
 tagged.
 
+## [0.02.003] - 2026-11-02
+
+### Changed
+
+- Recompose Focus around the active visualization with a compact configuration rail, moving selected data into the rail where a HUD would cover selectable map/evidence geometry.
+- Preserve diagram detail while separating site-plan, global flowsheet, area schematic, 3D, trend/availability and CAOS evidence modes.
+
+### Fixed
+
+- Keep Focus controls within desktop height and avoid clipped Spanish replay-case labels.
+- Clear global route labels from the oxide-lane title, meet text contrast, and keep phone site-plan targets clear of Focus chrome.
+- Harden the bilingual geometry sweep against browser/WebGL accumulation between phases.
+
 ## [0.02.002] - 2026-11-01
 
 ### Added

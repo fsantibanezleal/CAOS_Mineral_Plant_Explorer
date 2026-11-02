@@ -69,14 +69,11 @@
 .ob-water-note{margin:.45rem .2rem;color:var(--color-fg-subtle);font-size:.72rem;line-height:1.45}
 .ob-diagram-scroll{width:100%;max-width:100%;min-width:0;padding-bottom:.25rem;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:thin}
 .ob-diagram-scroll-hint{display:none;margin:.25rem .2rem .55rem;color:var(--color-fg-subtle);font-size:.68rem}
-@media(max-width:720px){.ob-diagram-scroll-hint{display:block}.ob-diagram-scroll :is(.ob-overview-map,.ob-site-plan,.ob-global-schematic,.ob-process-schematic,.ob-water-schematic){width:1100px;min-width:1100px;max-width:none;height:auto;min-height:0;max-height:none}}.caos-focus-shell .ob-view-layout{display:block;width:100%;height:100%;min-height:0}
-.caos-focus-shell .ob-view-layout>.ob-explorer-side{display:none}
-.caos-focus-shell .ob-explorer-stage{height:100%;min-height:0;overflow:auto;border:0;border-radius:0;background:transparent}
-.caos-focus-shell .ob-plot-layout{height:100%;min-height:0;padding:0}
-.caos-focus-shell .ob-view-surface,.caos-focus-shell .ob-view-content,.caos-focus-shell .ob-atlas-view{height:100%;min-height:0}
-.caos-focus-shell .ob-atlas-heading,.caos-focus-shell .ob-atlas-view>.ob-area-nav,.caos-focus-shell .ob-view-caption{display:none}
-.caos-focus-shell .ob-area-inline-schematic .ob-process-schematic{height:min(76vh,900px);min-height:0}
-.caos-focus-shell .ob-scene-stage,.caos-focus-shell .ob-scene-stage>.ob-scene{height:100%;min-height:0}
-.caos-focus-shell .ob-area-summary,.caos-focus-shell .ob-process-guide{display:none}
-.caos-focus-shell .ob-area-overview-grid{grid-template-columns:minmax(0,1fr) minmax(260px,340px);align-content:start}
-@media(max-width:900px){.caos-focus-shell .ob-area-overview-grid{grid-template-columns:minmax(0,1fr)}.caos-focus-shell .ob-area-workspace-side{display:none}}
+@media(max-width:720px){.ob-diagram-scroll-hint{display:block}.ob-diagram-scroll :is(.ob-overview-map,.ob-site-plan,.ob-global-schematic,.ob-process-schematic,.ob-water-schematic){width:1100px;min-width:1100px;max-width:none;height:auto;min-height:0;max-height:none}}.ob-view-layout.ob-focus-layout{display:flex;flex-direction:column;width:100%;height:100%;min-height:0}
+.ob-focus-layout .ob-explorer-stage{height:100%;min-height:0;overflow:auto;border:0;border-radius:0;background:transparent}
+.ob-focus-layout .ob-plot-layout{height:100%;min-height:0;padding:0}
+.ob-view-layout.ob-focus-layout .ob-view-surface,.ob-view-layout.ob-focus-layout .ob-atlas-view{height:100%;min-height:0}
+.ob-view-layout.ob-focus-layout .ob-area-inline-schematic .ob-process-schematic{height:min(76vh,900px);min-height:0}
+.ob-view-layout.ob-focus-layout .ob-scene-stage,.ob-view-layout.ob-focus-layout .ob-scene-stage>.ob-scene{height:100%;min-height:0}
+.ob-view-layout.ob-focus-layout .ob-area-overview-grid{grid-template-columns:minmax(0,1fr) minmax(260px,340px);align-content:start}
+@media(max-width:900px){.ob-view-layout.ob-focus-layout .ob-area-overview-grid{grid-template-columns:minmax(0,1fr)}}
