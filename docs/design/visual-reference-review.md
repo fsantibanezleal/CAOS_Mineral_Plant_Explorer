@@ -1,4 +1,4 @@
-# Visual product review: CAOS Mineral Plant Explorer
+# Visual product review: OreBridge
 
 Initial review: 2026-11-01. The published app was inspected over its working HTTP endpoint. This was the as-published 0.01.001 baseline on `main`, not the local 0.02.000 redesign. During that initial check HTTPS failed certificate validation, so the public deployment was not accepted as operational at that time.
 

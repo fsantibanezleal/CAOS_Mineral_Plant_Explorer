@@ -4,7 +4,8 @@ import { SurfacePage, useShellLang, type TabDef } from '@fasl-work/caos-app-shel
 import { getJSON, loadCase, loadIndex, useArtifact, type CaseData } from '../api/artifacts';
 import type { Plant, EngineEvidence, Observation, SiteSample } from '../lib/contract.types';
 import { acceptSnapshot, assetState, channelIndices, formatValue, linked, liveValue, METHODS, safeStep, snapshotValue } from './model';
-import { AssetValues, EvidenceView, ModelView, SceneView, TrendsView, type ViewState } from './views';
+import { EvidenceView, ModelView, SceneView, TrendsView, type ViewState } from './views';
+import { AssetInspector } from './AssetInspector';
 import { PlantOverviewView, ProcessSchematicView, SitePlanView } from './AreaVisuals';
 import type { PlantScope } from './areas';
 import { buildAreaModel, PLANT_AREAS } from './areas';
@@ -32,8 +33,9 @@ export function Workbench() {
  const selectedCase=caseId||(index.state==='ready'?index.data.default_case:'');
  const loaded=useArtifact(s=>selectedCase?loadCase(selectedCase,s):new Promise<CaseData>(()=>undefined),[selectedCase]);
  const [scope,setScopeState]=useState<PlantScope>(()=>asScope(search.get('area')));
- const [view,setViewState]=useState<PlantView>(()=>{const initial=asView(search.get('view'));return asScope(search.get('area'))!=='global'&&initial==='overview'?'schematic':initial;});
+ const [view,setViewState]=useState<PlantView>(()=>asView(search.get('view')));
  const [selected,setSelectedState]=useState(()=>search.get('asset')||'SAG');
+ const [hoveredAsset,setHoveredAsset]=useState<string|null>(null);
  const [step,setStepState]=useState(()=>safeStep(Number(search.get('step')??80),160));
  const [playing,setPlaying]=useState(false),[method,setMethodState]=useState(search.get('method')||'threshold');
  const [analysisMode,setAnalysisMode]=useState<'engines'|'models'>('engines');
@@ -57,36 +59,36 @@ export function Workbench() {
  useEffect(()=>{
    const nextScope=asScope(search.get('area'));
    const requestedView=asView(search.get('view'));
-   const nextView=nextScope!=='global'&&requestedView==='overview'?'schematic':requestedView;
+   const nextView=requestedView;
    setScopeState(nextScope);
    setViewState(nextView);
    setSelectedState(search.get('asset')||'SAG');
    setStepState(safeStep(Number(search.get('step')??80),160));
    setMethodState(search.get('method')||'threshold');
    setCaseId(search.get('case')??'');
-   if(nextView!==requestedView)updateQuery({view:nextView});
  },[search]);
  useEffect(()=>{if(graph.state!=='ready'||scope==='global')return;const core=buildAreaModel(graph.data,scope).coreAssets;if(core.some(asset=>asset.id===selected)||!core[0])return;setSelectedState(core[0].id);updateQuery({asset:core[0].id});},[graph,scope,selected]);
  const chooseView=(next:PlantView)=>{setViewState(next);updateQuery({view:next});};
  const chooseScope=(next:PlantScope)=>{
    setScopeState(next);
+   setHoveredAsset(null);
    let nextAsset=selected;
    if(next!=='global'&&graph.state==='ready'){
      const core=buildAreaModel(graph.data,next).coreAssets;
      if(!core.some(asset=>asset.id===selected)&&core[0])nextAsset=core[0].id;
    }
    if(nextAsset!==selected)setSelectedState(nextAsset);
-   // Overview selection opens the area's detailed process page. When a user
-   // drills down from a spatial or 3D view, keep that representation active.
+   // A global overview drill-down opens the selected area's own process diagram.
+   // Direct area URLs can still select the first-class area overview explicitly.
    const nextView:PlantView=next==='global'?'overview':view==='overview'?'schematic':view;
    setViewState(nextView);
    updateQuery({area:next==='global'?null:next,asset:nextAsset,view:nextView});
  };
- const chooseAsset=(id:string)=>{setSelectedState(id);updateQuery({asset:id});};
+ const chooseAsset=(id:string)=>{setSelectedState(id);setHoveredAsset(null);updateQuery({asset:id});};
  const setStep=(next:number)=>{const safe=safeStep(next,160);setStepState(safe);updateQuery({step:String(safe)});};
  const setMethod=(next:string)=>{setMethodState(next);updateQuery({method:next});};
  const chooseCase=(id:string)=>{setCaseId(id);setPlaying(false);setStep(80);updateQuery({case:id});};
- const s:ViewState|null=graph.state==='ready'&&engines.state==='ready'&&data?{plant:graph.data,trace:data.trace,engines:engines.data,selected,step,method,highlight,playing,live,now,onSelect:chooseAsset,history,processControls,overlay,onOverlay:setOverlay,scope,onScopeChange:chooseScope}:null;
+ const s:ViewState|null=graph.state==='ready'&&engines.state==='ready'&&data?{plant:graph.data,trace:data.trace,engines:engines.data,selected,hoveredAsset,onHoverAsset:setHoveredAsset,step,method,highlight,playing,live,now,onSelect:chooseAsset,history,processControls,overlay,onOverlay:setOverlay,scope,onScopeChange:chooseScope}:null;
  const pending=<p data-state={loaded.state==='error'?'unavailable':'loading'} className="caos-pending" role="status">{loaded.state==='error'?loaded.error:t('Loading plant and verified replay artifacts…','Cargando planta y artefactos verificados…')}</p>;
  const scopeName=scope==='global'?t('Whole plant','Planta completa'):PLANT_AREAS.find(area=>area.id===scope)?.name[lang]??scope;
  const availableCases=index.state==='ready'?index.data.cases:[];
@@ -102,7 +104,7 @@ export function Workbench() {
  const controls=<aside className="ob-explorer-side" aria-label={t('Plant inspection and replay controls','Inspección de planta y reproducción')}>
    <section className="ob-side-section"><span className="ob-eyebrow">{t('CURRENT AREA','ÁREA ACTUAL')}</span><h2>{scopeName}</h2><p>{scope==='global'?t('Open an area to inspect its dedicated process diagram, assets, boundaries and connected engine evidence.','Abra un área para inspeccionar su diagrama de proceso, equipos, límites y evidencia de motores.'):PLANT_AREAS.find(area=>area.id===scope)?.purpose[lang]}</p></section>
    <label className="ob-control">{t('Equipment','Equipo')}<select aria-label={t('Equipment','Equipo')} value={selected} onChange={event=>chooseAsset(event.target.value)}>{graph.state==='ready'&&(scope==='global'?graph.data.assets:buildAreaModel(graph.data,scope).coreAssets).map(asset=><option key={asset.id} value={asset.id}>{asset.id} · {asset.name[lang]}</option>)}</select></label>
-   {s&&<AssetValues s={s}/>}
+   {s&&<AssetInspector s={s} assetId={hoveredAsset??selected}/>}
    <details className="ob-side-section" open><summary>{t('Replay and methods','Reproducción y métodos')}</summary>
      <label className="ob-control">{t('Replay case','Caso de reproducción')}<select aria-label={t('Replay case','Caso de reproducción')} value={selectedCase} onChange={event=>chooseCase(event.target.value)}>{availableCases.map(item=><option key={item.case_id} value={item.case_id}>{item.case_id} · {item.title[lang]}</option>)}</select></label>
      <label className="ob-control">{t('Replay time','Tiempo de reproducción')} · {step} s<input type="range" aria-label={t('Replay time','Tiempo de reproducción')} min="0" max="159" step="1" value={step} disabled={live!==null} onChange={event=>{setStep(+event.target.value);setPlaying(false);}}/></label>
@@ -117,7 +119,8 @@ export function Workbench() {
  const focused=search.get('focus')==='1';
  const pageTitle=scope==='global'?t('Mine and mineral processing plant','Mina y planta de procesamiento mineral'):scopeName;
  const focusDescription=pageTitle===scopeName?`OreBridge · ${scopeName}`:`${pageTitle} · ${scopeName}`;
- const focusAsset=graph.state==='ready'?graph.data.assets.find(asset=>asset.id===selected):undefined;
+ const focusAssetId=hoveredAsset??selected;
+ const focusAsset=graph.state==='ready'?graph.data.assets.find(asset=>asset.id===focusAssetId):undefined;
  const focusStatus=focusAsset&&s?assetState(focusAsset,s.trace,s.step,s.method,s.live,s.now,s.plant):'unavailable';
  const focusChannel=focusAsset&&data?channelIndices(data.trace,focusAsset.id)[0]:undefined;
  const focusReading=focusAsset&&s&&s.live!==null
@@ -141,6 +144,6 @@ export function Workbench() {
    {label:t('Selected asset · status','Equipo · estado'),value:`${focusAsset?.id??t('Unknown','Desconocido')} · ${focusStatusText}`},
    {label:t('Selected reading','Lectura seleccionada'),value:focusReading&&focusReading.value!==null?`${formatValue(focusReading.value,lang)} ${focusReading.unit}`:t('No bound channel','Sin canal asociado')},
  ]:[ ];
- const tabs:TabDef[]=VIEWS.map(item=>({id:item.id,label:item[lang],content:<div className={`ob-view-layout${focused?' ob-focus-layout':''}`} aria-label={`${scopeName} · ${item[lang]}`}>{!focused&&!(view==='overview'&&scope==='global')&&controls}<div className="ob-explorer-stage"><div className="ob-plot-layout">{renderView(item.id)}</div></div></div>,focus:{title:item[lang],description:focusDescription,hud:item.id==='engines'||item.id==='site-plan'?[]:focusHud,rail:focusControls}}));
+ const tabs:TabDef[]=VIEWS.map(item=>({id:item.id,label:item.id==='overview'&&scope!=='global'?t('Area overview','Vista del área'):item[lang],content:<div className={`ob-view-layout${focused?' ob-focus-layout':''}`} aria-label={`${scopeName} · ${item[lang]}`}>{!focused&&!(view==='overview'&&scope==='global')&&controls}<div className="ob-explorer-stage"><div className="ob-plot-layout">{renderView(item.id)}</div></div></div>,focus:{title:item.id==='overview'&&scope!=='global'?t('Area overview','Vista del área'):item[lang],description:focusDescription,hud:item.id==='engines'||item.id==='site-plan'?[]:focusHud,rail:focusControls}}));
  return <SurfacePage title={{en:pageTitle,es:pageTitle}} lede={scope==='global'?t('Mine to plant · global and area views','Mina a planta · vistas globales y por área'):PLANT_AREAS.find(area=>area.id===scope)?.purpose[lang]} actions={<div className="ob-surface-actions">{areaControl}{liveState}</div>} tabs={tabs} value={view} onChange={id=>chooseView(id as PlantView)} deepLinkView="view" ariaLabel={{en:'Plant views',es:'Vistas de planta'}} instrument focus />;
 }

@@ -57,7 +57,10 @@ describe('the mineral plant workspace entry', () => {
     expect(workbench).toContain('rail:focusControls');
     expect(workbench).toContain("hud:item.id==='engines'||item.id==='site-plan'?[]:focusHud");
     expect(workbench).toContain('description:focusDescription');
-    expect(workbench).toContain("asScope(search.get('area'))!=='global'&&initial==='overview'?'schematic':initial");
+    expect(workbench).toContain("useState<PlantView>(()=>asView(search.get('view')))");
+    expect(workbench).toContain('const nextView=requestedView;');
+    expect(workbench).toContain("item.id==='overview'&&scope!=='global'?t('Area overview','Vista del área')");
+    expect(workbench).toContain('<AssetInspector s={s} assetId={hoveredAsset??selected}/>');
   });
 
   it('the app holds direct-link state for area, view, asset and replay time', () => {
@@ -84,6 +87,17 @@ describe('the mineral plant workspace entry', () => {
     expect(workbench).toContain('const chooseScope=(next:PlantScope)=>');
     expect(workbench).not.toContain("if(next!=='global'&&view==='site-plan')chooseView('overview')");
     expect(workbench).toContain('const chooseView=(next:PlantView)=>');
+  });
+
+  it('adversarial: equipment hover and selection expose tag, stream and CAOS evidence detail', () => {
+    const workbench = readFileSync(new URL('./workbench/Workbench.tsx', import.meta.url), 'utf8');
+    const inspector = readFileSync(new URL('./workbench/AssetInspector.tsx', import.meta.url), 'utf8');
+    const visuals = readFileSync(new URL('./workbench/AreaVisuals.tsx', import.meta.url), 'utf8');
+    expect(workbench).toContain('hoveredAsset??selected');
+    expect(inspector).toContain('Bound variables');
+    expect(inspector).toContain('Process connections');
+    expect(inspector).toContain('Linked CAOS evidence');
+    expect(visuals).toContain('onMouseEnter={() => s.onHoverAsset(asset.id)}');
   });
 
   it('adversarial: an unavailable trend leads with usable area channels and boundaries, not a repeated schematic', () => {

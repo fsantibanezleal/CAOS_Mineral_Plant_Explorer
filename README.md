@@ -1,8 +1,8 @@
-# CAOS Mineral Plant Explorer
+# OreBridge
 
-[![CI](https://img.shields.io/github/actions/workflow/status/fsantibanezleal/CAOS_Mineral_Plant_Explorer/ci.yml?branch=main&label=CI)](https://github.com/fsantibanezleal/CAOS_Mineral_Plant_Explorer/actions) · [MIT](LICENSE) · [Public app](https://orebridge.fasl-work.com)
+[![CI](https://img.shields.io/github/actions/workflow/status/fsantibanezleal/OreBridge/ci.yml?branch=main&label=CI)](https://github.com/fsantibanezleal/OreBridge/actions) · [MIT](LICENSE) · [Public app](https://orebridge.fasl-work.com)
 
-One mine-to-plant workspace with a global overview and dedicated views for each process area. Switch independently among 2D site plans, process schematics and 3D spatial views. Area selection opens that area’s equipment, boundary flows, water contributions and linked CAOS evidence. The initial data is paused synthetic replay.
+One mine-to-plant workspace with a global overview and dedicated views for each process area. Switch independently among 2D site plans, process schematics and 3D spatial views. Selecting an area on the global overview opens its detailed process schematic; an explicit area-overview route remains available for its assets, boundary flows, water contributions and linked CAOS evidence. The initial data is paused synthetic replay.
 
 *Una operación minera y planta de procesos con vista general y vistas dedicadas por área. Cambie entre planos 2D, esquemas de proceso y vistas espaciales 3D. Al abrir un área verá sus equipos, flujos de límite, aportes de agua y evidencia CAOS relacionada. Los datos iniciales son una reproducción sintética en pausa.*
 
