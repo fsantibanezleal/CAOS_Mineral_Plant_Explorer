@@ -1,6 +1,6 @@
 {
-  "title": "fsantibanezleal/CAOS_Mineral_Plant_Explorer: 0.02.004",
-  "version": "0.02.004",
+  "title": "fsantibanezleal/OreBridge: 0.02.005",
+  "version": "0.02.005",
   "upload_type": "software",
   "access_right": "open",
   "license": "mit",
@@ -12,7 +12,7 @@
       "affiliation": "CAOS open-research programme, Santiago, Chile"
     }
   ],
-  "description": "<p>CAOS Mineral Plant Explorer presents one mine-to-plant operation globally and by process area. It provides separate area-aware 2D site plans, directed process schematics and 3D spatial views, plus source-bound observations and versioned CAOS engine evidence.</p><p>The included reference plant has 36 assets and 47 streams. Four released packages are executed and ten immutable public artifacts retain their upstream case identities. The reference data is synthetic and is not a measurement of an operating plant. Process water contributions include slurry and solution. Balance closure is not claimed without complete site boundaries. No field efficacy, industrial capacity, site commissioning or owner acceptance is established.</p><p>Software is MIT licensed. Scientific reports have their own CC BY 4.0 records and are related below. Upstream sources retain their stated licenses and provenance.</p>",
+  "description": "<p>OreBridge presents one mine-to-plant operation globally and by process area. It provides area-aware 2D site plans, directed process schematics, 3D spatial views, source-bound observations and versioned CAOS engine evidence.</p><p>The reference plant has 36 assets and 47 streams. Four released packages are executed and ten immutable public artifacts retain their upstream case identities. Reference data is synthetic and is not a measurement of an operating plant. Process water contributions include slurry and solution. Balance closure is not claimed without complete site boundaries. No field efficacy, industrial capacity, site commissioning or owner acceptance is established.</p><p>Software is MIT licensed. Scientific reports have their own CC BY 4.0 records and are related below. Upstream sources retain their stated licenses and provenance.</p>",
   "keywords": [
     "mineral processing",
     "3D plant visualization",

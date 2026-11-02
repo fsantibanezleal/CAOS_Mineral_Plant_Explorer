@@ -61,7 +61,7 @@
 .ob-plot-layout>.ob-analysis-view{flex:1 1 auto;min-height:0}
 .ob-plot-layout .ob-fill{flex:1 1 auto;min-height:0;height:100%}
 .ob-plot-layout .ob-score-map{height:100%;min-height:360px;flex:1 1 auto}
-.ob-flow-dir,.ob-flow-dir.out{color:var(--color-fg)}
+.ob-area-flow .ob-flow-dir.in,.ob-area-flow .ob-flow-dir.out{color:var(--color-fg)}
 .ob-flow-text{fill:#fff;stroke:#17212b;stroke-width:4px;paint-order:stroke}
 @media(min-width:1600px){.ob-view-layout{grid-template-columns:minmax(250px,320px) minmax(0,1fr)}}
 @media(max-width:1000px){.ob-view-layout{grid-template-columns:minmax(200px,240px) minmax(0,1fr)}}
