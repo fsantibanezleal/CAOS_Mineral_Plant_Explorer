@@ -54,8 +54,8 @@ describe('the mineral plant workspace entry', () => {
     const workbench = readFileSync(new URL('./workbench/Workbench.tsx', import.meta.url), 'utf8');
     expect(workbench).toContain('tabs={tabs}');
     expect(workbench).toContain('instrument focus');
-    expect(workbench).toContain('rail:focusControls');
-    expect(workbench).toContain('className="ob-focus-controls"');
+    expect(workbench).not.toContain('rail:focusControls');
+    expect(workbench).toContain("asScope(search.get('area'))!=='global'&&initial==='overview'?'schematic':initial");
   });
 
   it('the app holds direct-link state for area, view, asset and replay time', () => {

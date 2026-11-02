@@ -3,6 +3,23 @@
 All notable changes to this product. Versions are X.XX.XXX (VERSION is the single source); every release is
 tagged.
 
+## [0.02.002] - 2026-11-01
+
+### Added
+
+- Show a selected area's route, evidence class, asset count, connected-engine coverage and process boundaries on hover/focus in both global 2D views.
+- Add distinct bilingual process-reading guides for extraction, crushing/stockpiling, grinding, flotation, leach/SX/EW, thickening/filtration, water balance, tailings and utilities.
+
+### Changed
+
+- Refine the 3D plant scene with area-fitted ground and camera bounds, distinct crusher forms, thinner typed process routes and a low-relief, two-ridge ROM stockpile.
+- Keep area drilldown on the selected global, 2D site-plan, schematic or 3D representation; stabilize the mobile evidence tabs and remove unsupported shadow-map configuration.
+
+### Fixed
+
+- Make every area choice open that area's own detailed process view and preserve view/area/equipment identity in the URL.
+- Display the selected 3D equipment's identity, status, value, unit and evidence source in its hover card.
+
 ## [0.02.001] - 2026-11-01
 
 ### Fixed
