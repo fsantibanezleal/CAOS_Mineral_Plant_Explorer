@@ -10,6 +10,7 @@ import type { PlantScope } from './areas';
 import { buildAreaModel, PLANT_AREAS } from './areas';
 import { ProcessRail, type ProcessControls } from './ProcessView';
 import './plant.css';
+import './visualization.css';
 
 type PlantView = 'overview' | 'site-plan' | 'schematic' | '3d' | 'trends' | 'engines';
 const VIEWS: Array<{ id: PlantView; en: string; es: string }> = [
@@ -31,7 +32,7 @@ export function Workbench() {
  const selectedCase=caseId||(index.state==='ready'?index.data.default_case:'');
  const loaded=useArtifact(s=>selectedCase?loadCase(selectedCase,s):new Promise<CaseData>(()=>undefined),[selectedCase]);
  const [scope,setScopeState]=useState<PlantScope>(()=>asScope(search.get('area')));
- const [view,setViewState]=useState<PlantView>(()=>asView(search.get('view')));
+ const [view,setViewState]=useState<PlantView>(()=>{const initial=asView(search.get('view'));return asScope(search.get('area'))!=='global'&&initial==='overview'?'schematic':initial;});
  const [selected,setSelectedState]=useState(()=>search.get('asset')||'SAG');
  const [step,setStepState]=useState(()=>safeStep(Number(search.get('step')??80),160));
  const [playing,setPlaying]=useState(false),[method,setMethodState]=useState(search.get('method')||'threshold');
@@ -53,9 +54,34 @@ export function Workbench() {
  const data=loaded.state==='ready'&&loaded.data.manifest.case_id===selectedCase?loaded.data:null;
  const highlight=useMemo(()=>graph.state==='ready'&&selected&&view?linked(graph.data,selected,'downstream'):new Set<string>(),[graph,selected,view]);
  const updateQuery=(values:Record<string,string|null>)=>setSearch(previous=>{const next=new URLSearchParams(previous);for(const [key,value] of Object.entries(values))value===null?next.delete(key):next.set(key,value);return next;},{replace:true});
+ useEffect(()=>{
+   const nextScope=asScope(search.get('area'));
+   const requestedView=asView(search.get('view'));
+   const nextView=nextScope!=='global'&&requestedView==='overview'?'schematic':requestedView;
+   setScopeState(nextScope);
+   setViewState(nextView);
+   setSelectedState(search.get('asset')||'SAG');
+   setStepState(safeStep(Number(search.get('step')??80),160));
+   setMethodState(search.get('method')||'threshold');
+   setCaseId(search.get('case')??'');
+   if(nextView!==requestedView)updateQuery({view:nextView});
+ },[search]);
  useEffect(()=>{if(graph.state!=='ready'||scope==='global')return;const core=buildAreaModel(graph.data,scope).coreAssets;if(core.some(asset=>asset.id===selected)||!core[0])return;setSelectedState(core[0].id);updateQuery({asset:core[0].id});},[graph,scope,selected]);
  const chooseView=(next:PlantView)=>{setViewState(next);updateQuery({view:next});};
- const chooseScope=(next:PlantScope)=>{setScopeState(next);let nextAsset=selected;if(next!=='global'&&graph.state==='ready'){const core=buildAreaModel(graph.data,next).coreAssets;if(!core.some(asset=>asset.id===selected)&&core[0])nextAsset=core[0].id;}if(nextAsset!==selected)setSelectedState(nextAsset);updateQuery({area:next==='global'?null:next,asset:nextAsset});};
+ const chooseScope=(next:PlantScope)=>{
+   setScopeState(next);
+   let nextAsset=selected;
+   if(next!=='global'&&graph.state==='ready'){
+     const core=buildAreaModel(graph.data,next).coreAssets;
+     if(!core.some(asset=>asset.id===selected)&&core[0])nextAsset=core[0].id;
+   }
+   if(nextAsset!==selected)setSelectedState(nextAsset);
+   // Overview selection opens the area's detailed process page. When a user
+   // drills down from a spatial or 3D view, keep that representation active.
+   const nextView:PlantView=next==='global'?'overview':view==='overview'?'schematic':view;
+   setViewState(nextView);
+   updateQuery({area:next==='global'?null:next,asset:nextAsset,view:nextView});
+ };
  const chooseAsset=(id:string)=>{setSelectedState(id);updateQuery({asset:id});};
  const setStep=(next:number)=>{const safe=safeStep(next,160);setStepState(safe);updateQuery({step:String(safe)});};
  const setMethod=(next:string)=>{setMethodState(next);updateQuery({method:next});};
@@ -88,15 +114,9 @@ export function Workbench() {
  </aside>;
  const liveState=<span className={`ob-live-state ${live===null?'synthetic':sourceError?'unavailable':'live'}`}><i/>{live===null?t('Synthetic reference','Referencia sintética'):sourceError?t('Source unavailable','Fuente no disponible'):t('Read-only plant source','Fuente de planta de solo lectura')}</span>;
  const areaControl=<label className="ob-area-control"><span>{t('Area','Área')}</span><select aria-label={t('Plant area','Área de planta')} value={scope} onChange={event=>chooseScope(event.target.value as PlantScope)}><option value="global">{t('Whole plant','Planta completa')}</option>{PLANT_AREAS.map(area=><option key={area.id} value={area.id}>{area.name[lang]}</option>)}</select></label>;
- const focusControls=<aside className="ob-focus-controls" aria-label={t('Focused plant controls','Controles de planta enfocada')}>
-   <label className="ob-control">{t('Plant area','Área de planta')}<select aria-label={t('Plant area','Área de planta')} value={scope} onChange={event=>chooseScope(event.target.value as PlantScope)}><option value="global">{t('Whole plant','Planta completa')}</option>{PLANT_AREAS.map(area=><option key={area.id} value={area.id}>{area.name[lang]}</option>)}</select></label>
-   <label className="ob-control">{t('Equipment','Equipo')}<select aria-label={t('Equipment','Equipo')} value={selected} onChange={event=>chooseAsset(event.target.value)}>{graph.state==='ready'&&(scope==='global'?graph.data.assets:buildAreaModel(graph.data,scope).coreAssets).map(asset=><option key={asset.id} value={asset.id}>{asset.id} · {asset.name[lang]}</option>)}</select></label>
-   <label className="ob-control">{t('Replay case','Caso de reproducción')}<select aria-label={t('Replay case','Caso de reproducción')} value={selectedCase} onChange={event=>chooseCase(event.target.value)}>{availableCases.map(item=><option key={item.case_id} value={item.case_id}>{item.case_id} · {item.title[lang]}</option>)}</select></label>
-   <label className="ob-control">{t('Replay time','Tiempo de reproducción')} · {step} s<input type="range" aria-label={t('Replay time','Tiempo de reproducción')} min="0" max="159" step="1" value={step} disabled={live!==null} onChange={event=>{setStep(+event.target.value);setPlaying(false);}}/></label>
-   <label className="ob-control">{t('Discrepancy method','Método de discrepancia')}<select aria-label={t('Discrepancy method','Método de discrepancia')} value={method} disabled={live!==null} onChange={event=>setMethod(event.target.value)}>{METHODS.map(item=><option key={item}>{item}</option>)}</select></label>
- </aside>;
  const focused=search.get('focus')==='1';
- const tabs:TabDef[]=VIEWS.map(item=>({id:item.id,label:item[lang],content:<div className="ob-view-layout" aria-label={`${scopeName} · ${item[lang]}`}>{!focused&&controls}<div className="ob-explorer-stage"><div className="ob-plot-layout">{renderView(item.id)}</div></div></div>,focus:{title:item[lang],description:scopeName,rail:focusControls}}));
+ const tabs:TabDef[]=VIEWS.map(item=>({id:item.id,label:item[lang],content:<div className="ob-view-layout" aria-label={`${scopeName} · ${item[lang]}`}>{!focused&&!(view==='overview'&&scope==='global')&&controls}<div className="ob-explorer-stage"><div className="ob-plot-layout">{renderView(item.id)}</div></div></div>,focus:{title:item[lang],description:scopeName}}));
 
- return <SurfacePage title={{en:scopeName,es:scopeName}} lede={scope==='global'?t('Mine to plant · global and area views','Mina a planta · vistas globales y por área'):PLANT_AREAS.find(area=>area.id===scope)?.purpose[lang]} actions={<div className="ob-surface-actions">{areaControl}{liveState}</div>} tabs={tabs} value={view} onChange={id=>chooseView(id as PlantView)} deepLinkView="view" ariaLabel={{en:'Plant views',es:'Vistas de planta'}} instrument focus />;
+ const pageTitle=scope==='global'?t('Mine and mineral processing plant','Mina y planta de procesamiento mineral'):scopeName;
+ return <SurfacePage title={{en:pageTitle,es:pageTitle}} lede={scope==='global'?t('Mine to plant · global and area views','Mina a planta · vistas globales y por área'):PLANT_AREAS.find(area=>area.id===scope)?.purpose[lang]} actions={<div className="ob-surface-actions">{areaControl}{liveState}</div>} tabs={tabs} value={view} onChange={id=>chooseView(id as PlantView)} deepLinkView="view" ariaLabel={{en:'Plant views',es:'Vistas de planta'}} instrument focus />;
 }
