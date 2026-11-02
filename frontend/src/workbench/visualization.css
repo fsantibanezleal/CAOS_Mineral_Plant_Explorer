@@ -1,0 +1,163 @@
+/* Visualization layout: the drawing, evidence and controls occupy separate regions. */
+.ob-view-surface { flex: 0 0 auto; min-height: 100%; overflow: visible; }
+.ob-view-content { flex: 0 0 auto; min-height: 100%; overflow: visible; }
+.ob-view-surface .ob-atlas-view { flex: 0 0 auto; width: 100%; height: auto; min-height: 100%; overflow: visible; gap: 1rem; }
+.ob-area-inline-schematic { flex: 0 0 auto; width: 100%; min-height: 0; }
+.ob-area-inline-schematic .ob-process-schematic { display: block; flex: 0 0 auto; width: 100%; height: auto; min-height: 0; aspect-ratio: 1480 / 640; max-height: none; }
+.ob-area-overview-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 320px); align-items: start; gap: 1rem; }
+.ob-area-overview-grid > * { min-width: 0; }
+.ob-area-overview-grid .ob-area-workspace-main,
+.ob-area-overview-grid .ob-area-workspace-side { min-width: 0; }
+.ob-area-overview-grid .ob-area-asset-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.ob-area-overview-grid .ob-asset-card { min-height: 108px; padding: .8rem; }
+.ob-area-overview-grid .ob-area-workspace-side { position: sticky; top: .75rem; }
+.ob-area-summary { gap: .75rem; }
+.ob-area-metric { min-height: 96px; justify-content: center; padding: .85rem 1rem; }
+.ob-area-metric > span { font-size: .72rem; line-height: 1.35; }
+.ob-area-metric strong { font-size: 1.45rem; }
+.ob-area-metric em { font-size: .7rem; line-height: 1.35; }
+.ob-area-flows { gap: .15rem; }
+.ob-area-flow { grid-template-columns: 3.4rem minmax(0, 1fr); gap: .28rem .6rem; padding: .65rem .25rem; font-size: .78rem; }
+.ob-area-flow strong { grid-column: 2; font-size: .8rem; }
+.ob-site-boundary { fill: color-mix(in srgb, var(--color-surface) 70%, transparent); stroke: var(--color-border); stroke-width: 2; stroke-dasharray: 12 7; }
+.ob-site-road { fill: none; stroke: color-mix(in srgb, var(--color-fg-subtle) 16%, var(--color-surface)); stroke-width: 42; stroke-linecap: round; stroke-linejoin: round; }
+.ob-site-road-center { fill: none; stroke: color-mix(in srgb, var(--color-fg-subtle) 62%, var(--color-surface)); stroke-width: 1.5; stroke-dasharray: 12 12; stroke-linecap: round; }
+.ob-site-main-route { fill: none; stroke: #bc8d56; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; opacity: .9; }
+.ob-site-main-route path:nth-child(2) { stroke: #41a1bc; stroke-dasharray: 11 8; }
+.ob-site-north path { fill: var(--color-fg); }
+.ob-site-north text { fill: var(--color-fg); font: 700 15px var(--font-mono, monospace); }
+.ob-plan-stream { fill: none; stroke: #bd986a; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; opacity: .85; }
+.ob-plan-stream.water { stroke: #39a8c8; stroke-dasharray: 10 7; }
+.ob-plan-area, .ob-plan-asset-dot { transition: opacity .15s ease, filter .15s ease; }
+.ob-plan-asset-dot { cursor: pointer; }
+.ob-plan-asset-dot circle { stroke: var(--color-fg); stroke-width: 1.4; }
+.ob-plan-asset-dot .ob-site-footprint { fill: var(--color-surface); stroke: #76858a; stroke-width: 2; filter: drop-shadow(0 3px 4px #0003); }
+.ob-plan-asset-dot .ob-site-footprint.state-normal { stroke: #3caa91; }
+.ob-plan-asset-dot .ob-site-footprint.state-alarm { stroke: #d45b50; stroke-width: 3; }
+.ob-plan-asset-dot .ob-site-footprint.state-unavailable { stroke: #d59b42; stroke-dasharray: 7 4; }
+.ob-plan-asset-dot .ob-site-footprint.state-context { stroke: #71818a; }
+.ob-plan-asset-dot .ob-equipment-glyph,
+.ob-plan-asset-dot .ob-plan-glyph { color: #445158; }
+.ob-plan-asset-dot.selected .ob-site-footprint,
+.ob-plan-asset-dot:hover .ob-site-footprint,
+.ob-plan-asset-dot:focus-visible .ob-site-footprint { stroke: var(--color-accent); stroke-width: 4; }
+.ob-plan-asset-dot text { fill: var(--color-fg); stroke: var(--color-surface); stroke-width: 3px; paint-order: stroke; font: 700 12px var(--font-mono, monospace); }
+.ob-plan-asset-dot .ob-site-asset-id { font: 750 12px var(--font-mono, monospace); letter-spacing: .035em; }
+.ob-plan-asset-dot .ob-site-asset-name { font: 500 10px system-ui,sans-serif; }
+.ob-plan-asset-dot .ob-site-boundary-mark { fill: none; stroke: var(--color-fg-subtle); stroke-width: 2; }
+.ob-area-inline-schematic .ob-section-title { align-items: center; min-height: 52px; padding: .25rem .1rem; }
+.ob-area-inline-schematic .ob-section-title h3 { font-size: 1.05rem; }
+.ob-area-inline-schematic .ob-section-title span { font-size: .75rem; }
+.ob-diagram-scroll { width: 100%; max-width: 100%; min-width: 0; overflow: auto; overscroll-behavior: contain; }
+.ob-diagram-scroll .ob-process-schematic { min-width: 1080px; }
+.ob-process-schematic { background: var(--color-surface); }
+.ob-schematic-sheet { fill: var(--color-surface); stroke: var(--color-border); }
+.ob-schematic-key { font-size: 13px; fill: var(--color-fg-subtle); }
+.ob-schematic-node { cursor: pointer; }
+.ob-schematic-node .ob-node-hit-area { fill: transparent; stroke: transparent; pointer-events: all; }
+.ob-schematic-node .ob-equipment-glyph { color: var(--color-fg); overflow: visible; }
+.ob-schematic-node .ob-node-id-tag { fill: var(--color-surface); stroke: var(--color-border); stroke-width: 1; }
+.ob-schematic-node .ob-node-id { fill: var(--color-fg); font-size: 14px; font-weight: 750; font-family: var(--font-mono, monospace); }
+.ob-schematic-node .ob-node-name { fill: var(--color-fg); font-size: 13px; font-weight: 600; }
+.ob-schematic-node .ob-node-context { fill: var(--color-fg-subtle); font-size: 10px; }
+.ob-schematic-node .ob-node-port { stroke: var(--color-fg-subtle); stroke-width: 1.5; }
+.ob-schematic-node .ob-node-port-dot { fill: var(--color-surface); stroke: var(--color-fg-subtle); stroke-width: 1.5; }
+.ob-schematic-node .ob-status-mark { stroke: var(--color-surface); stroke-width: 2; }
+.ob-schematic-node.normal .ob-status-mark { fill: #3caa91; }
+.ob-schematic-node.alarm .ob-status-mark { fill: #d45b50; }
+.ob-schematic-node.unavailable .ob-status-mark { fill: #d59b42; }
+.ob-schematic-node.context .ob-status-mark { fill: #71818a; }
+.ob-schematic-node:hover .ob-node-id-tag,
+.ob-schematic-node:focus-visible .ob-node-id-tag,
+.ob-schematic-node.selected .ob-node-id-tag { stroke: var(--color-accent); stroke-width: 2; }
+.ob-schematic-node.selected .ob-equipment-glyph { color: var(--color-accent); }
+.ob-boundary-port rect { fill: var(--color-surface-2); stroke: var(--color-border); stroke-width: 1.5; }
+.ob-boundary-kicker { font-size: 10px; }
+.ob-boundary-area { font-size: 14px; }
+.ob-boundary-route { font-size: 11px; }
+.ob-boundary-material { font-size: 12px; }
+.ob-boundary-flow { font-size: 11px; }
+.ob-process-stream path { opacity: .88; stroke-width: 3; }
+.ob-process-stream rect { fill: var(--color-surface); stroke: var(--color-border); stroke-width: 1; }
+.ob-stream-name { font-size: 12px; font-weight: 700; fill: var(--color-fg); }
+.ob-stream-value { font-size: 11px; fill: var(--color-fg-subtle); }
+.ob-water-route .ob-water-route-name { font: 700 9px var(--font-mono, monospace); fill: var(--color-fg-subtle); }
+.ob-explorer-stage { overscroll-behavior: contain; }
+.ob-plot-layout { flex: 0 0 auto; min-height: 100%; }
+.ob-fill { min-height: 100%; height: auto; }
+.ob-fill .ob-scene-wrap { flex: 0 0 auto; min-height: 640px; }
+.ob-fill .ob-scene { flex: 0 0 auto; width: 100%; height: min(68vh, 700px); min-height: 560px; background: linear-gradient(155deg, #172837, #243847 64%, #1b2a34); }
+.ob-scene canvas { display: block; width: 100%; height: 100%; }
+.ob-scene-stage { position: relative; flex: 1 1 auto; min-height: 0; }
+.ob-scene-stage > .ob-scene { width: 100%; height: min(68vh, 700px); min-height: 560px; }
+.ob-scene-hovercard { position: absolute; z-index: 2; top: .8rem; right: .8rem; display: grid; gap: .35rem; width: min(270px, calc(100% - 1.6rem)); padding: .85rem 1rem; color: var(--color-fg); background: color-mix(in srgb, var(--color-surface) 94%, transparent); border: 1px solid var(--color-border); border-left: 3px solid var(--color-accent); border-radius: 8px; box-shadow: 0 8px 24px #12202b30; backdrop-filter: blur(10px); pointer-events: none; }
+.ob-scene-hovercard > span { color: var(--color-fg-subtle); font: 700 .64rem var(--font-mono, monospace); letter-spacing: .08em; }
+.ob-scene-hovercard > strong { font-size: .94rem; line-height: 1.3; }
+.ob-scene-hovercard > div { display: flex; align-items: center; color: var(--color-fg-subtle); font-size: .72rem; }
+.ob-scene-hovercard > b { font: 700 1.2rem var(--font-mono, monospace); }
+.ob-scene-hovercard > small { color: var(--color-fg-subtle); font-size: .68rem; }
+.ob-scene-boundaries { margin-top: .5rem; }
+.ob-scene-boundaries > div { gap: .55rem; }
+.ob-scene-boundaries article { padding: .7rem .85rem; border-radius: 8px; }
+.ob-scene-boundaries article small { font-size: .68rem; letter-spacing: .06em; }
+.ob-scene-boundaries article span { font-size: .78rem; line-height: 1.4; }
+.ob-scene-boundaries article b { font-size: .76rem; }
+.ob-scene-caption { padding: .65rem .8rem; font-size: .72rem; line-height: 1.6; }
+@media (max-width: 900px) {
+  .ob-area-overview-grid { grid-template-columns: minmax(0, 1fr); }
+  .ob-area-overview-grid .ob-area-workspace-side { position: static; }
+  .ob-area-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 720px) {
+  .ob-area-overview-grid .ob-area-asset-grid { grid-template-columns: minmax(0, 1fr); }
+  .ob-area-inline-schematic .ob-process-schematic { width: 1100px; min-width: 1100px; height: auto; min-height: 0; aspect-ratio: 1480 / 640; }
+  .ob-fill .ob-scene-wrap { min-height: 560px; }
+  .ob-scene-stage > .ob-scene { height: 420px; min-height: 420px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ob-plan-area, .ob-plan-asset-dot, .ob-schematic-node { transition: none !important; }
+}
+.ob-process-guide{margin:1rem 0 1.35rem;padding:1.2rem 1.35rem;background:linear-gradient(110deg,rgba(24,36,46,.98),rgba(17,26,34,.98));border:1px solid rgba(153,177,190,.2);border-radius:12px;color:#e6edf0}
+.ob-process-guide h3{color:#f0f5f7!important}
+.ob-process-guide>header h3{margin:.3rem 0 .35rem;font-size:1.15rem;letter-spacing:.01em}.ob-process-guide>header p{margin:.4rem 0 1rem;color:#d2dde2;font-size:1rem;font-weight:600;line-height:1.5}
+.ob-process-guide-grid{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:1px;background:rgba(157,179,191,.16);border:1px solid rgba(157,179,191,.16);border-radius:8px;overflow:hidden}
+.ob-process-guide-grid article{padding:.85rem 1rem;background:#17232c;min-width:0}.ob-process-guide-grid article>span{color:#8fc4d1;font-size:.68rem;font-weight:700;letter-spacing:.11em}.ob-process-guide-grid article p,.ob-process-guide-grid article ul{margin:.55rem 0 0;color:#c5d1d7;font-size:.84rem;line-height:1.58}.ob-process-guide-grid article ul{padding-left:1.1rem}.ob-process-guide-grid li+li{margin-top:.4rem}
+.ob-process-guide>footer{margin-top:.8rem;color:#91a4ae;font-size:.75rem;line-height:1.5}
+@media(max-width:900px){.ob-process-guide-grid{grid-template-columns:1fr}.ob-process-guide{padding:1rem}}
+.ob-area-preview{margin:.75rem 0 0;padding:.9rem;background:linear-gradient(135deg,#f4f7f7,#e9eff0);border:1px solid #cbd6d8;border-left:3px solid #338a91;border-radius:8px;color:#26373e;text-align:left}
+.ob-area-preview.empty{color:#51656c;font-size:.84rem;line-height:1.5}
+.ob-area-preview>header{display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem}.ob-area-preview>header span{font-size:1rem;font-weight:700;line-height:1.3}.ob-area-preview>header b{flex:0 0 auto;color:#526b72;font-size:.58rem;letter-spacing:.07em}
+.ob-area-preview>p{margin:.55rem 0;color:#384d55;font-size:.82rem;line-height:1.5;font-weight:600}
+.ob-area-preview-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.4rem;margin:.6rem 0}.ob-area-preview-facts>span{display:flex;justify-content:space-between;gap:.3rem;padding:.35rem .45rem;background:#fff;border:1px solid #dae2e3;border-radius:5px;color:#60747b;font-size:.7rem}.ob-area-preview-facts strong{color:#203941;font-variant-numeric:tabular-nums}
+.ob-area-preview .ob-area-flows{gap:.35rem}.ob-area-preview .ob-area-flow{padding:.45rem;background:#fff;border:1px solid #dbe3e4;border-radius:5px}.ob-area-preview-routes{display:grid;gap:.35rem;margin:.5rem 0}.ob-area-preview-routes>span{padding:.45rem;background:#fff;border:1px solid #dbe3e4;border-radius:5px;color:#4a6067;font-size:.7rem}.ob-area-preview-routes strong{color:#203941}
+.ob-area-preview>small{display:block;margin-top:.6rem;color:#697b80;font-size:.68rem;line-height:1.4}
+
+/* Match the workbench canvas to the viewport while preserving the authored schematic ratio. */
+.ob-area-inline-schematic .ob-process-schematic { width: 100%; height: auto; min-width: 0; max-width: 100%; min-height: 0; max-height: none; aspect-ratio: 1480 / 640; margin-inline: auto; }
+@media (max-width: 720px) { .ob-area-inline-schematic .ob-process-schematic { width: 1100px; height: auto; min-width: 1100px; max-width: none; margin-inline: 0; } }
+.caos-focus-shell .ob-area-inline-schematic > .ob-section-title,
+.caos-focus-shell .ob-area-inline-schematic > .ob-diagram-scroll-hint { display: none; }
+.caos-focus-shell .ob-area-inline-schematic .ob-process-schematic { width: auto; height: auto; max-width: 100%; max-height: 82vh; aspect-ratio: 1480 / 640; margin-inline: auto; }
+@media (min-width: 1200px) { .ob-overview-body { grid-template-columns: minmax(0, 1fr) minmax(280px, 320px); align-items: stretch; } }
+@media (max-width: 1199px) { .ob-overview-body { grid-template-columns: minmax(0, 1fr); } }
+.ob-overview-map { min-height: 0; max-height: none; aspect-ratio: 1480 / 470; }
+.ob-overview-body > .ob-overview-side { align-self: stretch; }
+.caos-focus-shell .ob-overview-body { flex: 1 1 auto; min-height: 0; }
+.caos-focus-shell .ob-overview-card { display: flex; flex-direction: column; min-height: 0; }
+.caos-focus-shell .ob-overview-card .ob-diagram-scroll { display: flex; flex: 1 1 auto; align-items: center; justify-content: center; min-height: 0; }
+.caos-focus-shell .ob-diagram-scroll :is(.ob-overview-map,.ob-site-plan,.ob-global-schematic,.ob-water-schematic) { width: auto; height: 100%; min-height: 0; max-width: 100%; max-height: 100%; margin-inline: auto; }
+.caos-focus-shell .ob-water-metrics,.caos-focus-shell .ob-water-note { display: none; }
+.caos-focus-shell .ob-atlas-view[data-scope="global"] > .ob-overview-summary { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.caos-focus-shell .ob-atlas-view { display: flex; flex-direction: column; min-height: 0; }
+.caos-focus-shell .ob-atlas-view > .ob-diagram-scroll { flex: 1 1 auto; height: calc(100dvh - 175px); max-height: calc(100dvh - 175px); min-height: 0; }
+.caos-focus-shell .ob-atlas-view > .ob-diagram-scroll-hint,
+.caos-focus-shell .ob-atlas-view > .ob-plan-legend,
+.caos-focus-shell .ob-diagram-scroll-hint { display: none; }
+.caos-focus-shell .ob-overview-card .ob-diagram-scroll { height: 100%; max-height: calc(100dvh - 330px); }
+.caos-focus-shell .ob-area-inline-schematic > .ob-diagram-scroll { height: auto; max-height: none; }
+.caos-focus-shell .ob-water-balance > .ob-diagram-scroll { flex: 1 1 auto; height: min(74vh, calc(100dvh - 155px)); max-height: calc(100dvh - 155px); }
+.caos-focus-shell .ob-water-schematic { height: 100%; min-height: 0; max-height: 100%; }
+@media (max-width: 720px) {
+  .caos-focus-shell .ob-atlas-view > .ob-diagram-scroll,.caos-focus-shell .ob-area-inline-schematic > .ob-diagram-scroll,.caos-focus-shell .ob-water-balance > .ob-diagram-scroll { height: auto; max-height: none; }
+  .caos-focus-shell .ob-diagram-scroll :is(.ob-overview-map,.ob-site-plan,.ob-global-schematic,.ob-process-schematic,.ob-water-schematic) { width: 1100px; height: auto; max-width: none; max-height: none; margin-inline: 0; }
+}

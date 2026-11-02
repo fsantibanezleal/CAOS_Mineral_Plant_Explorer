@@ -2,10 +2,26 @@ import { describe, expect, it } from 'vitest';
 import plant from '../../../data/derived/plant.json';
 import type { Plant } from '../lib/contract.types';
 import { aggregateWaterRoutes, buildAreaModel, PLANT_AREAS, scopedRecords } from './areas';
+import { AREA_GUIDE } from './area-content';
 
 const typedPlant = plant as Plant;
 
 describe('plant area model', () => {
+  it('provides distinct, bilingual process reading content for every required area', () => {
+    expect(Object.keys(AREA_GUIDE).sort()).toEqual(PLANT_AREAS.map((area) => area.id).sort());
+    for (const [areaId, guide] of Object.entries(AREA_GUIDE)) {
+      for (const field of ['route', 'read', 'boundary'] as const) {
+        expect(guide[field].en.length, `${areaId} ${field} English`).toBeGreaterThan(50);
+        expect(guide[field].es.length, `${areaId} ${field} Spanish`).toBeGreaterThan(50);
+      }
+      expect(guide.checks.en.length, `${areaId} English engineering checks`).toBeGreaterThanOrEqual(2);
+      expect(guide.checks.es.length, `${areaId} Spanish engineering checks`).toBeGreaterThanOrEqual(2);
+    }
+    expect(AREA_GUIDE.grinding.read.en).toContain('circulating load');
+    expect(AREA_GUIDE['water-balance'].read.en).toContain('not a closed site balance');
+    expect(AREA_GUIDE.tailings.boundary.en).toContain('No stability or safety status');
+  });
+
   it('covers the named process areas and maps them to different graph content', () => {
     const ids = new Set(PLANT_AREAS.map((area) => area.id));
     for (const required of ['mine-extraction', 'crushing-stockpiling', 'grinding', 'flotation', 'leach-sx-ew', 'thickening-filtration', 'water-balance', 'tailings', 'utilities']) {
@@ -51,6 +67,7 @@ describe('plant area model', () => {
   it('adversarial: slurry and solution water contributions cannot disappear from balance routes', () => {
     const water = buildAreaModel(typedPlant, 'water-balance');
     expect(water.streams.length).toBeGreaterThan(0);
+    expect(water.coreAssets.length).toBeGreaterThan(0);
     expect(water.streams.every((stream) => (stream.water_m3_h ?? 0) > 0)).toBe(true);
     expect(water.streams.some((stream) => stream.material === 'slurry')).toBe(true);
     expect(water.streams.every((stream) => stream.unit || typeof stream.water_m3_h === 'number')).toBe(true);
