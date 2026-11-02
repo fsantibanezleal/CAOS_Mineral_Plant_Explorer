@@ -86,6 +86,15 @@ describe('the mineral plant workspace entry', () => {
     expect(workbench).toContain('const chooseView=(next:PlantView)=>');
   });
 
+  it('adversarial: an unavailable trend leads with usable area channels and boundaries, not a repeated schematic', () => {
+    const views = readFileSync(new URL('./workbench/views.tsx', import.meta.url), 'utf8');
+    const fallback = views.slice(views.indexOf('function ReplayTrends'), views.indexOf('export function EvidenceView'));
+    expect(fallback).toContain('Available area channels');
+    expect(fallback).toContain('Process context');
+    expect(fallback).toContain('areaChannels.length?');
+    expect(fallback).not.toContain('<AreaSchematicDiagram s={s} model={model}/>');
+  });
+
   it('the App remains the leftmost shell route', () => {
     expect(STANDARD_ROUTES[0].path).toBe(APP_ROUTE);
     expect(STANDARD_ROUTES.map((r) => r.path)).toEqual(['/app', '/introduction', '/methodology', '/implementation', '/experiments', '/benchmark']);
