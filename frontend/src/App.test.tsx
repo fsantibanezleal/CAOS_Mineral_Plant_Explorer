@@ -54,7 +54,9 @@ describe('the mineral plant workspace entry', () => {
     const workbench = readFileSync(new URL('./workbench/Workbench.tsx', import.meta.url), 'utf8');
     expect(workbench).toContain('tabs={tabs}');
     expect(workbench).toContain('instrument focus');
-    expect(workbench).not.toContain('rail:focusControls');
+    expect(workbench).toContain('rail:focusControls');
+    expect(workbench).toContain("hud:item.id==='engines'||item.id==='site-plan'?[]:focusHud");
+    expect(workbench).toContain('description:focusDescription');
     expect(workbench).toContain("asScope(search.get('area'))!=='global'&&initial==='overview'?'schematic':initial");
   });
 

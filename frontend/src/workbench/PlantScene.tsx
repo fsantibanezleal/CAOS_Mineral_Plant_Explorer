@@ -101,9 +101,9 @@ export function PlantScene({plant,trace,step,method,selected,onSelect,highlight,
     const verticalFov=camera?camera.camera.fov*Math.PI/180:38*Math.PI/180;
     const horizontalFov=camera?2*Math.atan(Math.tan(verticalFov/2)*camera.camera.aspect):verticalFov;
     const diagonal=Math.hypot(width,depth);
-    const fitScale=scope==='global' ? 0.66 : 0.74;
+    const fitScale=scope==='global' ? 0.75 : 0.95;
     const distance=Math.max(18,Math.max((width+depth*.55)/(2*Math.tan(horizontalFov/2)),(height+diagonal*.42)/(2*Math.tan(verticalFov/2)))*fitScale);
-    const siteWidth=scope==='global'?420:Math.max(30,width*1.38),siteDepth=scope==='global'?260:Math.max(24,depth*1.38);
+    const siteWidth=Math.max(28,width*1.32),siteDepth=Math.max(24,depth*1.32);
     if(groundRef.current){groundRef.current.scale.set(siteWidth/420,siteDepth/260,1);groundRef.current.position.set(centerX,-.4,centerZ);}
     if(gridRef.current){gridRef.current.scale.set(siteWidth/280,1,siteDepth/280);gridRef.current.position.set(centerX,-.34,centerZ);}
     scopeCenter.current={x:centerX,y:centerY,z:centerZ,distance};

@@ -1,4 +1,4 @@
-import { useMemo, useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { useShellLang } from '@fasl-work/caos-app-shell';
 import type { Asset, Plant } from '../lib/contract.types';
 import { aggregateWaterRoutes, AreaId, AreaModel, PLANT_AREAS, PlantScope, buildAreaModel } from './areas';
@@ -20,17 +20,6 @@ function AtlasFrame({ s, title, children }: { s: ViewState; title: { en: string;
   </section>;
 }
 
-const OVERVIEW_POS: Record<AreaId, XY> = {
-  'mine-extraction': { x: 155, y: 155 },
-  'crushing-stockpiling': { x: 405, y: 155 },
-  grinding: { x: 665, y: 155 },
-  flotation: { x: 925, y: 155 },
-  'thickening-filtration': { x: 1182, y: 155 },
-  'leach-sx-ew': { x: 405, y: 340 },
-  'water-balance': { x: 760, y: 340 },
-  tailings: { x: 1110, y: 340 },
-  utilities: { x: 1360, y: 340 },
-};
 const AREA_POS: Record<AreaId, XY> = {
   'mine-extraction': { x: 155, y: 186 },
   'crushing-stockpiling': { x: 405, y: 186 },
@@ -210,6 +199,19 @@ function AreaInformation({ s, model }: { s: ViewState; model: AreaModel }) {
   </>;
 }
 
+function ProcessKpis({ s, model }: { s: ViewState; model: AreaModel }) {
+  const lang = useShellLang();
+  if (!model.area) return <AreaInformation s={s} model={model}/>;
+  const live = liveCount(s, model);
+  const tags = s.plant.tags.filter((tag) => model.coreAssets.some((asset) => asset.id === tag.asset_id));
+  return <section className="ob-process-kpis" aria-label={lang === 'es' ? 'Indicadores y cobertura del área' : 'Area KPIs and data coverage'}>
+    <Metric label={lang === 'es' ? 'Equipos del área' : 'Area assets'} value={model.coreAssets.length} note={lang === 'es' ? 'identidad del grafo' : 'graph identities'}/>
+    <Metric label={lang === 'es' ? (live ? 'Observaciones recientes' : 'Canales de referencia') : (live ? 'Recent observations' : 'Reference channels')} value={live ? `${live.accepted}/${live.total}` : tags.length} note={live ? (lang === 'es' ? 'válidas / recibidas' : 'accepted / received') : (lang === 'es' ? 'no son telemetría' : 'not plant telemetry')}/>
+    <Metric label={lang === 'es' ? 'Vínculos de motores CAOS' : 'CAOS engine links'} value={areaEvidenceCount(s, model)} note={lang === 'es' ? 'evidencia ligada a equipos' : 'evidence bound to assets'}/>
+    <Metric label={lang === 'es' ? 'Límites del área' : 'Area boundaries'} value={model.incoming.length + model.outgoing.length} note={lang === 'es' ? 'corrientes de entrada y salida' : 'incoming and outgoing streams'}/>
+  </section>;
+}
+
 function AreaProcessGuide({ areaId }: { areaId: NonNullable<AreaModel['area']>['id'] }) {
   const lang = useShellLang();
   const guide = AREA_GUIDE[areaId];
@@ -224,29 +226,6 @@ function AreaProcessGuide({ areaId }: { areaId: NonNullable<AreaModel['area']>['
   </section>;
 }
 
-function FlowPath({ from, to, color, label, dashed = false }: { from: XY; to: XY; color: string; label?: string; dashed?: boolean }) {
-  const mid = (from.x + to.x) / 2;
-  const d = `M${from.x} ${from.y}H${mid}V${to.y}H${to.x}`;
-  return <g className="ob-flow-path"><path d={d} fill="none" stroke={color} strokeWidth={3.4} strokeDasharray={dashed ? '8 8' : undefined} markerEnd="url(#ob-plan-arrow)"/>{label && <text x={mid} y={(from.y + to.y) / 2 - 8} className="ob-flow-text">{label}</text>}</g>;
-}
-
-function AreaCard({ s, area, position, onOpen, onPreview }: { s: ViewState; area: (typeof PLANT_AREAS)[number]; position: XY; onOpen: () => void; onPreview: (id: AreaId | null) => void }) {
-  const lang = useShellLang();
-  const model = useMemo(() => buildAreaModel(s.plant, area.id), [s.plant, area.id]);
-  const representatives = representativeAssets(model, 3);
-  return <g className={`ob-plan-area ${s.scope === area.id ? 'active' : ''}`} role="button" tabIndex={0} aria-label={`${area.name[lang]} · ${lang === 'es' ? 'abrir área' : 'open area'}`} aria-pressed={s.scope === area.id}
-    transform={`translate(${position.x - 112},${position.y - 75})`} onMouseEnter={() => onPreview(area.id)} onMouseLeave={() => onPreview(null)} onFocus={() => onPreview(area.id)} onBlur={() => onPreview(null)} onClick={onOpen} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onOpen(); } }}>
-    <rect className="ob-area-zone" width="224" height="150" rx="18" style={{ '--area-color': area.color } as CSSProperties}/>
-    <text className="ob-plan-index" x="18" y="27">{String(PLANT_AREAS.indexOf(area) + 1).padStart(2, '0')}</text>
-    <text className="ob-plan-title" x="18" y="51">{area.name[lang]}</text>
-    <text className="ob-plan-count" x="18" y="71">{model.coreAssets.length} {lang === 'es' ? 'equipos' : 'assets'}</text>
-    <g className="ob-mini-glyphs">{representatives.map((asset, index) => <g key={asset.id} transform={`translate(${16 + index * 64},78)`}>
-      <EquipmentGlyph asset={asset} compact/><text x="30" y="61" textAnchor="middle">{asset.id}</text>
-    </g>)}</g>
-    <title>{area.name[lang]} · {area.purpose[lang]} · {model.coreAssets.length} assets · {areaEvidenceCount(s, model)} CAOS links</title>
-  </g>;
-}
-
 export function PlantOverviewView({ s }: { s: ViewState }) {
   const lang = useShellLang();
   const [previewArea, setPreviewArea] = useState<AreaId | null>(null);
@@ -257,24 +236,7 @@ export function PlantOverviewView({ s }: { s: ViewState }) {
       {!isGlobal && <AreaSelector s={s}/>}
       {!isGlobal && <header className="ob-atlas-heading"><div><span className="ob-eyebrow">{isGlobal ? (lang === 'es' ? 'MINA → PLANTA' : 'MINE → PLANT') : (lang === 'es' ? 'ÁREA DE PROCESO' : 'PROCESS AREA')}</span><h2>{isGlobal ? (lang === 'es' ? 'Operación minera y planta de procesos' : 'Mine and mineral processing plant') : model.area!.name[lang]}</h2><p>{isGlobal ? (lang === 'es' ? 'Seleccione un área para abrir su vista de proceso, información y evidencia.' : 'Select an area to open its process views, information and evidence.') : model.area!.purpose[lang]}</p></div><span className={`ob-source-badge ${s.live === null ? 'synthetic' : 'live'}`}><i/>{s.live === null ? (lang === 'es' ? 'REPRODUCCIÓN SINTÉTICA' : 'SYNTHETIC REPLAY') : (lang === 'es' ? 'GATEWAY SOLO LECTURA' : 'READ-ONLY GATEWAY')}</span></header>}
       {isGlobal && <AreaInformation s={s} model={model}/>}
-      {isGlobal ? <div className="ob-overview-body">
-        <div className="ob-overview-card"><div className="ob-section-title"><h3>{lang === 'es' ? 'Mapa de áreas' : 'Area map'}</h3><span>{lang === 'es' ? 'Seleccione una zona para abrirla' : '9 areas · select a zone to open its detailed process view'}</span></div>
-          <span className="ob-diagram-scroll-hint">{lang === 'es' ? 'En pantallas estrechas, deslice para recorrer el mapa' : 'On narrow screens, scroll horizontally to inspect the full map'}</span><div className="ob-diagram-scroll" role="region" tabIndex={0} aria-label={lang === 'es' ? 'Mapa global desplazable' : 'Scrollable global area map'}><svg className="ob-overview-map" viewBox={`0 0 ${W} 470`} role="img" aria-label={lang === 'es' ? 'Áreas de planta conectadas' : 'Connected plant areas'}>
-            <defs><marker id="ob-plan-arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 10 5 0 10z" fill="context-stroke"/></marker></defs>
-            <path className="ob-overview-lane" d="M45 250H1435"/>
-            <FlowPath from={{x:267,y:155}} to={{x:293,y:155}} color="#c58e5b"/>
-            <FlowPath from={{x:517,y:155}} to={{x:553,y:155}} color="#bd986a"/>
-            <FlowPath from={{x:777,y:155}} to={{x:813,y:155}} color="#c7a46a"/>
-            <FlowPath from={{x:1037,y:155}} to={{x:1070,y:155}} color="#9cb28e"/>
-            <FlowPath from={{x:517,y:190}} to={{x:520,y:265}} color="#48a8bc"/>
-            <FlowPath from={{x:1037,y:190}} to={{x:1090,y:265}} color="#a09583"/>
-            <FlowPath from={{x:1195,y:230}} to={{x:1195,y:265}} color="#3e9fba" dashed/>
-            {PLANT_AREAS.filter((area) => area.id !== 'water-balance' && area.id !== 'utilities').map((area) => <AreaCard key={area.id} s={s} area={area} position={OVERVIEW_POS[area.id]} onOpen={() => s.onScopeChange(area.id)} onPreview={setPreviewArea}/>)}
-            {PLANT_AREAS.filter((area) => area.id === 'water-balance' || area.id === 'utilities').map((area) => <AreaCard key={area.id} s={s} area={area} position={OVERVIEW_POS[area.id]} onOpen={() => s.onScopeChange(area.id)} onPreview={setPreviewArea}/>)}
-          </svg></div>
-        </div>
-        <aside className="ob-overview-side"><h3>{lang === 'es' ? 'Detalle del área' : 'Area detail preview'}</h3><AreaPreview s={s} areaId={previewArea}/></aside>
-      </div> : <>
+      {isGlobal ? <div className="ob-overview-body ob-overview-flowsheet"><div className="ob-overview-card"><GlobalProcessMap s={s} overview onPreview={setPreviewArea}/></div><aside className="ob-overview-side"><h3>{lang === 'es' ? 'Detalle del área' : 'Area detail preview'}</h3><AreaPreview s={s} areaId={previewArea}/></aside></div> : <>
         <AreaInformation s={s} model={model}/>
         <section className="ob-area-overview-grid" aria-label={lang === 'es' ? 'Resumen del área' : 'Area overview'}>
         <div className="ob-area-workspace-main"><div className="ob-section-title"><h3>{lang === 'es' ? 'Activos y límites del área' : 'Area assets and boundaries'}</h3><span>{model.coreAssets.length} {lang === 'es' ? 'equipos internos' : 'core assets'}</span></div>
@@ -355,7 +317,13 @@ export function SitePlanView({ s }: { s: ViewState }) {
   const model = buildAreaModel(s.plant, s.scope);
   const selectedArea = s.scope === 'global' ? null : model.area;
   const visibleAreas = selectedArea ? [selectedArea] : PLANT_AREAS;
-  const positions = useMemo(() => layoutFor(model), [model]);
+  const positions = useMemo(() => {
+    const raw = layoutFor(model);
+    if (s.scope === 'global') return raw;
+    const core = new Set(model.coreAssets.map((asset) => asset.id));
+    const center = { x: 740, y: 380 }, scale = 1.42;
+    return new Map([...raw].map(([id, point]) => [id, core.has(id) ? { x: center.x + (point.x - center.x) * scale, y: center.y + (point.y - center.y) * scale } : point]));
+  }, [model, s.scope]);
   return <AtlasFrame s={s} title={{ en: '2D site plan', es: 'Plano 2D de planta' }}>
     <div className="ob-atlas-view" data-scope={s.scope}><div className="ob-view-caption"><div><span className="ob-eyebrow">{lang === 'es' ? 'DISTRIBUCIÓN ESPACIAL' : 'SPATIAL LAYOUT'}</span><h2>{areaName(s.scope, lang)}</h2></div><span>{s.scope === 'global' ? (lang === 'es' ? 'Vista superior de toda la instalación' : 'Top-down site overview') : (lang === 'es' ? 'Área enfocada · seleccione un activo para abrir su detalle' : 'Focused area · select an asset to open its detail')}</span></div>
       <span className="ob-diagram-scroll-hint">{lang === 'es' ? 'Deslice para recorrer el plano completo' : 'Scroll horizontally to inspect the full plan'}</span><div className="ob-diagram-scroll" role="region" tabIndex={0} aria-label={lang === 'es' ? 'Plano espacial desplazable' : 'Scrollable spatial plan'}><svg className="ob-site-plan" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={lang === 'es' ? `Plano espacial ${areaName(s.scope, lang)}` : `${areaName(s.scope, lang)} spatial plan`}>
@@ -365,6 +333,11 @@ export function SitePlanView({ s }: { s: ViewState }) {
         </defs>
         <rect width={W} height={H} fill="url(#ob-site-grid)"/>
         <rect className="ob-site-boundary" x="40" y="70" width="1400" height="640" rx="10"/>
+        {s.scope !== 'global' && <g aria-label={lang === 'es' ? 'Huella de referencia del área' : 'Reference area footprint'}>
+          <rect className="ob-site-building" x="205" y="115" width="1070" height="560" rx="4"/>
+          <text className="ob-site-building-label" x="235" y="148">{areaName(s.scope, lang).toLocaleUpperCase(lang)} · {lang === 'es' ? 'DISTRIBUCIÓN DE REFERENCIA · NO ES LEVANTAMIENTO' : 'REFERENCE LAYOUT · NOT SURVEYED'}</text>
+          <path className="ob-site-lane" d="M235 185H1245M235 620H1245M260 205V600M1220 205V600"/>
+        </g>}
         {s.scope === 'global' && <>
           <path className="ob-site-road" d="M70 300H1410M120 610H1390M320 90V690M760 90V690M1200 90V690"/>
           <path className="ob-site-road-center" d="M70 300H1410M120 610H1390M320 90V690M760 90V690M1200 90V690"/>
@@ -386,13 +359,13 @@ export function SitePlanView({ s }: { s: ViewState }) {
           const p = AREA_POS[area.id];
           const assets = representativeAssets(areaModel, 4);
           return <g key={area.id} data-area-id={area.id} className="ob-plan-area" role="button" tabIndex={0} aria-label={`${area.name[lang]} · open area`} onMouseEnter={() => setPreviewArea(area.id)} onMouseLeave={() => setPreviewArea(null)} onFocus={() => setPreviewArea(area.id)} onBlur={() => setPreviewArea(null)} onClick={() => s.onScopeChange(area.id)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); s.onScopeChange(area.id); } }} transform={`translate(${p.x - 105},${p.y - 68})`}>
-            <rect className="ob-area-zone" width="210" height="136" rx="16" style={{ '--area-color': area.color } as CSSProperties}/><text className="ob-plan-title" x="16" y="25">{area.name[lang]}</text><text className="ob-plan-count" x="16" y="43">{group.length} {lang === 'es' ? 'equipos' : 'assets'} · {lang === 'es' ? 'abrir' : 'open'} ↗</text>
+            <rect className="ob-site-area-hit" width="210" height="136" fill="transparent" pointerEvents="all"/><text className="ob-plan-title" x="16" y="25">{area.name[lang]}</text><text className="ob-plan-count" x="16" y="43">{group.length} {lang === 'es' ? 'equipos' : 'assets'} · {lang === 'es' ? 'abrir' : 'open'} ↗</text>
             {assets.map((asset, index) => <g key={asset.id} transform={`translate(${10 + index * 48},57)`} className="ob-plan-asset" onClick={(e) => { e.stopPropagation(); s.onSelect(asset.id); s.onScopeChange(area.id); }}><EquipmentGlyph asset={asset} compact/><text x="30" y="57" textAnchor="middle">{asset.id}</text></g>)}
           </g>;
         }) : model.assets.map((asset) => {
           const point = positions.get(asset.id) ?? sortedFallback(model, asset, 0); const core = model.coreAssets.some((item) => item.id === asset.id); const status = assetState(asset, s.trace, s.step, s.method, s.live, s.now, s.plant);
-          const footprintWidth = core ? Math.max(84, Math.min(168, asset.size[0] * 1.55)) : 64;
-          const footprintDepth = core ? Math.max(64, Math.min(124, asset.size[2] * 1.55)) : 48;
+          const footprintWidth = core ? Math.max(132, Math.min(230, asset.size[0] * 2.15)) : 72;
+          const footprintDepth = core ? Math.max(92, Math.min(166, asset.size[2] * 2.05)) : 52;
           return <g key={asset.id} className={`ob-plan-asset-dot ${core ? 'core' : 'boundary'} ${s.selected === asset.id ? 'selected' : ''}`} transform={`translate(${point.x} ${point.y})`} role="button" tabIndex={0} aria-label={`${asset.id} ${asset.name[lang]}`} aria-pressed={s.selected === asset.id} onClick={() => s.onSelect(asset.id)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); s.onSelect(asset.id); } }}>
             {core ? <>
               <rect className={`ob-site-footprint state-${status}`} x={-footprintWidth/2} y={-footprintDepth/2} width={footprintWidth} height={footprintDepth} rx="3"/>
@@ -428,7 +401,7 @@ function EquipmentNode({ s, model, asset, position }: { s: ViewState; model: Are
     <line className="ob-node-port" x1="-80" y1="0" x2="-44" y2="0"/>
     <line className="ob-node-port" x1="44" y1="0" x2="80" y2="0"/>
     <circle className="ob-node-port-dot" cx="-44" cy="0" r="3.5"/><circle className="ob-node-port-dot" cx="44" cy="0" r="3.5"/>
-    <rect className="ob-node-id-tag" x="-37" y="28" width="74" height="24" rx="3"/>
+
     <text className="ob-node-id" y="45" textAnchor="middle">{asset.id}</text>
     <text className="ob-node-name" y={nameY} textAnchor="middle">{lines.map((line, index) => <tspan key={`${asset.id}-name-${index}`} x="0" dy={index === 0 ? 0 : 14}>{line}</tspan>)}</text>
     <text className="ob-node-context" y={91 + Math.max(0, lines.length - 1) * 12} textAnchor="middle">{streamCount} {lang === 'es' ? 'conexiones' : 'connections'}</text>
@@ -463,7 +436,7 @@ function BoundaryPort({ s, stream, incoming, position }: { s: ViewState; stream:
     aria-label={`${incoming ? (lang === 'es' ? 'Entrada desde' : 'Incoming from') : (lang === 'es' ? 'Salida hacia' : 'Outgoing to')} ${externalId} · ${area?.name[lang] ?? (lang === 'es' ? 'límite del sitio' : 'site boundary')} · ${streamMaterialLabel(stream.material, lang)} · ${flow}`}
     onClick={areaId ? () => { s.onSelect(externalId); s.onScopeChange(areaId); } : undefined}
     onKeyDown={areaId ? (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); s.onSelect(externalId); s.onScopeChange(areaId); } } : undefined}>
-    <rect width="220" height="112" rx="11"/>
+    <path className="ob-boundary-terminal" d={incoming ? 'M210 47H220M220 47V57' : 'M0 47H-10M-10 47V57'}/>
     <text className="ob-boundary-kicker" x="14" y="20">{incoming ? (lang === 'es' ? 'ENTRADA DESDE' : 'INCOMING FROM') : (lang === 'es' ? 'SALIDA HACIA' : 'OUTGOING TO')}</text>
     <text className="ob-boundary-area" x="14" y="43">{area?.name[lang] ?? (lang === 'es' ? 'Límite del sitio' : 'Site boundary')}</text>
     <text className="ob-boundary-route" x="14" y="65">{stream.id} · {stream.source} → {stream.target}</text>
@@ -473,8 +446,17 @@ function BoundaryPort({ s, stream, incoming, position }: { s: ViewState; stream:
   </g>;
 }
 
-function AreaSchematicDiagram({ s, model }: { s: ViewState; model: AreaModel }) {
+export function AreaSchematicDiagram({ s, model }: { s: ViewState; model: AreaModel }) {
   const lang = useShellLang();
+  const diagramScroll = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const region = diagramScroll.current;
+    const selected = region?.querySelector<SVGGElement>('.ob-schematic-node.selected');
+    if (!region || !selected) return;
+    const regionBox = region.getBoundingClientRect(), selectedBox = selected.getBoundingClientRect();
+    const delta = selectedBox.left + selectedBox.width / 2 - (regionBox.left + regionBox.width / 2);
+    if (Math.abs(delta) > 12) region.scrollBy({ left: delta, behavior: 'smooth' });
+  }, [s.selected, s.scope]);
   const positions = useMemo(() => new Map([...layoutFor(model)].map(([id, point]) => [id, { x: point.x, y: 40 + point.y * .72 }] as const)), [model]);
   if (model.scope === 'water-balance') return <WaterBalanceDiagram s={s} model={model}/>;
   const coreIds = new Set(model.coreAssets.map((asset) => asset.id));
@@ -499,10 +481,11 @@ function AreaSchematicDiagram({ s, model }: { s: ViewState; model: AreaModel }) 
   const occupiedLabels: DiagramRect[] = [];
   return <section className="ob-area-inline-schematic" aria-label={lang === 'es' ? 'Esquema detallado del área' : 'Detailed area schematic'}>
     <div className="ob-section-title"><h3>{lang === 'es' ? 'Esquema de proceso del área' : 'Area process schematic'}</h3><span>{model.coreAssets.length} {lang === 'es' ? 'equipos internos' : 'in-area assets'} · {visibleInternalStreams.length} {lang === 'es' ? 'corrientes internas activas' : 'active internal streams'} · {boundaries.length} {lang === 'es' ? 'conectores entre áreas' : 'inter-area connectors'}</span></div>
-    <span className="ob-diagram-scroll-hint">{lang === 'es' ? 'Deslice para recorrer el esquema completo' : 'Scroll horizontally to inspect the full schematic'}</span><div className="ob-diagram-scroll" role="region" tabIndex={0} aria-label={lang === 'es' ? 'Esquema desplazable' : 'Scrollable process schematic'}><svg className="ob-process-schematic" viewBox="0 0 1480 640" role="img" aria-label={`${areaName(s.scope, lang)} ${lang === 'es' ? 'esquema detallado' : 'detailed process schematic'}`} data-testid={`area-schematic-${s.scope}`}>
+    <div className="ob-process-legend" aria-label={lang === 'es' ? 'Leyenda del esquema' : 'Schematic legend'}><span><i className="ob-solid"/>{lang === 'es' ? 'Mineral y concentrado' : 'Ore and concentrate'}</span><span><i className="water"/>{lang === 'es' ? 'Agua y solución' : 'Water and solution'}</span><span><i className="tailings"/>{lang === 'es' ? 'Relaves' : 'Tailings'}</span><span>{lang === 'es' ? 'Tasas sintéticas de referencia' : 'Synthetic reference rates'}</span></div>
+    <span className="ob-diagram-scroll-hint">{lang === 'es' ? 'Deslice para recorrer el esquema completo' : 'Scroll horizontally to inspect the full schematic'}</span><div ref={diagramScroll} className="ob-diagram-scroll" role="region" tabIndex={0} aria-label={lang === 'es' ? 'Esquema desplazable' : 'Scrollable process schematic'}><svg className="ob-process-schematic" viewBox="0 0 1480 640" role="img" aria-label={`${areaName(s.scope, lang)} ${lang === 'es' ? 'esquema detallado' : 'detailed process schematic'}`} data-testid={`area-schematic-${s.scope}`}>
       <defs><marker id="ob-area-arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 10 5 0 10z" fill="context-stroke"/></marker></defs>
       <rect className="ob-schematic-sheet" x="8" y="8" width="1464" height="624" rx="18"/>
-      <g className="ob-schematic-key"><circle cx="34" cy="34" r="6" fill="#bd9967"/><text x="48" y="38">{lang === 'es' ? 'Mineral y concentrado' : 'Ore and concentrate'}</text><circle cx="238" cy="34" r="6" fill="#39a8c8"/><text x="252" y="38">{lang === 'es' ? 'Agua y solución' : 'Water and solution'}</text><circle cx="405" cy="34" r="6" fill="#9a806b"/><text x="419" y="38">{lang === 'es' ? 'Relaves' : 'Tailings'}</text><text x="1440" y="38" textAnchor="end">{lang === 'es' ? 'TASAS DE REFERENCIA SINTÉTICAS' : 'SYNTHETIC REFERENCE RATES'}</text></g>
+
       {visibleInternalStreams.map((stream, index) => {
         const a = positions.get(stream.source), b = positions.get(stream.target); if (!a || !b) return null;
         const dx = b.x - a.x, vertical = Math.abs(dx) <= 30 && b.y > a.y, backflow = dx < -30 || (Math.abs(dx) <= 30 && b.y < a.y);
@@ -524,7 +507,7 @@ function AreaSchematicDiagram({ s, model }: { s: ViewState; model: AreaModel }) 
         const color = streamColor(stream), noFlow = stream.nominal === 0 && stream.water_m3_h === 0;
         return <g key={stream.id} className={`ob-process-stream ${stream.water_m3_h > 0 ? 'water' : 'material'} ${noFlow ? 'no-flow' : ''}`}>
           <path d={path} fill="none" stroke={color} strokeWidth={stream.water_m3_h > 0 ? 3.5 : 4.2} strokeDasharray={stream.material === 'organic' || noFlow ? '9 7' : undefined} markerEnd="url(#ob-area-arrow)"/>
-          <rect x={label.x - 78} y={label.y - 20} width="156" height="40" rx="9"/><text x={label.x} y={label.y - 3} textAnchor="middle" className="ob-stream-name">{streamMaterialLabel(stream.material, lang)}</text><text x={label.x} y={label.y + 13} textAnchor="middle" className="ob-stream-value">{streamValue(stream, lang)} · {stream.id}</text>
+          <text x={label.x} y={label.y - 3} textAnchor="middle" className="ob-stream-name">{streamMaterialLabel(stream.material, lang)}</text><text x={label.x} y={label.y + 13} textAnchor="middle" className="ob-stream-value">{streamValue(stream, lang)} · {stream.id}</text>
         <title>{stream.id} · {stream.source} → {stream.target} · {streamMaterialLabel(stream.material, lang)} · {streamValue(stream, lang)}{stream.water_m3_h > 0 ? ` · ${formatValue(stream.water_m3_h, lang, 1)} m³/h ${lang === 'es' ? 'agua' : 'water'}` : ''} · ${stream.delay_s} s</title>
         </g>;
       })}
@@ -583,16 +566,25 @@ function WaterBalanceDiagram({ s, model }: { s: ViewState; model: AreaModel }) {
           : { x: origin.x + offset, y: origin.y + Math.sign(y || 1) * 76 };
         const start = edgePoint(a, dx, dy, portOffset), end = edgePoint(b, -dx, -dy, -portOffset);
         const middleX = (start.x + end.x) / 2, middleY = (start.y + end.y) / 2 + ((index % 3) - 1) * 42;
-        const path = `M${start.x} ${start.y} Q${middleX} ${middleY} ${end.x} ${end.y}`;
-        const labelPoint = placeDiagramLabel({ x: middleX, y: middleY }, blockedWaterLabels, occupiedWaterLabels, waterLabelSize, { left: 90, top: 65, right: 1390, bottom: 585 });
+        let path = `M${start.x} ${start.y} Q${middleX} ${middleY} ${end.x} ${end.y}`;
+        let labelAnchor = { x: middleX, y: middleY };
+        const routeKey = `${route.sourceArea}->${route.targetArea}`;
+        if (routeKey === 'utilities->grinding') { path = 'M268 160 H317'; labelAnchor = { x: 292, y: 270 }; }
+        if (routeKey === 'grinding->flotation') { path = 'M533 150 H592'; labelAnchor = { x: 562, y: 270 }; }
+        if (routeKey === 'flotation->thickening-filtration') { path = 'M808 150 H882'; labelAnchor = { x: 845, y: 270 }; }
+        if (routeKey === 'utilities->flotation') { path = 'M160 236 V292 H700 V226'; labelAnchor = { x: 430, y: 324 }; }
+        if (routeKey === 'flotation->tailings') { path = 'M808 160 V252 H1162 V365'; labelAnchor = { x: 985, y: 324 }; }
+        if (routeKey === 'thickening-filtration->utilities') { path = 'M990 74 V54 H160 V84'; labelAnchor = { x: 575, y: 74 }; }
+        if (routeKey === 'tailings->utilities') { path = 'M1270 441 V620 H70 V236 H160'; labelAnchor = { x: 750, y: 620 }; }
+        const labelPoint = placeDiagramLabel(labelAnchor, blockedWaterLabels, occupiedWaterLabels, waterLabelSize, { left: 90, top: 65, right: 1390, bottom: 630 });
         occupiedWaterLabels.push(labelRect(labelPoint, waterLabelSize));
         const areaCode: Record<AreaId,string> = { 'mine-extraction':'MINE', 'crushing-stockpiling':'CRUSH', grinding:'GRIND', flotation:'FLOT', 'leach-sx-ew':'LEACH', 'thickening-filtration':'THICK', 'water-balance':'WATER', tailings:'TAIL', utilities:'UTIL' };
-        return <g key={route.id} className="ob-water-route"><path d={path} markerEnd="url(#ob-water-arrow)"/><rect x={labelPoint.x - 90} y={labelPoint.y - 25} width="180" height="50" rx="9"/><text x={labelPoint.x} y={labelPoint.y - 9} textAnchor="middle">{formatValue(route.water_m3_h, lang, 1)} m³/h</text><text x={labelPoint.x} y={labelPoint.y + 4} textAnchor="middle" className="ob-water-route-count">{route.streamIds.length} {lang === 'es' ? 'corrientes' : 'streams'}</text><text x={labelPoint.x} y={labelPoint.y + 18} textAnchor="middle" className="ob-water-route-name">{areaCode[route.sourceArea]} → {areaCode[route.targetArea]}</text><title>{label(route.sourceArea)} → {label(route.targetArea)} · {route.streamIds.join(', ')}</title></g>;
+        return <g key={route.id} className="ob-water-route"><path d={path} markerEnd="url(#ob-water-arrow)"/><text x={labelPoint.x} y={labelPoint.y - 16} textAnchor="middle">{formatValue(route.water_m3_h, lang, 1)} m³/h</text><text x={labelPoint.x} y={labelPoint.y + 4} textAnchor="middle" className="ob-water-route-count">{route.streamIds.length} {lang === 'es' ? 'corrientes' : 'streams'}</text><text x={labelPoint.x} y={labelPoint.y + 21} textAnchor="middle" className="ob-water-route-name">{areaCode[route.sourceArea]} → {areaCode[route.targetArea]}</text><title>{label(route.sourceArea)} → {label(route.targetArea)} · {route.streamIds.join(', ')}</title></g>;
       })}
       {visibleAreas.map((area) => {
         const p = xy[area.id]!, stats = routeStats(area.id), inArea = internalRoutes.filter((route) => route.sourceArea === area.id).reduce((sum, route) => sum + route.water_m3_h, 0);
         return <g key={area.id} className="ob-water-area" role="button" tabIndex={0} aria-label={`${area.name[lang]} · ${lang === 'es' ? 'abrir detalle del área' : 'open area detail'}`} onClick={() => s.onScopeChange(area.id)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); s.onScopeChange(area.id); } }}>
-          <rect x={p.x - 108} y={p.y - 76} width="216" height="152" rx="16" style={{ '--area-color': area.color } as CSSProperties}/>
+          <path className="ob-water-area-rule" d={`M${p.x-108} ${p.y-76}H${p.x+108}M${p.x-108} ${p.y-76}V${p.y-58}`} style={{ '--area-color': area.color } as CSSProperties}/>
           <text x={p.x - 88} y={p.y - 34} className="ob-water-area-kicker">{String(PLANT_AREAS.indexOf(area) + 1).padStart(2, '0')} · {lang === 'es' ? 'ÁREA DE PROCESO' : 'PROCESS AREA'}</text>
           <text x={p.x - 88} y={p.y - 8} className="ob-water-area-name">{area.name[lang]}</text>
           <text x={p.x - 88} y={p.y + 18} className="ob-water-area-value">{lang === 'es' ? 'Bruto entra' : 'Gross in'} {formatValue(stats.incoming, lang, 1)} m³/h</text>
@@ -605,22 +597,90 @@ function WaterBalanceDiagram({ s, model }: { s: ViewState; model: AreaModel }) {
   </section>;
 }
 
+const GLOBAL_PROCESS_POS: Record<AreaId, XY> = {
+  'mine-extraction': { x: 160, y: 175 },
+  'crushing-stockpiling': { x: 480, y: 175 },
+  grinding: { x: 800, y: 175 },
+  flotation: { x: 1120, y: 175 },
+  'thickening-filtration': { x: 1440, y: 175 },
+  'leach-sx-ew': { x: 480, y: 425 },
+  'water-balance': { x: 800, y: 425 },
+  tailings: { x: 1120, y: 425 },
+  utilities: { x: 1440, y: 425 },
+};
+
+function GlobalProcessMap({ s, overview = false, onPreview }: { s: ViewState; overview?: boolean; onPreview?: (id: AreaId | null) => void }) {
+  const lang = useShellLang();
+  const areaOf = (assetId: string) => PLANT_AREAS.find((area) => area.assetIds.includes(assetId));
+  const routeGroups = new Map<string, { source: AreaId; target: AreaId; streams: Plant['streams']; nominal: number; water: number; material: string; unit: string }>();
+  for (const stream of s.plant.streams) {
+    const source = areaOf(stream.source)?.id, target = areaOf(stream.target)?.id;
+    if (!source || !target || source === target) continue;
+    const water = stream.water_m3_h ?? 0;
+    const material = water > 0 && ['solution', 'electrolyte'].includes(stream.material) ? 'solution' : stream.material;
+    const key = `${source}|${target}|${material}|${stream.unit}`;
+    const route = routeGroups.get(key) ?? { source, target, streams: [], nominal: 0, water: 0, material, unit: stream.unit };
+    route.streams.push(stream); route.nominal += stream.nominal; route.water += water; routeGroups.set(key, route);
+  }
+  const routes = [...routeGroups.values()];
+  return <section className="ob-global-flowsheet" aria-label={lang === 'es' ? 'Flujograma global mina a producto' : 'Global mine-to-product flowsheet'}>
+    <div className="ob-section-title"><h3>{lang === 'es' ? 'Rutas de proceso y servicios de planta' : 'Plant process and service routes'}</h3><span>{lang === 'es' ? 'Concentración · lixiviación / SX-EW · agua y servicios' : 'Concentration · leach / SX-EW · water and utilities'}</span></div>
+    <span className="ob-diagram-scroll-hint">{lang === 'es' ? 'Deslice para seguir las dos rutas de producto' : 'Scroll to follow both product routes'}</span>
+    <div className="ob-diagram-scroll" role="region" tabIndex={0} aria-label={lang === 'es' ? 'Flujograma global desplazable' : 'Scrollable global flowsheet'}><svg className="ob-global-flowsheet-svg" viewBox="0 0 1700 600" role="img" aria-label={lang === 'es' ? 'Rutas separadas de concentrador y lixiviación con áreas conectadas' : 'Separate concentrator and leach routes with connected plant areas'}>
+      <defs><marker id="ob-global-flow-arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 10 5 0 10z" fill="context-stroke"/></marker></defs>
+      <rect className="ob-flowsheet-band sulfide" x="26" y="38" width="1648" height="220"/>
+      <text className="ob-flowsheet-lane-title" x="48" y="64">{lang === 'es' ? 'RUTA DE SULFUROS · CONCENTRADOR' : 'SULFIDE ROUTE · CONCENTRATOR'}</text>
+      <rect className="ob-flowsheet-band oxide" x="345" y="298" width="1329" height="208"/>
+      <text className="ob-flowsheet-lane-title" x="370" y="324">{lang === 'es' ? 'RUTA DE ÓXIDOS · LIXIVIACIÓN / SX-EW' : 'OXIDE ROUTE · LEACH / SX-EW'}</text>
+      <text className="ob-flowsheet-lane-title water" x="45" y="558">{lang === 'es' ? 'AGUA, RECUPERACIÓN Y SERVICIOS COMPARTIDOS' : 'SHARED WATER, RECOVERY AND UTILITIES'}</text>
+      {routes.map((route, index) => {
+        const a = GLOBAL_PROCESS_POS[route.source], b = GLOBAL_PROCESS_POS[route.target];
+        const sourceY = a.y + 54, targetY = b.y + 54;
+        const start = { x: a.x + 114, y: sourceY + ((index % 3) - 1) * 8 };
+        const end = { x: b.x - 114, y: targetY - ((index % 3) - 1) * 8 };
+        const color = route.material === 'water' || route.material === 'solution' ? '#39a8c8' : streamColor(route.streams[0]);
+        const isWater = route.material === 'water' || route.material === 'solution';
+        const lane = Math.max(90, Math.min(520, (start.y + end.y) / 2 + ((index % 3) - 1) * 22));
+        const d = Math.abs(start.y - end.y) < 20 ? `M${start.x} ${start.y} H${end.x}` : `M${start.x} ${start.y} H${start.x + 28} V${lane} H${end.x - 28} V${end.y} H${end.x}`;
+        const labelShift = route.source === 'utilities' && route.target === 'grinding' ? 82 : 0;
+        const midY = Math.abs(start.y - end.y) < 20 ? start.y - 13 - (index % 3) * 15 : lane - 8;
+        // S32 connects the concentrator to the oxide route and its natural mid-lane label
+        // collides with the oxide lane heading. Keep the rate label with its stream below it.
+        const laneHeadingClearance = route.streams.some((stream) => stream.id === 'S32') ? 25 : 0;
+        const mid = { x: (start.x + end.x) / 2 + labelShift, y: midY + laneHeadingClearance };
+        const value = `${formatValue(route.nominal, lang, 1)} ${route.unit}`;
+        return <g key={`${route.source}-${route.target}-${route.material}-${route.unit}`} className={`ob-global-route ${isWater ? 'water' : 'material'}`}>
+          <path d={d} fill="none" stroke={color} strokeWidth={isWater ? 3 : 4} strokeDasharray={isWater ? '10 7' : undefined} markerEnd="url(#ob-global-flow-arrow)"/>
+          <text x={mid.x} y={mid.y} textAnchor="middle" className={`ob-global-route-label ${overview ? 'overview' : ''}`}>{overview ? route.material : route.streams.map((stream) => stream.id).join(', ')}</text>
+          <text x={mid.x} y={mid.y + 14} textAnchor="middle" className={`ob-global-route-value ${overview ? 'overview' : ''}`}>{value}</text>
+          <title>{route.source} → {route.target} · {route.streams.map((stream) => stream.id).join(', ')} · {value} · {lang === 'es' ? 'tasas de referencia sintéticas' : 'synthetic reference rates'}</title>
+        </g>;
+      })}
+      {PLANT_AREAS.map((area) => {
+        const point = GLOBAL_PROCESS_POS[area.id];
+        const model = buildAreaModel(s.plant, area.id);
+        const reps = representativeAssets(model, 3);
+        return <g key={area.id} className="ob-global-process-area" data-area-id={area.id} role="button" tabIndex={0} onMouseEnter={() => onPreview?.(area.id)} onMouseLeave={() => onPreview?.(null)} onFocus={() => onPreview?.(area.id)} onBlur={() => onPreview?.(null)} aria-label={`${area.name[lang]} · ${lang === 'es' ? 'abrir circuito' : 'open circuit'}`} onClick={() => s.onScopeChange(area.id)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); s.onScopeChange(area.id); } }}>
+          <rect className="ob-global-area-hit" x={point.x-114} y={point.y-78} width="228" height="164" fill="transparent" pointerEvents="all"/>
+          <path className="ob-global-area-boundary" d={`M${point.x - 114} ${point.y - 78}V${point.y + 86}H${point.x + 114}V${point.y - 78}`} style={{ '--area-color': area.color } as CSSProperties}/>
+          <path className="ob-global-area-accent" d={`M${point.x - 114} ${point.y - 76}H${point.x + 114}`} style={{ '--area-color': area.color } as CSSProperties}/>
+          <text className="ob-global-area-kicker" x={point.x - 100} y={point.y - 49}>{`AREA ${String(PLANT_AREAS.indexOf(area) + 1).padStart(2, '0')}`} · {model.coreAssets.length} {lang === 'es' ? 'equipos' : 'assets'}</text>
+          <text className="ob-global-area-name" x={point.x - 100} y={point.y - 23}>{area.name[lang]}</text>
+          <g className="ob-global-area-assets">{reps.map((asset, assetIndex) => <g key={asset.id} transform={`translate(${point.x - 69 + assetIndex * 67} ${point.y + 9})`}><EquipmentGlyph asset={asset} compact/><text x="28" y="54" textAnchor="middle">{asset.id}</text></g>)}</g>
+          <title>{area.name[lang]} · {area.purpose[lang]} · {model.coreAssets.length} assets · {areaEvidenceCount(s, model)} CAOS links · {lang === 'es' ? 'Seleccione para abrir el flujograma detallado.' : 'Select to open the detailed flowsheet.'}</title>
+        </g>;
+      })}
+    </svg></div>
+    <div className="ob-plan-legend"><span><i className="ob-plan-swatch"/>{lang === 'es' ? 'Mineral / sólidos' : 'Ore / solids'}</span><span><i className="ob-plan-swatch water"/>{lang === 'es' ? 'Agua / soluciones' : 'Water / solutions'}</span><span>{lang === 'es' ? 'Tasas de referencia sintéticas · balance no calculado' : 'Synthetic reference rates · balance not calculated'}</span></div>
+  </section>;
+}
+
 export function ProcessSchematicView({ s }: { s: ViewState }) {
   const lang = useShellLang();
   const model = useMemo(() => buildAreaModel(s.plant, s.scope), [s.plant, s.scope]);
   return <AtlasFrame s={s} title={{ en: 'Process schematic', es: 'Esquema de proceso' }}>
-    <div className="ob-atlas-view" data-scope={s.scope}>{s.scope === 'global' && <div className="ob-view-caption"><div><span className="ob-eyebrow">{lang === 'es' ? 'DIAGRAMA DE PROCESO' : 'PROCESS SCHEMATIC'}</span><h2>{areaName(s.scope, lang)}</h2></div><span>{lang === 'es' ? 'Seleccione una zona para abrir su propio esquema detallado.' : 'Select an area to open its own detailed schematic.'}</span></div>}
-      {s.scope === 'global' ? <><span className="ob-diagram-scroll-hint">{lang === 'es' ? 'Deslice para recorrer el esquema completo' : 'Scroll horizontally to inspect the full schematic'}</span><div className="ob-diagram-scroll" role="region" tabIndex={0} aria-label={lang === 'es' ? 'Esquema global desplazable' : 'Scrollable global process schematic'}><svg className="ob-global-schematic" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={lang === 'es' ? 'Esquema global de proceso' : 'Global process schematic'}>
-        <defs><marker id="ob-schematic-arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 10 5 0 10z" fill="context-stroke"/></marker></defs>
-        <path className="ob-global-mainline" d="M260 230H325M500 230H590M765 230H855M1030 230H1110" markerEnd="url(#ob-schematic-arrow)"/>
-        <path className="ob-global-altline" d="M420 278V500H720M1150 278V505H1260" markerEnd="url(#ob-schematic-arrow)"/>
-        {PLANT_AREAS.filter((area) => !['utilities'].includes(area.id)).map((area) => { const p = AREA_POS[area.id]; const m = buildAreaModel(s.plant, area.id); return <g key={area.id} className="ob-global-unit" transform={`translate(${p.x - 87},${p.y - 60})`} role="button" tabIndex={0} aria-label={`${area.name[lang]} · ${lang === 'es' ? 'abrir esquema' : 'open schematic'}`} onClick={() => s.onScopeChange(area.id)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); s.onScopeChange(area.id); } }}>
-          <rect className="ob-global-unit-outline" width="174" height="120" rx="14" style={{ '--area-color': area.color } as CSSProperties}/><text className="ob-global-unit-number" x="15" y="22">AREA {String(PLANT_AREAS.indexOf(area) + 1).padStart(2, '0')}</text><text className="ob-global-unit-name" x="15" y="47">{area.name[lang]}</text><text className="ob-global-unit-count" x="15" y="68">{m.coreAssets.length} {lang === 'es' ? 'equipos' : 'assets'}</text>
-          <g className="ob-global-unit-glyphs">{m.coreAssets.slice(0, 3).map((asset, i) => <g key={asset.id} transform={`translate(${12 + i * 49},73)`}><EquipmentGlyph asset={asset} compact/><text x="28" y="38">{asset.id}</text></g>)}</g>
-          <title>{area.name[lang]} · {area.purpose[lang]} · {m.coreAssets.length} assets · {areaEvidenceCount(s, m)} CAOS links</title>
-        </g>; })}
-        <g className="ob-global-utility" role="button" tabIndex={0} onClick={() => s.onScopeChange('utilities')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') s.onScopeChange('utilities'); }}><rect x="1285" y="468" width="150" height="90" rx="12"/><text x="1300" y="495">{lang === 'es' ? 'Servicios' : 'Utilities'}</text><text x="1300" y="518">{PLANT_AREAS.find((area) => area.id === 'utilities')?.assetIds.length ?? 0} {lang === 'es' ? 'equipos' : 'assets'}</text><text x="1300" y="542">↗ {lang === 'es' ? 'Abrir área' : 'Open area'}</text></g>
-      </svg></div></> : <><AreaSchematicDiagram s={s} model={model}/><AreaProcessGuide areaId={model.area!.id}/></>}
+    <div className="ob-atlas-view" data-scope={s.scope}>{s.scope === 'global' && <div className="ob-view-caption"><div><span className="ob-eyebrow">{lang === 'es' ? 'DIAGRAMA DE PROCESO' : 'PROCESS SCHEMATIC'}</span><h2>{areaName(s.scope, lang)}</h2></div><span>{lang === 'es' ? 'Seleccione una zona para abrir su propio esquema detallado.' : 'Select an area to open its own detailed schematic.'}</span></div>}{s.scope !== 'global' && <ProcessKpis s={s} model={model}/>}
+      {s.scope === 'global' ? <GlobalProcessMap s={s}/> : <><AreaSchematicDiagram s={s} model={model}/><AreaProcessGuide areaId={model.area!.id}/></>}
     </div>
   </AtlasFrame>;
 }

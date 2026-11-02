@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router';
 import { SurfacePage, useShellLang, type TabDef } from '@fasl-work/caos-app-shell';
 import { getJSON, loadCase, loadIndex, useArtifact, type CaseData } from '../api/artifacts';
 import type { Plant, EngineEvidence, Observation, SiteSample } from '../lib/contract.types';
-import { acceptSnapshot, linked, METHODS, safeStep } from './model';
+import { acceptSnapshot, assetState, channelIndices, formatValue, linked, liveValue, METHODS, safeStep, snapshotValue } from './model';
 import { AssetValues, EvidenceView, ModelView, SceneView, TrendsView, type ViewState } from './views';
 import { PlantOverviewView, ProcessSchematicView, SitePlanView } from './AreaVisuals';
 import type { PlantScope } from './areas';
@@ -115,8 +115,32 @@ export function Workbench() {
  const liveState=<span className={`ob-live-state ${live===null?'synthetic':sourceError?'unavailable':'live'}`}><i/>{live===null?t('Synthetic reference','Referencia sintética'):sourceError?t('Source unavailable','Fuente no disponible'):t('Read-only plant source','Fuente de planta de solo lectura')}</span>;
  const areaControl=<label className="ob-area-control"><span>{t('Area','Área')}</span><select aria-label={t('Plant area','Área de planta')} value={scope} onChange={event=>chooseScope(event.target.value as PlantScope)}><option value="global">{t('Whole plant','Planta completa')}</option>{PLANT_AREAS.map(area=><option key={area.id} value={area.id}>{area.name[lang]}</option>)}</select></label>;
  const focused=search.get('focus')==='1';
- const tabs:TabDef[]=VIEWS.map(item=>({id:item.id,label:item[lang],content:<div className="ob-view-layout" aria-label={`${scopeName} · ${item[lang]}`}>{!focused&&!(view==='overview'&&scope==='global')&&controls}<div className="ob-explorer-stage"><div className="ob-plot-layout">{renderView(item.id)}</div></div></div>,focus:{title:item[lang],description:scopeName}}));
-
  const pageTitle=scope==='global'?t('Mine and mineral processing plant','Mina y planta de procesamiento mineral'):scopeName;
+ const focusDescription=pageTitle===scopeName?`OreBridge · ${scopeName}`:`${pageTitle} · ${scopeName}`;
+ const focusAsset=graph.state==='ready'?graph.data.assets.find(asset=>asset.id===selected):undefined;
+ const focusStatus=focusAsset&&s?assetState(focusAsset,s.trace,s.step,s.method,s.live,s.now,s.plant):'unavailable';
+ const focusChannel=focusAsset&&data?channelIndices(data.trace,focusAsset.id)[0]:undefined;
+ const focusReading=focusAsset&&s&&s.live!==null
+   ? s.live.filter(record=>record.asset_id===focusAsset.id).map(record=>({value:liveValue(record,s.now,s.plant),unit:record.unit})).find(record=>record.value!==null)
+   : s&&focusChannel!==undefined&&data?{value:snapshotValue(data.trace,s.step,s.method,focusChannel),unit:data.trace.channels[focusChannel].unit}:undefined;
+ const focusModel=s?buildAreaModel(s.plant,s.scope):null;
+ const focusStatusText=focusStatus==='normal'?t('Within threshold','Dentro del umbral'):focusStatus==='alarm'?t('Model discrepancy','Discrepancia del modelo'):focusStatus==='context'?t('Reference context','Contexto de referencia'):t('Unavailable','No disponible');
+ const compactFocusViews=view==='site-plan'||view==='engines';
+ const focusControls=<aside className="ob-focus-rail" aria-label={t('Visualization configuration','Configuración de visualización')}>
+   {compactFocusViews&&<div className="ob-focus-selection"><strong>{focusAsset?.id??selected} · {focusStatusText}</strong><span>{focusReading&&focusReading.value!==null?`${formatValue(focusReading.value,lang)} ${focusReading.unit}`:t('No bound channel','Sin canal asociado')}</span></div>}
+   {areaControl}
+   <label className="ob-control">{t('Equipment','Equipo')}<select aria-label={t('Equipment','Equipo')} value={selected} onChange={event=>chooseAsset(event.target.value)}>{graph.state==='ready'&&(scope==='global'?graph.data.assets:buildAreaModel(graph.data,scope).coreAssets).map(asset=><option key={asset.id} value={asset.id}>{asset.id} · {asset.name[lang]}</option>)}</select></label>
+   <label className="ob-control">{t('Replay case','Caso de reproducción')}<select aria-label={t('Replay case','Caso de reproducción')} value={selectedCase} onChange={event=>chooseCase(event.target.value)}>{availableCases.map(item=><option key={item.case_id} value={item.case_id}>{item.case_id} · {item.title[lang]}</option>)}</select></label>
+   <label className="ob-control">{t('Replay time','Tiempo de reproducción')} · {step} s<input type="range" aria-label={t('Replay time','Tiempo de reproducción')} min="0" max="159" step="1" value={step} disabled={live!==null} onChange={event=>{setStep(+event.target.value);setPlaying(false);}}/></label>
+   <div className="ob-toolbar"><button disabled={live!==null} onClick={()=>setPlaying(!playing)} aria-pressed={playing}>{playing?t('Pause','Pausar'):t('Play replay','Reproducir')}</button><button disabled={live!==null} onClick={()=>{setStep(0);setPlaying(false);}}>{t('Reset','Reiniciar')}</button></div>
+   <label className="ob-control">{t('Discrepancy method','Método de discrepancia')}<select aria-label={t('Discrepancy method','Método de discrepancia')} value={method} disabled={live!==null} onChange={event=>setMethod(event.target.value)}>{METHODS.map(item=><option key={item}>{item}</option>)}</select></label>
+   <details><summary>{t('Process model controls','Controles del modelo de proceso')}</summary><ProcessRail value={processControls} onChange={setProcessControls}/></details>
+   <details><summary>{t('Read-only plant source','Fuente de planta de solo lectura')}</summary><p className="ob-note">{t('Credentials stay in memory. Plant observations are never used to run synthetic replay models.','Las credenciales permanecen en memoria. Las observaciones de planta nunca se usan para ejecutar modelos de reproducción sintética.')}</p><label className="ob-control">{t('Gateway URL','URL del gateway')}<input type="url" value={url} disabled={connected} onChange={event=>setUrl(event.target.value)} placeholder="https://gateway.example"/></label><label className="ob-control">{t('Access token','Token de acceso')}<input type="password" autoComplete="off" value={token} disabled={connected} onChange={event=>setToken(event.target.value)}/></label><button disabled={!connected&&(!url||!token)} onClick={()=>{if(connected){setConnected(false);setLive(null);setHistory([]);setToken('');setSourceError('');}else{setPlaying(false);setLive([]);setHistory([]);setConnected(true);}}}>{connected?t('Disconnect','Desconectar'):t('Connect read-only','Conectar solo lectura')}</button>{sourceError&&<p role="alert">{sourceError}</p>}</details>
+ </aside>;
+ const focusHud=s&&focusModel?[
+   {label:t('Selected asset · status','Equipo · estado'),value:`${focusAsset?.id??t('Unknown','Desconocido')} · ${focusStatusText}`},
+   {label:t('Selected reading','Lectura seleccionada'),value:focusReading&&focusReading.value!==null?`${formatValue(focusReading.value,lang)} ${focusReading.unit}`:t('No bound channel','Sin canal asociado')},
+ ]:[ ];
+ const tabs:TabDef[]=VIEWS.map(item=>({id:item.id,label:item[lang],content:<div className={`ob-view-layout${focused?' ob-focus-layout':''}`} aria-label={`${scopeName} · ${item[lang]}`}>{!focused&&!(view==='overview'&&scope==='global')&&controls}<div className="ob-explorer-stage"><div className="ob-plot-layout">{renderView(item.id)}</div></div></div>,focus:{title:item[lang],description:focusDescription,hud:item.id==='engines'||item.id==='site-plan'?[]:focusHud,rail:focusControls}}));
  return <SurfacePage title={{en:pageTitle,es:pageTitle}} lede={scope==='global'?t('Mine to plant · global and area views','Mina a planta · vistas globales y por área'):PLANT_AREAS.find(area=>area.id===scope)?.purpose[lang]} actions={<div className="ob-surface-actions">{areaControl}{liveState}</div>} tabs={tabs} value={view} onChange={id=>chooseView(id as PlantView)} deepLinkView="view" ariaLabel={{en:'Plant views',es:'Vistas de planta'}} instrument focus />;
 }
