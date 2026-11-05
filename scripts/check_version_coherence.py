@@ -4,6 +4,7 @@
 Fails when:
   - VERSION is not X.XX.XXX;
   - frontend/package.json's version is not the semver form of VERSION (0.02.000 -> 0.2.0);
+  - CITATION.cff does not match VERSION, or .zenodo.json pins the release-derived version;
   - the top entry of CHANGELOG.md is not VERSION;
   - a source file writes a version literal (X.XX.XXX) in CODE instead of reading VERSION (Python, TypeScript,
     TSX, JavaScript modules). Comments, docstrings and the prose of the documentation pages are history, not a
@@ -128,6 +129,15 @@ def main() -> int:
     if pkg.get("version") != semver(version):
         stated = pkg.get("version")
         errs.append(f"frontend/package.json version {stated} is not {semver(version)} (VERSION {version})")
+    citation = (root / "CITATION.cff").read_text(encoding="utf-8")
+    cited = re.search(r"^version:\s*(\S+)\s*$", citation, re.MULTILINE)
+    if not cited or cited.group(1) != version:
+        errs.append(f"CITATION.cff version {cited.group(1) if cited else 'missing'} is not VERSION {version}")
+    zenodo = json.loads((root / ".zenodo.json").read_text(encoding="utf-8"))
+    if "version" in zenodo:
+        errs.append(".zenodo.json must not pin version; the GitHub release tag supplies it")
+    if LITERAL.search(str(zenodo.get("title", ""))):
+        errs.append(".zenodo.json title must not pin a release version")
     top = re.search(r"^## \[([^\]]+)\]", (root / "CHANGELOG.md").read_text(encoding="utf-8"), re.MULTILINE)
     if not top or top.group(1) != version:
         errs.append(f"the top CHANGELOG entry is {top.group(1) if top else 'missing'}, not {version}")
