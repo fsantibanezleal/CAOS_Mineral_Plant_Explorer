@@ -61,6 +61,30 @@ try {
       if (result.nodeCount < expectedNodeCount) errors.push(`${language}/${area}: diagram rendered ${result.nodeCount} nodes; expected at least ${expectedNodeCount}`);
       if (result.issues.length) errors.push(`${language}/${area}: ${result.issues.join('; ')}`);
       console.log(`${language}/${area}: ${result.nodeCount} ${area === 'water-balance' ? 'areas' : 'nodes'}, ${result.labelCount} ${area === 'water-balance' ? 'transfers' : 'labels'}, ${result.issues.length ? result.issues.join('; ') : 'clear'}`);
+
+      await page.goto(`${baseUrl}/app?area=${area}&view=site-plan`, { waitUntil: 'networkidle' });
+      const plan = page.locator('.ob-site-plan');
+      await plan.waitFor({ state: 'visible', timeout: 15000 });
+      const planResult = await plan.evaluate((root) => {
+        const items = [...root.querySelectorAll('.ob-plan-asset-dot')].map((element) => {
+          const box = element.getBBox(), matrix = element.getCTM();
+          return {
+            id: element.querySelector('.ob-site-asset-id')?.textContent ?? 'unknown',
+            box: { x: box.x * matrix.a + matrix.e, y: box.y * matrix.d + matrix.f, width: box.width * matrix.a, height: box.height * matrix.d },
+          };
+        });
+        const overlap = (a, b) => a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+        const collisions = [];
+        for (let i = 0; i < items.length; i++) for (let j = i + 1; j < items.length; j++) {
+          if (overlap(items[i].box, items[j].box)) collisions.push(`${items[i].id} overlaps ${items[j].id}`);
+        }
+        const footprint = root.querySelector('.ob-site-building')?.getBBox();
+        const outsideFootprint = footprint ? items.filter(({ box }) => box.x < footprint.x || box.y < footprint.y || box.x + box.width > footprint.x + footprint.width || box.y + box.height > footprint.y + footprint.height).map(({ id }) => `${id} is outside the area footprint`) : ['area footprint is missing'];
+        const clipped = items.filter(({ box }) => box.x < 0 || box.y < 0 || box.x + box.width > 1480 || box.y + box.height > 760).map(({ id }) => `${id} is outside the plan boundary`);
+        return { count: items.length, issues: [...collisions, ...outsideFootprint, ...clipped] };
+      });
+      if (planResult.issues.length) errors.push(`${language}/${area}/site-plan: ${planResult.issues.join('; ')}`);
+      console.log(`${language}/${area}/site-plan: ${planResult.count} assets, ${planResult.issues.length ? planResult.issues.join('; ') : 'no overlap or clipping'}`);
     }
   }
   await page.close();

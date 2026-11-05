@@ -66,15 +66,18 @@ describe('the gate script', () => {
     expect(gate).toMatch(/'--require-focus'/);
   });
 
-  it('adversarial: the runner of the previous release, without the flag, or with the flag after the pass-through arguments, is refused (WB-014)', () => {
-    const holds = (source: string) => source.includes("'--require-focus'") && source.indexOf("'--require-focus'") < source.indexOf('...extra');
-    expect(holds(gate)).toBe(true);
-    expect(holds(gate.replace("...(waived ? [] : ['--require-focus']), ", ''))).toBe(false);
-    expect(holds(gate.replace("...(waived ? [] : ['--require-focus']), '--out', out, ...extra]", "'--out', out, ...extra, '--require-focus']"))).toBe(false);
+  it('adversarial: required Focus and Showcase flags cannot be removed or moved after pass-through arguments', () => {
+    const holds = (source: string, flag: string) => source.includes(`'${flag}'`) && source.indexOf(`'${flag}'`) < source.indexOf('...extra');
+    expect(holds(gate, '--require-focus')).toBe(true);
+    expect(holds(gate, '--require-showcase')).toBe(true);
+    expect(holds(gate.replace("...(waived ? [] : ['--require-focus']), ", ''), '--require-focus')).toBe(false);
+    expect(holds(gate.replace("'--require-showcase', ", ''), '--require-showcase')).toBe(false);
+    expect(holds(gate.replace("'--require-showcase', '--routes', SHOWCASE_ROUTES, '--out', out, ...extra]", "'--routes', SHOWCASE_ROUTES, '--out', out, ...extra, '--require-showcase']"), '--require-showcase')).toBe(false);
   });
 
-  it('puts --require-focus before the pass-through arguments and the npm script does not drop it', () => {
+  it('puts --require-focus and --require-showcase before the pass-through arguments and the npm script does not drop them', () => {
     expect(gate.indexOf("'--require-focus'")).toBeLessThan(gate.indexOf('...extra'));
+    expect(gate.indexOf("'--require-showcase'")).toBeLessThan(gate.indexOf('...extra'));
     expect(pkg.scripts.gate).toBe('node scripts/gate.mjs');
   });
 });

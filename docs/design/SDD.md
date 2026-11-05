@@ -45,7 +45,7 @@ Raw caches/models/screenshots stay outside the repository via environment roots.
 
 ## Technology and versions
 
-The verified runtime is Python 3.12.10 and Node v24.14.1. Template 0.14.001 and shell 0.19.9 are verified. All direct dependencies below are resolved from the installed environment and lock.
+The verified runtime is Python 3.12.10 and Node v24.14.1. Template 0.14.001 and shell 0.20.0 are verified. All direct dependencies below are resolved from the installed environment and lock.
 
 | component | package | version | use | alternative considered |
 |---|---|---|---|---|
@@ -69,7 +69,7 @@ The verified runtime is Python 3.12.10 and Node v24.14.1. Template 0.14.001 and 
 | Python | scikit-learn | 1.9.1 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
 | Python | scipy | 1.18.1 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
 | Python | uvicorn | 0.54.0 | Offline scientific model or explicit validation tool | Separate industrial runtime, rejected for public replay |
-| shell | @fasl-work/caos-app-shell | 0.19.9 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
+| shell | @fasl-work/caos-app-shell | 0.20.0 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
 | Browser | katex | 0.19.1 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
 | Browser | lucide-react | 1.52.0 | Visual client or build validation | Custom framework, rejected to preserve shared shell |
 | Browser | react | 19.3.0 | Visual client or build validation | Custom framework, rejected to preserve shared shell |

@@ -3,6 +3,18 @@
 All notable changes to this product. Versions are X.XX.XXX (VERSION is the single source); every release is
 tagged.
 
+## [0.02.006] - 2026-11-05
+
+### Changed
+
+- Refine the global and area site plans so each area shows only its core equipment, all water-linked equipment remains inside the water-balance reference footprint, and authored process streams stay in the process schematic.
+- Add adversarial spatial checks for equipment collisions, clipping and containment across all nine areas in English and Spanish.
+
+### Fixed
+
+- Keep Focus Trends replay readings tied to the selected asset and replay time; assert the displayed value directly rather than parsing an unrelated HUD label.
+- Stabilize the shared focus and story visual-mode checks against delayed reading updates.
+
 ## [0.02.005] - 2026-11-02
 
 ### Changed

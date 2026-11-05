@@ -39,6 +39,12 @@ const DETAIL_LAYOUT: Partial<Record<AreaId, Record<string, XY>>> = {
   flotation: { FL1:{x:420,y:360}, FL2:{x:820,y:220}, RGM:{x:820,y:500} },
   'leach-sx-ew': { HEP:{x:330,y:230}, LCH:{x:330,y:520}, PLS:{x:560,y:375}, SX1:{x:780,y:280}, SX2:{x:990,y:280}, EW1:{x:1160,y:280}, CAT:{x:1160,y:530}, RAF:{x:780,y:530} },
   'thickening-filtration': { CTH:{x:430,y:380}, FIL:{x:740,y:380}, CON:{x:1050,y:380} },
+  'water-balance': {
+    MWT:{x:155,y:190}, PWT:{x:389,y:190}, PU2:{x:623,y:190}, PU1:{x:857,y:190}, CY1:{x:1091,y:190}, SAG:{x:1325,y:190},
+    BAL:{x:155,y:330}, FL1:{x:389,y:330}, FL2:{x:623,y:330}, RGM:{x:857,y:330}, CTH:{x:1091,y:330}, TTH:{x:1325,y:330},
+    HEP:{x:155,y:470}, LCH:{x:389,y:470}, PLS:{x:623,y:470}, SX1:{x:857,y:470}, SX2:{x:1091,y:470}, EW1:{x:1325,y:470},
+    RAF:{x:389,y:610}, TSF:{x:623,y:610}, FIL:{x:857,y:610}, CON:{x:1091,y:610},
+  },
   tailings: { TTH:{x:430,y:380}, TSF:{x:800,y:380}, MON:{x:1120,y:260} },
   utilities: { MWT:{x:330,y:230}, PWT:{x:660,y:230}, PU2:{x:990,y:230}, ACD:{x:330,y:520}, SUB:{x:660,y:520} },
 };
@@ -66,7 +72,7 @@ function sortedFallback(model: AreaModel, asset: Asset, index: number): XY {
 function layoutFor(model: AreaModel): Map<string, XY> {
   const manual = model.scope === 'global' ? undefined : DETAIL_LAYOUT[model.scope];
   const positions = new Map<string, XY>();
-  model.assets.forEach((asset, index) => {
+  model.coreAssets.forEach((asset, index) => {
     positions.set(asset.id, manual?.[asset.id] ?? sortedFallback(model, asset, index));
   });
   return positions;
@@ -317,11 +323,15 @@ export function SitePlanView({ s }: { s: ViewState }) {
   const model = buildAreaModel(s.plant, s.scope);
   const selectedArea = s.scope === 'global' ? null : model.area;
   const visibleAreas = selectedArea ? [selectedArea] : PLANT_AREAS;
+  // The water-balance reference layout uses the full plant coordinate range.
+  // Match the labeled area footprint to the SVG boundary so edge equipment is
+  // not falsely shown outside its own area.
+  const siteFootprint = { x: 40, y: 70, width: 1400, height: 670 };
   const positions = useMemo(() => {
     const raw = layoutFor(model);
     if (s.scope === 'global') return raw;
     const core = new Set(model.coreAssets.map((asset) => asset.id));
-    const center = { x: 740, y: 380 }, scale = 1.42;
+    const center = { x: 740, y: 380 }, scale = s.scope === 'water-balance' ? 1 : 1.3;
     return new Map([...raw].map(([id, point]) => [id, core.has(id) ? { x: center.x + (point.x - center.x) * scale, y: center.y + (point.y - center.y) * scale } : point]));
   }, [model, s.scope]);
   return <AtlasFrame s={s} title={{ en: '2D site plan', es: 'Plano 2D de planta' }}>
@@ -332,11 +342,10 @@ export function SitePlanView({ s }: { s: ViewState }) {
           <marker id="ob-site-arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 9 4.5 0 9Z" fill="context-stroke"/></marker>
         </defs>
         <rect width={W} height={H} fill="url(#ob-site-grid)"/>
-        <rect className="ob-site-boundary" x="40" y="70" width="1400" height="640" rx="10"/>
+        <rect className="ob-site-boundary" x="40" y="70" width="1400" height="670" rx="10"/>
         {s.scope !== 'global' && <g aria-label={lang === 'es' ? 'Huella de referencia del área' : 'Reference area footprint'}>
-          <rect className="ob-site-building" x="205" y="115" width="1070" height="560" rx="4"/>
-          <text className="ob-site-building-label" x="235" y="148">{areaName(s.scope, lang).toLocaleUpperCase(lang)} · {lang === 'es' ? 'DISTRIBUCIÓN DE REFERENCIA · NO ES LEVANTAMIENTO' : 'REFERENCE LAYOUT · NOT SURVEYED'}</text>
-          <path className="ob-site-lane" d="M235 185H1245M235 620H1245M260 205V600M1220 205V600"/>
+          <rect className="ob-site-building" x={siteFootprint.x} y={siteFootprint.y} width={siteFootprint.width} height={siteFootprint.height} rx="4"/>
+          <text className="ob-site-building-label" x="110" y="120">{areaName(s.scope, lang).toLocaleUpperCase(lang)} · {lang === 'es' ? 'DISTRIBUCIÓN DE REFERENCIA · NO ES LEVANTAMIENTO' : 'REFERENCE LAYOUT · NOT SURVEYED'}</text>
         </g>}
         {s.scope === 'global' && <>
           <path className="ob-site-road" d="M70 300H1410M120 610H1390M320 90V690M760 90V690M1200 90V690"/>
@@ -347,12 +356,6 @@ export function SitePlanView({ s }: { s: ViewState }) {
           <path d="M150 258H365M535 258H628M800 258H900M1072 258H1190" markerEnd="url(#ob-site-arrow)"/>
           <path d="M472 330V516H702M1010 330V516H1252" markerEnd="url(#ob-site-arrow)"/>
         </g>}
-        {s.scope !== 'global' && model.streams.map((stream) => {
-          const from = positions.get(stream.source), to = positions.get(stream.target);
-          if (!from || !to) return null;
-          const midX = (from.x + to.x) / 2;
-          return <path key={stream.id} d={`M${from.x} ${from.y} H${midX} V${to.y} H${to.x}`} className={`ob-plan-stream ${stream.water_m3_h > 0 ? 'water' : 'solid'}`} markerEnd="url(#ob-site-arrow)"><title>{stream.id} · {stream.source} → {stream.target} · {streamMaterialLabel(stream.material, lang)} · {streamValue(stream, lang)}</title></path>;
-        })}
         {s.scope === 'global' ? visibleAreas.map((area) => {
           const areaModel = buildAreaModel(s.plant, area.id);
           const group = areaModel.coreAssets;
@@ -362,7 +365,7 @@ export function SitePlanView({ s }: { s: ViewState }) {
             <rect className="ob-site-area-hit" width="210" height="136" fill="transparent" pointerEvents="all"/><text className="ob-plan-title" x="16" y="25">{area.name[lang]}</text><text className="ob-plan-count" x="16" y="43">{group.length} {lang === 'es' ? 'equipos' : 'assets'} · {lang === 'es' ? 'abrir' : 'open'} ↗</text>
             {assets.map((asset, index) => <g key={asset.id} transform={`translate(${10 + index * 48},57)`} className="ob-plan-asset" onClick={(e) => { e.stopPropagation(); s.onSelect(asset.id); s.onScopeChange(area.id); }}><EquipmentGlyph asset={asset} compact/><text x="30" y="57" textAnchor="middle">{asset.id}</text></g>)}
           </g>;
-        }) : model.assets.map((asset) => {
+        }) : model.coreAssets.map((asset) => {
           const point = positions.get(asset.id) ?? sortedFallback(model, asset, 0); const core = model.coreAssets.some((item) => item.id === asset.id); const status = assetState(asset, s.trace, s.step, s.method, s.live, s.now, s.plant);
           const footprintWidth = core ? Math.max(132, Math.min(230, asset.size[0] * 2.15)) : 72;
           const footprintDepth = core ? Math.max(92, Math.min(166, asset.size[2] * 2.05)) : 52;
@@ -422,7 +425,7 @@ function streamValue(stream: Plant['streams'][number], lang: string) {
   return `${formatValue(stream.nominal, lang, 1)} ${stream.unit}`;
 }
 
-function BoundaryPort({ s, stream, incoming, position }: { s: ViewState; stream: Plant['streams'][number]; incoming: boolean; position: XY }) {
+function BoundaryPort({ s, stream, incoming, position, interactive = true }: { s: ViewState; stream: Plant['streams'][number]; incoming: boolean; position: XY; interactive?: boolean }) {
   const lang = useShellLang();
   const externalId = incoming ? stream.source : stream.target;
   const external = s.plant.assets.find((asset) => asset.id === externalId);
@@ -432,10 +435,10 @@ function BoundaryPort({ s, stream, incoming, position }: { s: ViewState; stream:
   const flow = (stream.water_m3_h ?? 0) > 0 && !['water', 'solution', 'electrolyte'].includes(stream.material)
     ? `${streamValue(stream, lang)} · ${formatValue(stream.water_m3_h, lang, 1)} m³/h ${lang === 'es' ? 'agua' : 'water'}`
     : streamValue(stream, lang);
-  return <g className={`ob-boundary-port ${incoming ? 'incoming' : 'outgoing'}`} transform={`translate(${x} ${position.y - 47})`} role={areaId ? 'button' : undefined} tabIndex={areaId ? 0 : undefined}
+  return <g className={`ob-boundary-port ${incoming ? 'incoming' : 'outgoing'}`} transform={`translate(${x} ${position.y - 47})`} role={areaId && interactive ? 'button' : undefined} tabIndex={areaId && interactive ? 0 : undefined}
     aria-label={`${incoming ? (lang === 'es' ? 'Entrada desde' : 'Incoming from') : (lang === 'es' ? 'Salida hacia' : 'Outgoing to')} ${externalId} · ${area?.name[lang] ?? (lang === 'es' ? 'límite del sitio' : 'site boundary')} · ${streamMaterialLabel(stream.material, lang)} · ${flow}`}
-    onClick={areaId ? () => { s.onSelect(externalId); s.onScopeChange(areaId); } : undefined}
-    onKeyDown={areaId ? (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); s.onSelect(externalId); s.onScopeChange(areaId); } } : undefined}>
+    onClick={areaId && interactive ? () => { s.onSelect(externalId); s.onScopeChange(areaId); } : undefined}
+    onKeyDown={areaId && interactive ? (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); s.onSelect(externalId); s.onScopeChange(areaId); } } : undefined}>
     <path className="ob-boundary-terminal" d={incoming ? 'M210 47H220M220 47V57' : 'M0 47H-10M-10 47V57'}/>
     <text className="ob-boundary-kicker" x="14" y="20">{incoming ? (lang === 'es' ? 'ENTRADA DESDE' : 'INCOMING FROM') : (lang === 'es' ? 'SALIDA HACIA' : 'OUTGOING TO')}</text>
     <text className="ob-boundary-area" x="14" y="43">{area?.name[lang] ?? (lang === 'es' ? 'Límite del sitio' : 'Site boundary')}</text>
@@ -446,7 +449,7 @@ function BoundaryPort({ s, stream, incoming, position }: { s: ViewState; stream:
   </g>;
 }
 
-export function AreaSchematicDiagram({ s, model }: { s: ViewState; model: AreaModel }) {
+export function AreaSchematicDiagram({ s, model, interactiveBoundaries = true }: { s: ViewState; model: AreaModel; interactiveBoundaries?: boolean }) {
   const lang = useShellLang();
   const diagramScroll = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -523,7 +526,7 @@ export function AreaSchematicDiagram({ s, model }: { s: ViewState; model: AreaMo
           if (stream.id === 'S22') path = `M${nodePort.x} ${nodePort.y} H600 V600 H1210 V${port.y} H${port.x}`;
           if (stream.id === 'S23') path = `M${nodePort.x} ${nodePort.y} H1100 V${port.y} H${port.x}`;
         }
-        return <g key={`boundary-${stream.id}`} className={`ob-process-stream boundary ${stream.water_m3_h > 0 ? 'water' : 'material'}`}><path d={path} fill="none" stroke={color} strokeWidth={stream.water_m3_h > 0 ? 3.5 : 4.2} strokeDasharray={stream.nominal === 0 && stream.water_m3_h === 0 ? '9 7' : undefined} markerEnd="url(#ob-area-arrow)"/><BoundaryPort s={s} stream={stream} incoming={incoming} position={port}/></g>;
+        return <g key={`boundary-${stream.id}`} className={`ob-process-stream boundary ${stream.water_m3_h > 0 ? 'water' : 'material'}`}><path d={path} fill="none" stroke={color} strokeWidth={stream.water_m3_h > 0 ? 3.5 : 4.2} strokeDasharray={stream.nominal === 0 && stream.water_m3_h === 0 ? '9 7' : undefined} markerEnd="url(#ob-area-arrow)"/><BoundaryPort s={s} stream={stream} incoming={incoming} position={port} interactive={interactiveBoundaries}/></g>;
       })}
       {model.coreAssets.map((asset, index) => <EquipmentNode key={asset.id} s={s} model={model} asset={asset} position={positions.get(asset.id) ?? sortedFallback(model, asset, index)}/>)}
     </svg></div>
@@ -609,7 +612,7 @@ const GLOBAL_PROCESS_POS: Record<AreaId, XY> = {
   utilities: { x: 1440, y: 425 },
 };
 
-function GlobalProcessMap({ s, overview = false, onPreview }: { s: ViewState; overview?: boolean; onPreview?: (id: AreaId | null) => void }) {
+export function GlobalProcessMap({ s, overview = false, onPreview, linkedSelection, onLinkedSelect }: { s: ViewState; overview?: boolean; onPreview?: (id: AreaId | null) => void; linkedSelection?: string | null; onLinkedSelect?: (id: string) => void }) {
   const lang = useShellLang();
   const areaOf = (assetId: string) => PLANT_AREAS.find((area) => area.assetIds.includes(assetId));
   const routeGroups = new Map<string, { source: AreaId; target: AreaId; streams: Plant['streams']; nominal: number; water: number; material: string; unit: string }>();
@@ -625,7 +628,7 @@ function GlobalProcessMap({ s, overview = false, onPreview }: { s: ViewState; ov
   const routes = [...routeGroups.values()];
   return <section className="ob-global-flowsheet" aria-label={lang === 'es' ? 'Flujograma global mina a producto' : 'Global mine-to-product flowsheet'}>
     <div className="ob-section-title"><h3>{lang === 'es' ? 'Rutas de proceso y servicios de planta' : 'Plant process and service routes'}</h3><span>{lang === 'es' ? 'Concentración · lixiviación / SX-EW · agua y servicios' : 'Concentration · leach / SX-EW · water and utilities'}</span></div>
-    <span className="ob-diagram-scroll-hint">{lang === 'es' ? 'Deslice para seguir las dos rutas de producto' : 'Scroll to follow both product routes'}</span>
+    <span className="ob-diagram-scroll-hint">{lang === 'es' ? 'Desplace esta vista para ver la fila inferior y seguir ambas rutas de proceso' : 'Scroll this view to reach the lower plant row and follow both process routes'}</span>
     <div className="ob-diagram-scroll" role="region" tabIndex={0} aria-label={lang === 'es' ? 'Flujograma global desplazable' : 'Scrollable global flowsheet'}><svg className="ob-global-flowsheet-svg" viewBox="0 0 1700 600" role="img" aria-label={lang === 'es' ? 'Rutas separadas de concentrador y lixiviación con áreas conectadas' : 'Separate concentrator and leach routes with connected plant areas'}>
       <defs><marker id="ob-global-flow-arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 10 5 0 10z" fill="context-stroke"/></marker></defs>
       <rect className="ob-flowsheet-band sulfide" x="26" y="38" width="1648" height="220"/>
@@ -660,7 +663,8 @@ function GlobalProcessMap({ s, overview = false, onPreview }: { s: ViewState; ov
         const point = GLOBAL_PROCESS_POS[area.id];
         const model = buildAreaModel(s.plant, area.id);
         const reps = representativeAssets(model, 3);
-        return <g key={area.id} className="ob-global-process-area" data-area-id={area.id} role="button" tabIndex={0} onMouseEnter={() => onPreview?.(area.id)} onMouseLeave={() => onPreview?.(null)} onFocus={() => onPreview?.(area.id)} onBlur={() => onPreview?.(null)} aria-label={`${area.name[lang]} · ${lang === 'es' ? 'abrir circuito' : 'open circuit'}`} onClick={() => s.onScopeChange(area.id)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); s.onScopeChange(area.id); } }}>
+        const selectArea = () => onLinkedSelect ? onLinkedSelect(area.id) : s.onScopeChange(area.id);
+        return <g key={area.id} className="ob-global-process-area" data-area-id={area.id} data-linked-id={area.id} data-linked-view="scene" data-linked-selected={linkedSelection === area.id ? 'true' : 'false'} aria-pressed={linkedSelection === area.id} role="button" tabIndex={0} onMouseEnter={() => onPreview?.(area.id)} onMouseLeave={() => onPreview?.(null)} onFocus={() => onPreview?.(area.id)} onBlur={() => onPreview?.(null)} aria-label={`${area.name[lang]} · ${lang === 'es' ? 'abrir circuito' : 'open circuit'}`} onClick={selectArea} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectArea(); } }}>
           <rect className="ob-global-area-hit" x={point.x-114} y={point.y-78} width="228" height="164" fill="transparent" pointerEvents="all"/>
           <path className="ob-global-area-boundary" d={`M${point.x - 114} ${point.y - 78}V${point.y + 86}H${point.x + 114}V${point.y - 78}`} style={{ '--area-color': area.color } as CSSProperties}/>
           <path className="ob-global-area-accent" d={`M${point.x - 114} ${point.y - 76}H${point.x + 114}`} style={{ '--area-color': area.color } as CSSProperties}/>
