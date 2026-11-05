@@ -67,7 +67,10 @@ jobs:
           BEFORE: ${{ github.event.before }}
         run: |
           base="$BEFORE"
-          if [ -z "${base//0/}" ]; then base=origin/develop; fi  # a new branch or a manual run has no before SHA
+          if [ -z "${base//0/}" ]; then
+            git fetch origin develop
+            base=origin/develop  # a new branch or a manual run has no before SHA
+          fi
           python scripts/check_contract_versions.py --base "$base"
       - name: Every guard rejects a planted defect (spec area, cheap, standard library and pytest only)
         run: pip install pytest==9.1.1 && python -m pytest tests/adversarial -q

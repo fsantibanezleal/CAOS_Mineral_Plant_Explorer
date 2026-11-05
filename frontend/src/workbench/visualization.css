@@ -354,6 +354,7 @@
   .app-shell.fixed .page-body.wide.ob-story-mode[data-story] { min-height: 100%; padding: .5rem; }
   .ob-story-mode > div > section { min-height: 46dvh; }
   .ob-story-mode > div > aside { max-height: 30dvh; }
+  .ob-story-visual { padding-inline: 4px; box-sizing: border-box; }
   .ob-story-visual .ob-diagram-scroll { scroll-padding-inline: 64px; padding-inline: 64px; box-sizing: border-box; }
   .ob-story-visual > .ob-global-flowsheet,
   .ob-story-visual > .ob-area-inline-schematic,
