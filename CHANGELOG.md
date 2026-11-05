@@ -9,6 +9,8 @@ tagged.
 
 - Refine the global and area site plans so each area shows only its core equipment, all water-linked equipment remains inside the water-balance reference footprint, and authored process streams stay in the process schematic.
 - Add adversarial spatial checks for equipment collisions, clipping and containment across all nine areas in English and Spanish.
+- Explain horizontal and vertical navigation on the global flowsheet and verify the rightmost area and lower row are reachable.
+- Keep the SAG section's source-bound readout in the Story evidence panel instead of repeating it in a floating card.
 
 ### Fixed
 

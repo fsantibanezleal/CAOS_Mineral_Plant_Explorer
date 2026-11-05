@@ -25,6 +25,7 @@ try {
         panel: !!document.querySelector('[data-stage-panel]'),
         stageWidth: stage?.getBoundingClientRect().width ?? 0,
         drawing: !!drawing,
+        duplicateReadingCard: !!document.querySelector('[data-story-step="grinding"] .ob-component-reading'),
         callouts: boxes.length,
         collidingCards: boxes.some((box, index) => boxes.slice(index + 1).some((other) => overlap(box, other))),
         cardsCoverDrawing: !!drawing && boxes.some((box) => overlap(box, drawing)),
@@ -34,7 +35,7 @@ try {
         viewport: innerWidth,
       };
     }, visual);
-    const ok = result.step === step && result.headline && result.panel && result.stageWidth > 600 && result.drawing && result.callouts === 3 && !result.collidingCards && !result.cardsCoverDrawing && result.header === 'none' && result.footer === 'none' && result.scrollWidth === result.viewport;
+    const ok = result.step === step && result.headline && result.panel && result.stageWidth > 600 && result.drawing && result.callouts === 3 && !result.collidingCards && !result.cardsCoverDrawing && !result.duplicateReadingCard && result.header === 'none' && result.footer === 'none' && result.scrollWidth === result.viewport;
     if (!ok) errors.push(`story/${step}: ${JSON.stringify(result)}`);
     console.log(`story/${step}: ${ok ? 'distinct drawing, evidence panel and reserved non-overlapping callout band' : 'FAILED'}`);
   }

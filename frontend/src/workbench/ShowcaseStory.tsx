@@ -136,7 +136,7 @@ function ShowcaseStoryContent() {
       const local = areaViewState(plant, loaded.trace, engines, localScope, d.id === 'grinding' ? 'SAG' : d.id === 'separation' ? 'FL1' : 'SAG', replayStep, (id) => { setSelected(id); selectLinked(id, 'scene'); }, chooseLinkedArea);
       const callouts = referenceCallouts(plant, loaded.trace, d.id, lang, replayStep);
       const stage = <div className="ob-story-visual" data-story-stage-id={d.id}>
-        {d.id === 'context' ? <GlobalProcessMap s={local} linkedSelection={linkedSelection} onLinkedSelect={chooseLinkedArea}/> : d.id === 'separation' ? <AreaSchematicDiagram s={local} model={buildAreaModel(plant, 'flotation')} interactiveBoundaries={false}/> : <ComponentSection s={local} showSource={false}/>}
+        {d.id === 'context' ? <GlobalProcessMap s={local} linkedSelection={linkedSelection} onLinkedSelect={chooseLinkedArea}/> : d.id === 'separation' ? <AreaSchematicDiagram s={local} model={buildAreaModel(plant, 'flotation')} interactiveBoundaries={false}/> : <ComponentSection s={local} showSource={false} showReading={false}/>}
         <SceneCallouts items={callouts} placement="header"/>
       </div>;
       const headline = d.id === 'context'
