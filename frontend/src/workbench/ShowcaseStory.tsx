@@ -51,9 +51,9 @@ function referenceCallouts(plant: Plant, trace: Trace, id: StoryId, lang: 'en' |
   if (id === 'separation') {
     const b = boundaries(plant);
     return [
-      { id: 'flotation-feed', eyebrow: { en: 'SLURRY IN', es: 'PULPA DE ENTRADA' }, value: b.feed ? number(b.feed.nominal, lang) : '—', unit: { en: b.feed?.unit ?? 't/h', es: b.feed?.unit ?? 't/h' }, state: 'normal', anchor: { x: .25, y: .38 }, source: sourceLabel.reference },
-      { id: 'flotation-concentrate', eyebrow: { en: 'CONCENTRATE OUT', es: 'CONCENTRADO DE SALIDA' }, value: b.concentrate ? number(b.concentrate.nominal, lang) : '—', unit: { en: b.concentrate?.unit ?? 't/h', es: b.concentrate?.unit ?? 't/h' }, state: 'selected', anchor: { x: .68, y: .30 }, source: sourceLabel.reference },
-      { id: 'flotation-tailings', eyebrow: { en: 'TAILINGS OUT', es: 'RELAVES DE SALIDA' }, value: b.tailings ? number(b.tailings.nominal, lang) : '—', unit: { en: b.tailings?.unit ?? 't/h', es: b.tailings?.unit ?? 't/h' }, state: 'warning', anchor: { x: .7, y: .72 }, source: sourceLabel.reference },
+      { id: 'flotation-feed', eyebrow: { en: 'SLURRY IN', es: 'PULPA DE ENTRADA' }, value: b.feed ? number(b.feed.nominal, lang) : 'N/A', unit: { en: b.feed?.unit ?? 't/h', es: b.feed?.unit ?? 't/h' }, state: 'normal', anchor: { x: .25, y: .38 }, source: sourceLabel.reference },
+      { id: 'flotation-concentrate', eyebrow: { en: 'CONCENTRATE OUT', es: 'CONCENTRADO DE SALIDA' }, value: b.concentrate ? number(b.concentrate.nominal, lang) : 'N/A', unit: { en: b.concentrate?.unit ?? 't/h', es: b.concentrate?.unit ?? 't/h' }, state: 'selected', anchor: { x: .68, y: .30 }, source: sourceLabel.reference },
+      { id: 'flotation-tailings', eyebrow: { en: 'TAILINGS OUT', es: 'RELAVES DE SALIDA' }, value: b.tailings ? number(b.tailings.nominal, lang) : 'N/A', unit: { en: b.tailings?.unit ?? 't/h', es: b.tailings?.unit ?? 't/h' }, state: 'warning', anchor: { x: .7, y: .72 }, source: sourceLabel.reference },
     ];
   }
   const index = channelIndices(trace, 'SAG')[0];
@@ -62,8 +62,8 @@ function referenceCallouts(plant: Plant, trace: Trace, id: StoryId, lang: 'en' |
   const water = plant.streams.find((stream) => stream.target === 'SAG' && /m3\/h/i.test(stream.unit));
   const t = (en: string, es: string) => lang === 'es' ? es : en;
   return [
-    { id: 'mill-feed', eyebrow: { en: 'SAG FEED', es: 'ALIMENTACIÓN SAG' }, value: feed ? number(feed.nominal, lang) : '—', unit: { en: feed?.unit ?? 't/h', es: feed?.unit ?? 't/h' }, state: 'normal', anchor: { x: .2, y: .34 }, source: sourceLabel.reference },
-    { id: 'mill-water', eyebrow: { en: 'PROCESS WATER', es: 'AGUA DE PROCESO' }, value: water ? number(water.nominal, lang) : '—', unit: { en: water?.unit ?? 'm³/h', es: water?.unit ?? 'm³/h' }, state: 'selected', anchor: { x: .68, y: .22 }, source: sourceLabel.reference },
+    { id: 'mill-feed', eyebrow: { en: 'SAG FEED', es: 'ALIMENTACIÓN SAG' }, value: feed ? number(feed.nominal, lang) : 'N/A', unit: { en: feed?.unit ?? 't/h', es: feed?.unit ?? 't/h' }, state: 'normal', anchor: { x: .2, y: .34 }, source: sourceLabel.reference },
+    { id: 'mill-water', eyebrow: { en: 'PROCESS WATER', es: 'AGUA DE PROCESO' }, value: water ? number(water.nominal, lang) : 'N/A', unit: { en: water?.unit ?? 'm³/h', es: water?.unit ?? 'm³/h' }, state: 'selected', anchor: { x: .68, y: .22 }, source: sourceLabel.reference },
     { id: 'mill-replay', eyebrow: { en: 'SYNTHETIC REPLAY', es: 'REPLAY SINTÉTICO' }, value: replay === null ? t('No channel', 'Sin canal') : number(replay, lang), unit: { en: replay === null ? 'available' : trace.channels[index!]?.unit ?? '', es: replay === null ? 'disponible' : trace.channels[index!]?.unit ?? '' }, state: replay === null ? 'inactive' : 'normal', anchor: { x: .78, y: .72 }, source: sourceLabel.replay },
   ];
 }
@@ -143,7 +143,7 @@ function ShowcaseStoryContent() {
         ? { en: `${plant.assets.length} authored assets connect through ${plant.streams.length} streams`, es: `${plant.assets.length} activos declarados conectados por ${plant.streams.length} corrientes` }
         : d.id === 'separation'
           ? (() => { const f = boundaries(plant).feed; const v = number(f?.nominal ?? 0, lang); return { en: `${v} t/h slurry reaches the flotation boundary`, es: `La pulpa llega a flotación a ${v} t/h` }; })()
-          : (() => { const ch = channelIndices(loaded.trace, 'SAG')[0]; const v = ch === undefined ? null : snapshotValue(loaded.trace, 80, 'threshold', ch); const n = v === null ? '—' : number(v, lang); return { en: v === null ? 'SAG replay has no bound channel' : `SAG replay reads ${n} ${loaded.trace.channels[ch!]?.unit ?? ''}`, es: v === null ? 'El replay SAG no tiene canal vinculado' : `El replay SAG indica ${n} ${loaded.trace.channels[ch!]?.unit ?? ''}` }; })();
+          : (() => { const ch = channelIndices(loaded.trace, 'SAG')[0]; const v = ch === undefined ? null : snapshotValue(loaded.trace, 80, 'threshold', ch); const n = v === null ? 'N/A' : number(v, lang); return { en: v === null ? 'SAG replay has no bound channel' : `SAG replay reads ${n} ${loaded.trace.channels[ch!]?.unit ?? ''}`, es: v === null ? 'El replay SAG no tiene canal vinculado' : `El replay SAG indica ${n} ${loaded.trace.channels[ch!]?.unit ?? ''}` }; })();
       const params = new URLSearchParams({ case: loaded.manifest.case_id });
       if (safeReturnPath) params.set('from', safeReturnPath);
       const href = `/story/${d.id}?${params.toString()}`;
