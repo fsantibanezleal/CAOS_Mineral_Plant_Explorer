@@ -297,7 +297,7 @@
 @media(max-width:760px){.ob-component-heading{display:grid}.ob-component-reading{grid-template-columns:1fr auto;min-width:0}.ob-component-reading small{grid-column:1/-1}.ob-component-drawing-wrap{overflow-x:auto}.ob-component-drawing{width:760px;min-height:350px}.ob-component-boundaries{grid-template-columns:1fr}.ob-component-section{min-height:0}}
 
 /* The shell owns the Story frame. These app-owned hooks only tune our Story composition. */
-.app-shell.fixed .page-body.wide.ob-story-mode[data-story] { gap: .35rem; padding: .5rem .75rem; background: var(--color-bg); }
+.ob-story-mode[data-story] { gap: .35rem; padding: .5rem .75rem !important; background: var(--color-bg); }
 .ob-story-mode > header,
 .ob-story-mode > nav { flex: 0 0 auto; }
 .ob-story-mode > header > div:first-child > p { margin-top: .05rem; font-size: .76rem; line-height: 1.2; }
@@ -351,7 +351,7 @@
 .ob-story-launch { display: inline-flex; align-items: center; min-height: 34px; padding: .4rem .7rem; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-surface); color: var(--color-fg); font-size: .75rem; font-weight: 650; text-decoration: none; white-space: nowrap; }
 .ob-story-launch:hover { background: var(--color-surface-2); text-decoration: none; }
 @media (max-width: 760px) {
-  .app-shell.fixed .page-body.wide.ob-story-mode[data-story] { min-height: 100%; padding: .5rem; }
+  .ob-story-mode[data-story] { min-height: 100%; padding: .5rem !important; }
   .ob-story-mode > div > section { min-height: 46dvh; }
   .ob-story-mode > div > aside { max-height: 30dvh; }
   .ob-story-visual { padding-inline: 4px; box-sizing: border-box; }

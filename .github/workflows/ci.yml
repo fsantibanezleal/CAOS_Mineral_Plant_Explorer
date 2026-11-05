@@ -68,8 +68,8 @@ jobs:
         run: |
           base="$BEFORE"
           if [ -z "${base//0/}" ]; then
-            git fetch origin develop
-            base=origin/develop  # a new branch or a manual run has no before SHA
+            git fetch origin main
+            base=origin/main  # a new branch or a manual run has no before SHA
           fi
           python scripts/check_contract_versions.py --base "$base"
       - name: Every guard rejects a planted defect (spec area, cheap, standard library and pytest only)
