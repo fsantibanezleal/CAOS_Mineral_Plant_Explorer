@@ -40,6 +40,11 @@ def test_a_version_stated_twice_and_disagreeing_fails_the_coherence_guard(repo: 
     edit(repo, "frontend/package.json", f'"version": "{current}"', '"version": "9.9.9"')
     r = guard(repo, "check_version_coherence.py")
     assert r.returncode == 1 and "9.9.9" in r.stdout and r.stdout != before, r.stdout
+    stale_version = "0.02" + ".005"
+    edit(repo, ".zenodo.json", '"title": "fsantibanezleal/OreBridge: Mine-to-plant operations workbench",',
+         f'"title": "fsantibanezleal/OreBridge: {stale_version}",\n  "version": "{stale_version}",')
+    stale = guard(repo, "check_version_coherence.py")
+    assert stale.returncode == 1 and ".zenodo.json must not pin version" in stale.stdout, stale.stdout
 
 
 @needs_web
