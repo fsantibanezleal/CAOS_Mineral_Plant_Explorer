@@ -95,7 +95,7 @@ Listed so nobody takes a pass for more than it is; none is fixed in 0.05.000 (fo
 
 - `check_contract_versions.py`: the mechanical floor does not see `contains`, `dependentRequired`, `propertyNames`,
   `if`/`then` or `unevaluatedProperties` added as new constraints. `--base ''` (an empty ref) is read as no base
-  (CI cannot pass one: it falls back to `origin/develop`). In a product inside a subdirectory of a repository,
+  (CI cannot pass one: it falls back to `origin/main`). In a product inside a subdirectory of a repository,
   `git show REF:docs/contracts/catalog.md` is relative to the repository top, so the base catalog is not found and the
   check reads it as a first release.
 - `check_tech_matrix.py`: it has no `--base`; in `frontend/package-lock.json` it does not check that `resolved` names

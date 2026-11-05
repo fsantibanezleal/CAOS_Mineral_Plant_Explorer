@@ -17,6 +17,7 @@ const Implementation = lazy(() => import('./pages/Implementation').then((module)
 const Introduction = lazy(() => import('./pages/Introduction').then((module) => ({ default: module.Introduction })));
 const Methodology = lazy(() => import('./pages/Methodology').then((module) => ({ default: module.Methodology })));
 const Workbench = lazy(() => import('./workbench/Workbench').then((module) => ({ default: module.Workbench })));
+const ShowcaseStory = lazy(() => import('./workbench/ShowcaseStory').then((module) => ({ default: module.ShowcaseStory })));
 
 function RootLandingRedirect() {
   const location = useLocation();
@@ -49,6 +50,7 @@ export function App() {
           <Routes>
             <Route path="/" element={<RootLandingRedirect />} />
             <Route path="/app" element={<Workbench />} />
+            <Route path="/story/:step" element={<ShowcaseStory />} />
             <Route path="/introduction" element={<Introduction />} />
             <Route path="/methodology" element={<Methodology />} />
             <Route path="/implementation" element={<Implementation />} />

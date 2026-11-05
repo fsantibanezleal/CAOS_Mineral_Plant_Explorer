@@ -17,7 +17,7 @@ checkout hashes as a Linux one). The offline check (no ``--base``) fails when
   step from the contract's previous row (``1.0.0`` to ``1.1.0`` is minor, to ``2.0.0`` major, to ``1.0.1`` patch).
 
 The lock is only as honest as the commit that edits it: a schema change with the lock digest edited by hand passes the
-offline check. ``--base REF`` closes that (CI passes the push's ``before`` SHA, or ``origin/develop``, with
+offline check. ``--base REF`` closes that (CI passes the push's ``before`` SHA, or ``origin/main`` on a manual run, with
 ``fetch-depth: 0``). Against the schemas and the catalog at REF it fails when
 
 - a contract's schema differs from REF's (LF-normalised) and its version is not above REF's (a change without a bump,
@@ -400,7 +400,7 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[1])
     ap.add_argument("--base", metavar="REF", help="compare the schemas and versions with the same files at this git ref "
-                    "(CI: the push's before SHA or origin/develop, with fetch-depth: 0)")
+                    "(CI: the push's before SHA or origin/main on a manual run, with fetch-depth: 0)")
     ap.add_argument("--update", action="store_true", help="rewrite the lock after a deliberate bump")
     args = ap.parse_args(argv)
     root = args.repo_root.resolve()

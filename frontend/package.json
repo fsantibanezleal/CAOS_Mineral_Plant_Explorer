@@ -1,7 +1,7 @@
 {
   "name": "orebridge-frontend",
   "private": true,
-  "version": "0.2.5",
+  "version": "0.2.6",
   "license": "MIT",
   "type": "module",
   "scripts": {
@@ -15,10 +15,11 @@
     "test": "vitest run",
     "check:diagram-geometry": "node scripts/check_diagram_geometry.mjs",
     "gate": "node scripts/gate.mjs",
-    "check:visual-modes": "node scripts/check_visual_modes.mjs"
+    "check:visual-modes": "node scripts/check_visual_modes.mjs",
+    "check:story": "node scripts/check_story_mode.mjs"
   },
   "dependencies": {
-    "@fasl-work/caos-app-shell": "0.19.9",
+    "@fasl-work/caos-app-shell": "0.20.0",
     "katex": "0.19.1",
     "lucide-react": "^1.52.0",
     "react": "^19.3.0",
